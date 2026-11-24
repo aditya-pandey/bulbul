@@ -16,6 +16,8 @@ import { renderSheetHTML, fitSheet, clearFits, esc, stripEmphasis, SHEET_W, SHEE
 // Storage keys predate the current name. Keep them: renaming would orphan saved poems.
 const STORAGE_KEY = 'noor.poems.v1';
 const THEME_KEY = 'noor.theme';
+const MINE_KEY = 'noor.looks.mine';
+const RECENT_KEY = 'noor.looks.recent';
 const MODE_KEY = 'noor.mode';
 const BEGAN_KEY = 'noor.began';
 const HINT_KEY = 'noor.hints';
@@ -44,6 +46,7 @@ const ICONS = {
   share: `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15V3M8 7l4-4 4 4M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7"/></svg>`,
   undo: `<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 5L4 9l4 4M4 9h10a6 6 0 0 1 0 12h-3"/></svg>`,
   redo: `<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 5l4 4-4 4M20 9H10a6 6 0 0 0 0 12h3"/></svg>`,
+  heart: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20s-7.5-4.6-7.5-10.1A4.3 4.3 0 0 1 12 7.200a4.3 4.3 0 0 1 7.5 2.700C19.5 15.4 12 20 12 20z"/></svg>`,
   down: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9.5l6 6 6-6"/></svg>`,
   check: `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>`,
   close: `<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>`,
@@ -117,7 +120,8 @@ const state = {
   search: '',
   moodFilter: 'All',
   railTab: 'looks',
-  lookCat: 'all',
+  lookCat: 'you',
+  applying: '',
   looksShown: 16,
   artSub: 'minimal',
   fontCat: 'all',
@@ -243,6 +247,8 @@ function openPoem(id, { push = true } = {}) {
     state.viewing = null;
     state.slideIdx = 0;
     state.looksShown = 16;
+    state.applying = '';
+    state.lookCat = 'you';
     state.mode = localStorage.getItem(MODE_KEY) === 'write' ? 'write' : 'design';
     state.formatOpen = false;
     state.mobileSheetOpen = false;
@@ -976,6 +982,106 @@ function renderGallery() {
   `;
 }
 
+/* ---------- Choosing looks ---------- */
+
+const lookOf = id => LOOKS.find(l => l.id === id);
+function savedLooks(key) {
+  try { const a = JSON.parse(localStorage.getItem(key) || '[]'); return Array.isArray(a) ? a : []; } catch { return []; }
+}
+function keepLook(key, id, max = 60) {
+  localStorage.setItem(key, JSON.stringify([id, ...savedLooks(key).filter(x => x !== id)].slice(0, max)));
+}
+function toggleMine(id) {
+  const mine = savedLooks(MINE_KEY);
+  localStorage.setItem(MINE_KEY, JSON.stringify(mine.includes(id) ? mine.filter(x => x !== id) : [id, ...mine]));
+  render();
+}
+
+// Reads the poem for its length and a few plain cues, so the first row suits it.
+const CUES = [
+  [/rain|monsoon|umbrella|wet|बारिश|बरसात|सावन|भीग/i, ['umbrella', 'rickshaw', 'monsoon', 'moved-on']],
+  [/night|star|moon|dark|lantern|sleep|रात|तारे|चाँद|चांद|नींद/i, ['stars', 'lanterns', 'lighthouse', 'charpai', 'indigo', 'moonlit']],
+  [/sea|wave|shore|river|boat|ocean|समंदर|नदी|लहर|नाव|दरिया/i, ['sea', 'wave', 'nauka', 'paper-sea', 'whale', 'lotus']],
+  [/letter|wrote|write|ink|page|pen|ख़त|खत|कलम|कागज़|कागज|लिख/i, ['letter', 'airmail', 'postcard', 'notebook', 'telegram', 'chair']],
+  [/window|light|sun|dawn|morning|धूप|खिड़की|सुबह|रोशनी/i, ['window', 'golden', 'palm', 'arch-dawn', 'leaves']],
+  [/flower|rose|bloom|tree|garden|petal|leaf|फूल|गुलाब|पेड़|पत्त/i, ['cherry', 'vase', 'petals', 'vine', 'tulip', 'bulbul', 'fern']],
+  [/love|heart|you|kiss|प्यार|इश्क|दिल|मोहब्बत|तुम/i, ['embrace', 'gajra', 'umbrella', 'windows', 'threshold', 'petals']],
+  [/home|house|room|door|mother|घर|कमरा|दरवाज़|माँ|मां/i, ['storeys', 'threshold', 'chair', 'valley', 'train']],
+  [/bird|sky|fly|wing|पंछी|आसमान|उड़/i, ['bulbul', 'kites', 'stars', 'balloon', 'heron']],
+  [/city|train|road|street|शहर|रेल|सड़क|गली/i, ['train', 'rickshaw', 'kites', 'filmstrip']],
+  [/dance|song|music|sing|गीत|नाच|संगीत|सुर/i, ['twirl', 'music', 'bansuri', 'record', 'warli']]
+];
+function looksFor(poem) {
+  const text = `${poem.title} ${poem.body}`;
+  const { lines } = poemMetrics(poem.body);
+  const score = new Map();
+  const add = (id, n) => score.set(id, (score.get(id) || 0) + n);
+  for (const [re, ids] of CUES) {
+    const hits = (text.match(new RegExp(re.source, 'gi')) || []).length;
+    if (hits) ids.forEach((id, i) => add(id, Math.min(3, hits) * 3 - i * 0.35));
+  }
+  for (const l of LOOKS) {
+    const p = l.patch;
+    if (lines > 16) add(l.id, p.bgMode === 'solid' || p.layout === 'scene' ? 1.4 : p.layout === 'corner' ? 0.4 : -1.6);
+    else if (lines && lines <= 5) add(l.id, ['below', 'arch', 'print'].includes(p.layout) ? 1 : p.layout === 'corner' ? 0.8 : 0);
+    if (p.textStyle === 'blackout') add(l.id, lines > 12 ? -2 : 0);
+    if (isHindi(text) && l.cat === 'folk') add(l.id, 0.6);
+  }
+  const ranked = [...LOOKS].sort((a, b) => (score.get(b.id) || 0) - (score.get(a.id) || 0));
+  // At most three from a family, so the row stays varied
+  const seen = {};
+  return ranked.filter(l => (seen[l.cat] = (seen[l.cat] || 0) + 1) <= 3).slice(0, 12);
+}
+
+function lookCard(l, poem, mine) {
+  const on = poem.look === l.id;
+  const kept = mine.includes(l.id);
+  const sample = { ...poem, ...lookPatch(l, poem), carousel: false, title: poem.title || 'Untitled', body: poem.body || 'Begin with\none honest line,\nand let the page\ndo the rest.' };
+  return `
+    <div class="look-cell" data-cell="${l.id}">
+      <button type="button" class="look-btn${on ? ' on' : ''}" data-look="${l.id}" aria-pressed="${on}" aria-label="${esc(l.name)}">
+        <span class="look-frame${state.applying === l.id ? ' is-busy' : ''}"><span class="look-scale">${renderSheetHTML(sample, { thumb: true, ratio: '4:5' })}</span>${state.applying === l.id ? '<span class="ring" aria-hidden="true"></span>' : ''}</span>
+        <span class="look-nm">${esc(l.name)}</span>
+      </button>
+      <button type="button" class="look-heart${kept ? ' on' : ''}" data-heart="${l.id}" aria-pressed="${kept}" aria-label="${kept ? 'Remove' : 'Keep'} ${esc(l.name)} ${kept ? 'from' : 'in'} My Looks">${ICONS.heart}</button>
+    </div>`;
+}
+
+/* Hold the poster to see it as it was before this look */
+const lookWas = new Map();
+let peekTimer = 0;
+let peeking = false;
+function peekStart(target) {
+  clearTimeout(peekTimer);
+  const poem = getActivePoem();
+  if (!poem || !lookWas.has(poem.id) || poem.carousel || target.closest('input, textarea, button, #movable-text-col')) return;
+  peekTimer = setTimeout(() => {
+    const holder = sheetHolder();
+    if (!holder) return;
+    peeking = true;
+    const tpl = document.createElement('template');
+    tpl.innerHTML = renderSheetHTML({ ...poem, ...lookWas.get(poem.id) }, { thumb: true, ratio: poem.ratio || '4:5' }).trim();
+    const was = tpl.content.firstElementChild;
+    was.classList.add('sheet-peek');
+    was.setAttribute('data-morph-ignore', '');
+    was.setAttribute('aria-hidden', 'true');
+    was.querySelectorAll('img').forEach(i => i.removeAttribute('loading'));
+    holder.appendChild(was);
+    fitSheet(was);
+    was.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 180, easing: 'ease-out' });
+  }, 320);
+}
+function peekEnd() {
+  clearTimeout(peekTimer);
+  if (!peeking) return;
+  peeking = false;
+  document.querySelectorAll('.sheet-peek').forEach(n => n.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 180, easing: 'ease-out' }).finished.then(() => n.remove(), () => n.remove()));
+}
+document.addEventListener('pointerdown', e => { if (e.button === 0 && e.target.closest?.('#sheet-holder')) peekStart(e.target); });
+for (const t of ['pointerup', 'pointercancel', 'pointerleave']) document.addEventListener(t, peekEnd);
+document.addEventListener('pointermove', e => { if (Math.abs(e.movementX) + Math.abs(e.movementY) > 12) clearTimeout(peekTimer); });
+document.addEventListener('contextmenu', e => { if (peeking) e.preventDefault(); });
+
 function renderStudio(poem) {
   const st = resolveStyle(poem);
   const m = poemMetrics(poem.body);
@@ -999,22 +1105,21 @@ function renderStudio(poem) {
 
   let railContent = '';
   if (state.railTab === 'looks') {
-    const inCat = LOOKS.filter(l => state.lookCat === 'all' || l.cat === state.lookCat);
-    const shown = inCat.slice(0, state.looksShown);
+    const mine = savedLooks(MINE_KEY);
+    const recent = savedLooks(RECENT_KEY);
+    const rows = [
+      { id: 'you', label: 'For this poem', list: looksFor(poem) },
+      ...(recent.length ? [{ id: 'recent', label: 'Recent', list: recent.map(lookOf).filter(Boolean) }] : []),
+      ...(mine.length ? [{ id: 'mine', label: 'My Looks', list: mine.map(lookOf).filter(Boolean) }] : []),
+      ...LOOK_CATS.map(c => ({ ...c, list: c.id === 'all' ? LOOKS : LOOKS.filter(l => l.cat === c.id) }))
+    ];
+    const row = rows.find(r => r.id === state.lookCat) || rows[0];
+    const shown = row.list.slice(0, state.looksShown);
     railContent = `
-      <div class="subtabs" role="group" aria-label="Categories">${LOOK_CATS.map(c => `<button type="button" class="subtab${state.lookCat === c.id ? ' on' : ''}" data-lookcat="${c.id}">${esc(c.label)}</button>`).join('')}</div>
-      <div class="look-grid" data-grid="looks-${state.lookCat}">
-        ${shown.map(l => {
-          const patch = lookPatch(l, poem);
-          const on = poem.look === l.id;
-          const sample = { ...poem, ...patch, carousel: false, title: poem.title || 'Untitled', body: poem.body || 'Begin with\none honest line,\nand let the page\ndo the rest.' };
-          return `
-          <button type="button" class="look-btn${on ? ' on' : ''}" data-look="${l.id}" aria-pressed="${on}">
-            <span class="look-frame"><span class="look-scale">${renderSheetHTML(sample, { thumb: true, ratio: '4:5' })}</span></span>
-            <span class="look-nm">${esc(l.name)}</span>
-          </button>`;
-        }).join('')}
-        ${shown.length < inCat.length ? '<div class="look-more" data-more="looks"></div>' : ''}
+      <div class="subtabs" role="group" aria-label="Looks">${rows.map(r => `<button type="button" class="subtab${r === row ? ' on' : ''}" aria-pressed="${r === row}" data-lookcat="${r.id}">${esc(r.label)}</button>`).join('')}</div>
+      <div class="look-grid" data-grid="looks-${row.id}">
+        ${shown.map(l => lookCard(l, poem, mine)).join('')}
+        ${shown.length < row.list.length ? '<div class="look-more" data-more="looks"></div>' : ''}
       </div>
     `;
   } else if (state.railTab === 'artwork') {
@@ -1307,7 +1412,7 @@ function renderStudio(poem) {
 
         ${renderHint()}
         <div class="stage-footer">
-          <span id="metrics-lbl">${m.stanzas} ${m.stanzas === 1 ? 'stanza' : 'stanzas'} · ${m.lines} ${m.lines === 1 ? 'line' : 'lines'} · ${m.words} words · ~${m.syllables} syllables</span>
+          <span id="metrics-lbl">${m.stanzas} ${m.stanzas === 1 ? 'stanza' : 'stanzas'} · ${m.lines} ${m.lines === 1 ? 'line' : 'lines'} · ${m.words} words</span>
           <span class="stage-tip">${longHint.replace(/^<span class="stage-tip">|<\/span>$/g, '')}</span>
           <span class="save-chip${saveWarned ? ' is-off' : ''}" title="Poems are kept in this browser, on this device. Save a backup from the home page to keep a copy elsewhere.">${saveWarned ? 'Not saved: storage is full' : `${ICONS.check} Saved on this device`}</span>
         </div>
@@ -1429,7 +1534,7 @@ function liveUpdateMetricsAndScale(poem) {
   const rhythmMult = (RHYTHMS.find(r => r.id === st.rhythm) || RHYTHMS[1]).mult;
   const m = poemMetrics(poem.body);
   const lbl = document.getElementById('metrics-lbl');
-  if (lbl) lbl.textContent = `${m.stanzas} ${m.stanzas === 1 ? 'stanza' : 'stanzas'} · ${m.lines} ${m.lines === 1 ? 'line' : 'lines'} · ${m.words} words · ~${m.syllables} syllables`;
+  if (lbl) lbl.textContent = `${m.stanzas} ${m.stanzas === 1 ? 'stanza' : 'stanzas'} · ${m.lines} ${m.lines === 1 ? 'line' : 'lines'} · ${m.words} words`;
 
   const effCarouselRatio = st.ratio === 'auto' ? '4:5' : st.ratio;
   const slides = paginatePoem(poem.body, { ratio: effCarouselRatio, layout: st.layout });
@@ -1582,12 +1687,21 @@ function pickLook(id) {
   const poem = getActivePoem();
   if (!l || !poem) return;
   state.editingRich = false;
-  const patch = { ...lookPatch(l, poem), look: l.id };
+  const setting = lookPatch(l, poem);
+  // Kept for hold-to-compare
+  const lookBefore = Object.fromEntries(['look', ...Object.keys(setting), 'painting', 'paper'].map(k => [k, poem[k]]));
+  const patch = { ...setting, look: l.id };
   const art = patch.bgMode === 'art' ? ARTWORKS.find(a => a.id === patch.painting) : null;
   const assets = [art?.src, patch.atmos && finishSrc(patch.atmos), patch.light && finishSrc(patch.light), patch.charm && finishSrc(patch.charm)];
+  state.applying = id;
+  render();
   patchWhenReady(Promise.all([...assets.map(imageReady), fontReady(patch.font, poem.body)]), patch, () => {
+    state.applying = '';
+    lookWas.set(poem.id, lookBefore);
+    keepLook(RECENT_KEY, l.id, 12);
     if (art) state.artSub = art.grp;
     hintDone(1);
+    render();
     toast(`Look: ${l.name}`, 4200, { label: 'Undo', run: () => { if (getActivePoem() === poem) stepHistory(true); } });
   });
 }
@@ -1925,7 +2039,8 @@ const CLICKS = [
   ['[data-fontcat]', el => { state.fontCat = el.dataset.fontcat; render(); revealSubtab(); }],
 
   // Looks and finishes
-  ['[data-look]', el => pickLook(el.dataset.look)],
+  ['[data-heart]', el => toggleMine(el.dataset.heart)],
+  ['[data-look]', el => { if (state.applying !== el.dataset.look) pickLook(el.dataset.look); }],
   ['#look-reset-btn', () => pickLook(getActivePoem().look)],
   ['#no-picture-btn', removePicture],
   ['[data-lookcat]', el => { state.lookCat = el.dataset.lookcat; state.looksShown = 16; render(); revealSubtab(); }],

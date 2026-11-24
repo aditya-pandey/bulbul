@@ -1444,6 +1444,7 @@ button:focus-visible, input:focus-visible, textarea:focus-visible { outline: 2px
   }
   .studio-rail:not(.is-tall) .look-btn { contain-intrinsic-size: 88px 136px; }
   .studio-rail:not(.is-tall) .placement { order: 3; }
+  .studio-rail:not(.is-tall) .look-nm, .studio-rail:not(.is-tall) .paint-nm { display: none; }
   .studio-rail:not(.is-tall) .paint-grid { grid-auto-columns: 84px; }
   .studio-rail:not(.is-tall) .font-list { grid-auto-columns: 168px; }
   .studio-rail:not(.is-tall) .font-btn { flex-direction: column; justify-content: center; gap: var(--s-2); height: 92px; overflow: hidden; }
@@ -1456,3 +1457,18 @@ button:focus-visible, input:focus-visible, textarea:focus-visible { outline: 2px
   .rail-note { min-height: 44px; padding-bottom: 0; }
   .subtabs { top: -8px; margin-top: -8px; padding: 6px 16px; }
 }
+
+/* ================= LOOKS: keep, compare, wait ================= */
+.look-cell { position: relative; min-width: 0; }
+.look-cell .look-btn { width: 100%; }
+.look-heart { position: absolute; right: 4px; top: 4px; width: 32px; height: 32px; padding: 0; border: 0; border-radius: 50%; display: grid; place-items: center; background: color-mix(in srgb, var(--surface) 82%, transparent); color: var(--ink); opacity: 0; transition: opacity .2s ease, color .2s ease; }
+.look-cell:hover .look-heart, .look-heart:focus-visible, .look-heart.on { opacity: 1; }
+.look-heart.on { color: var(--accent); } .look-heart.on svg { fill: currentColor; }
+.look-frame.is-busy .look-scale { opacity: .55; }
+.ring { position: absolute; left: 50%; top: 50%; z-index: 3; width: 34px; height: 34px; margin: -17px 0 0 -17px; border-radius: 50%; border: 3px solid color-mix(in srgb, var(--ink) 18%, transparent); border-top-color: var(--accent); animation: ringTurn .46s linear infinite; }
+[data-motion="calm"] .ring { animation: ringPulse .46s ease-in-out infinite alternate; }
+@keyframes ringTurn { to { transform: rotate(360deg); } }
+@keyframes ringPulse { from { opacity: .35; } to { opacity: 1; } }
+.sheet-peek { z-index: 3; pointer-events: none; }
+#sheet-holder { -webkit-touch-callout: none; }
+@media (max-width: 860px), (pointer: coarse) { .look-heart { opacity: 1; width: 44px; height: 44px; right: -4px; top: -4px; background: transparent; } .look-heart svg { box-sizing: content-box; padding: 6px; border-radius: 50%; background: color-mix(in srgb, var(--surface) 86%, transparent); } }
