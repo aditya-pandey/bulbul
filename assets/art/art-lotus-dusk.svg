@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="520" height="520" viewBox="0 0 520 520" fill="none">
+  <defs>
+    <radialGradient id="sageAura" cx="55%" cy="48%" r="48%">
+      <stop offset="0%" stop-color="#8FA99B" stop-opacity="0.46"/>
+      <stop offset="70%" stop-color="#8FA99B" stop-opacity="0.18"/>
+      <stop offset="100%" stop-color="#8FA99B" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <!-- Misty sage watercolour wash -->
+  <path d="M168 124 C236 86, 356 96, 412 162 C448 206, 456 322, 416 392 C374 446, 206 442, 148 378 C104 328, 114 156, 168 124 Z" fill="url(#sageAura)"/>
+
+  <!-- Delicate swirling ink vine & quiet rain threads -->
+  <g stroke="#364A42" stroke-linecap="round" stroke-opacity="0.38">
+    <line x1="230" y1="138" x2="230" y2="338" stroke-width="1"/>
+    <line x1="274" y1="120" x2="274" y2="356" stroke-width="1"/>
+    <line x1="322" y1="132" x2="322" y2="362" stroke-width="1"/>
+    <line x1="366" y1="162" x2="366" y2="348" stroke-width="1"/>
+  </g>
+  <path d="M188 228 C164 198, 178 164, 212 168 C236 170, 240 198, 220 206 C206 212, 198 196, 208 188" stroke="#364A42" stroke-width="1.5" stroke-linecap="round" stroke-opacity="0.52"/>
+
+  <!-- Floating vermilion petals / sindoor confetti -->
+  <rect x="208" y="182" width="11" height="11" rx="2" transform="rotate(-14 208 182)" fill="#C63A32" fill-opacity="0.82"/>
+  <rect x="358" y="168" width="9" height="9" rx="2" transform="rotate(18 358 168)" fill="#C63A32" fill-opacity="0.76"/>
+  <rect x="292" y="294" width="8" height="8" rx="1.5" transform="rotate(-8 292 294)" fill="#C63A32" fill-opacity="0.72"/>
+
+  <!-- Blooming pink lotus stems rising from blue wave ribbon -->
+  <g stroke="#1E1A18" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+    <!-- Left lotus bud -->
+    <path d="M148 418 C146 392, 148 372, 152 356" fill="none"/>
+    <path d="M152 356 C138 352, 134 334, 148 320 C162 334, 162 352, 152 356 Z" fill="#D85B72"/>
+    <path d="M142 356 C130 344, 134 330, 142 326" fill="none"/>
+    <!-- Center main open lotus -->
+    <path d="M276 422 C276 372, 276 322, 278 272" fill="none" stroke-width="1.8"/>
+    <path d="M278 272 C250 264, 232 232, 250 204 C268 214, 276 242, 278 272 Z" fill="#E37C8E"/>
+    <path d="M278 272 C306 264, 324 232, 306 204 C288 214, 280 242, 278 272 Z" fill="#E37C8E"/>
+    <path d="M278 272 C262 246, 264 206, 278 188 C292 206, 294 246, 278 272 Z" fill="#F2B4BE"/>
+    <path d="M278 272 C240 274, 216 254, 222 234 C244 240, 262 254, 278 272 Z" fill="#C94B62"/>
+    <path d="M278 272 C316 274, 340 254, 334 234 C312 240, 294 254, 278 272 Z" fill="#C94B62"/>
+    <!-- Right lotus bud -->
+    <path d="M396 414 C398 390, 394 370, 390 352" fill="none"/>
+    <path d="M390 352 C378 346, 378 328, 392 316 C406 328, 404 346, 390 352 Z" fill="#D85B72"/>
+  </g>
+
+  <!-- Serene Indian folk-art blue water ribbon wave -->
+  <path d="M78 416 C132 396, 186 432, 256 412 C326 392, 384 430, 464 408 L458 430 C382 452, 324 416, 254 434 C184 452, 130 418, 84 436 Z" fill="#7EAED3" stroke="#1E1A18" stroke-width="1.6" stroke-linejoin="round"/>
+  <path d="M106 426 C158 412, 206 436, 268 422 C330 408, 380 434, 444 420" stroke="#F6F2EA" stroke-width="1.4" stroke-linecap="round" stroke-opacity="0.72"/>
+</svg>

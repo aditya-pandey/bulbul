@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="520" height="420" viewBox="0 0 520 420" fill="none">
+  <defs>
+    <linearGradient id="cupGlaze" x1="170" y1="200" x2="340" y2="330" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#E5E9EC"/>
+      <stop offset="60%" stop-color="#CDD6DC"/>
+      <stop offset="100%" stop-color="#B5C1C9"/>
+    </linearGradient>
+    <radialGradient id="teaTop" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#B37542" stop-opacity="0.88"/>
+      <stop offset="100%" stop-color="#8A5229" stop-opacity="0.92"/>
+    </radialGradient>
+  </defs>
+  <!-- Delicate curling ink steam -->
+  <path d="M236 176 C224 148, 250 124, 236 96 C226 76, 240 58, 234 46" stroke="#36322E" stroke-width="1.35" stroke-linecap="round" stroke-opacity="0.46"/>
+  <path d="M264 168 C278 138, 252 112, 268 82 C276 66, 266 50, 270 38" stroke="#36322E" stroke-width="1.2" stroke-linecap="round" stroke-opacity="0.34"/>
+  <path d="M290 176 C282 154, 300 136, 290 112" stroke="#36322E" stroke-width="1.05" stroke-linecap="round" stroke-opacity="0.28"/>
+
+  <!-- Saucer shadow & porcelain saucer -->
+  <ellipse cx="262" cy="350" rx="142" ry="16" fill="#2A241E" fill-opacity="0.10"/>
+  <ellipse cx="260" cy="336" rx="136" ry="22" fill="#DCE2E6" stroke="#2D2B29" stroke-width="1.5"/>
+  <ellipse cx="260" cy="333" rx="92" ry="12" stroke="#2D2B29" stroke-width="1" stroke-opacity="0.32"/>
+
+  <!-- Cup handle -->
+  <path d="M336 226 C374 224, 384 268, 356 286 C342 294, 326 290, 322 284" stroke="#2D2B29" stroke-width="9" stroke-linecap="round"/>
+  <path d="M336 226 C374 224, 384 268, 356 286 C342 294, 326 290, 322 284" stroke="#DCE2E6" stroke-width="6" stroke-linecap="round"/>
+
+  <!-- Ceramic cup body -->
+  <path d="M174 206 C174 282, 206 332, 260 332 C314 332, 344 282, 344 206 Z" fill="url(#cupGlaze)" stroke="#2D2B29" stroke-width="1.6" stroke-linejoin="round"/>
+  <!-- Cup rim & warm amber tea -->
+  <ellipse cx="259" cy="206" rx="85" ry="16" fill="#F2F0EB" stroke="#2D2B29" stroke-width="1.5"/>
+  <ellipse cx="259" cy="208" rx="74" ry="11.5" fill="url(#teaTop)"/>
+  <path d="M214 207 C234 203, 258 202, 282 205" stroke="#E5C49F" stroke-width="1.4" stroke-linecap="round" stroke-opacity="0.55"/>
+  <!-- Subtle stoneware rim line -->
+  <path d="M196 248 C222 256, 268 258, 318 248" stroke="#6E8290" stroke-width="1.2" stroke-opacity="0.45"/>
+</svg>

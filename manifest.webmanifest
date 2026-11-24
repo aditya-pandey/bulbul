@@ -1,0 +1,14 @@
+{
+  "name": "Noor — Poetry Studio",
+  "short_name": "Noor",
+  "description": "A quiet, tactile poetry writer and editorial studio.",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#F6F6F4",
+  "theme_color": "#181614",
+  "icons": [
+    { "src": "./assets/brand/kit/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "./assets/brand/noor-app-icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "./assets/brand/kit/maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

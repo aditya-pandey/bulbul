@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="600" height="800" viewBox="0 0 600 800" fill="none">
+  <defs>
+    <radialGradient id="petalWash" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#D9A79C" stop-opacity="0.45"/>
+      <stop offset="75%" stop-color="#D9A79C" stop-opacity="0.16"/>
+      <stop offset="100%" stop-color="#D9A79C" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <!-- Soft blush watercolour halo behind bloom -->
+  <circle cx="318" cy="242" r="68" fill="url(#petalWash)"/>
+  <!-- Continuous graceful ink stem -->
+  <path d="M274 664 C266 560, 274 446, 304 338 C314 300, 319 272, 316 244" stroke="#201D1A" stroke-width="1.5" stroke-linecap="round" stroke-opacity="0.82"/>
+  <!-- Delicate fine-line petals -->
+  <path d="M316 244 C290 230, 272 204, 282 184 C294 172, 316 196, 318 228" stroke="#201D1A" stroke-width="1.25" stroke-linecap="round" stroke-opacity="0.78"/>
+  <path d="M316 244 C344 232, 368 206, 356 184 C342 170, 320 198, 318 228" stroke="#201D1A" stroke-width="1.25" stroke-linecap="round" stroke-opacity="0.78"/>
+  <path d="M316 244 C292 252, 266 242, 258 222 C258 206, 286 218, 314 238" stroke="#201D1A" stroke-width="1.15" stroke-linecap="round" stroke-opacity="0.65"/>
+  <path d="M316 244 C342 254, 372 246, 376 226 C374 208, 344 220, 318 240" stroke="#201D1A" stroke-width="1.15" stroke-linecap="round" stroke-opacity="0.65"/>
+  <path d="M318 228 C312 198, 314 170, 324 160 C334 172, 330 200, 318 228" stroke="#201D1A" stroke-width="1.2" stroke-linecap="round" stroke-opacity="0.72"/>
+  <!-- Three poised leaves along stem -->
+  <path d="M286 418 C250 402, 224 374, 214 344 C244 352, 272 378, 286 418 Z" stroke="#201D1A" stroke-width="1.2" stroke-linejoin="round" stroke-opacity="0.72"/>
+  <path d="M286 418 C262 394, 240 374, 226 356" stroke="#201D1A" stroke-width="0.8" stroke-opacity="0.42"/>
+  <path d="M276 502 C314 484, 344 456, 362 428 C328 438, 296 464, 276 502 Z" stroke="#201D1A" stroke-width="1.2" stroke-linejoin="round" stroke-opacity="0.72"/>
+  <path d="M276 502 C304 478, 330 456, 348 440" stroke="#201D1A" stroke-width="0.8" stroke-opacity="0.42"/>
+  <path d="M272 566 C244 556, 222 538, 212 518 C236 522, 258 540, 272 566 Z" stroke="#201D1A" stroke-width="1.1" stroke-linejoin="round" stroke-opacity="0.58"/>
+</svg>

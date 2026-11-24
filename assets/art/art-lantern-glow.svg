@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="520" height="520" viewBox="0 0 520 520" fill="none">
+  <defs>
+    <radialGradient id="lanternGlow" cx="50%" cy="54%" r="48%">
+      <stop offset="0%" stop-color="#F2B857" stop-opacity="0.44"/>
+      <stop offset="48%" stop-color="#E59B3E" stop-opacity="0.16"/>
+      <stop offset="100%" stop-color="#E59B3E" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="flameCore" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#FFF5D6" stop-opacity="0.98"/>
+      <stop offset="65%" stop-color="#F2B857" stop-opacity="0.82"/>
+      <stop offset="100%" stop-color="#E59B3E" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <!-- Warm glowing radial halo -->
+  <circle cx="272" cy="284" r="210" fill="url(#lanternGlow)"/>
+
+  <!-- Fine hanging cord from top branch -->
+  <path d="M180 42 C252 62, 336 62, 438 36" stroke="#DFBE7A" stroke-width="1.5" stroke-linecap="round" stroke-opacity="0.58"/>
+  <line x1="272" y1="54" x2="272" y2="156" stroke="#DFBE7A" stroke-width="1.4" stroke-opacity="0.72"/>
+
+  <!-- Poetic brass-and-glass lantern -->
+  <g stroke="#DFBE7A" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+    <!-- Top ring & dome cap -->
+    <circle cx="272" cy="166" r="10"/>
+    <path d="M234 196 C244 176, 300 176, 310 196 Z" fill="#2A241E"/>
+    <line x1="224" y1="196" x2="320" y2="196" stroke-width="2"/>
+    <!-- Glass lantern body -->
+    <path d="M234 196 L226 322 C226 334, 240 344, 272 344 C304 344, 318 334, 318 322 L310 196 Z" fill="#F2B857" fill-opacity="0.14"/>
+    <line x1="256" y1="196" x2="252" y2="342" stroke-opacity="0.48"/>
+    <line x1="288" y1="196" x2="292" y2="342" stroke-opacity="0.48"/>
+    <!-- Base pedestal & delicate tassel -->
+    <path d="M232 344 H312 L302 360 H242 Z" fill="#2A241E"/>
+    <line x1="272" y1="360" x2="272" y2="412" stroke-opacity="0.65"/>
+    <circle cx="272" cy="368" r="4" fill="#DFBE7A"/>
+  </g>
+
+  <!-- Glowing inner candle flame -->
+  <circle cx="272" cy="276" r="36" fill="url(#flameCore)"/>
+  <path d="M272 248 C280 264, 282 280, 272 288 C262 280, 264 264, 272 248 Z" fill="#FFF8E2"/>
+
+  <!-- Drifting golden fireflies -->
+  <circle cx="152" cy="242" r="3" fill="#F2C97D" fill-opacity="0.82"/>
+  <circle cx="386" cy="212" r="2.6" fill="#F2C97D" fill-opacity="0.74"/>
+  <circle cx="398" cy="332" r="3.2" fill="#F2C97D" fill-opacity="0.78"/>
+  <circle cx="182" cy="376" r="2.4" fill="#F2C97D" fill-opacity="0.62"/>
+  <circle cx="344" cy="396" r="2" fill="#F2C97D" fill-opacity="0.52"/>
+</svg>

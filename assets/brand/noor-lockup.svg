@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 256" width="760" height="256" role="img" aria-labelledby="noor-lock-t">
+  <title id="noor-lock-t">Noor horizontal logo</title>
+  <g id="symbol">
+    <path fill="#181614" d="M44 64 A20 20 0 0 1 64 44 H98 L168 165.2 V116 H212 V192 A20 20 0 0 1 192 212 H158 L88 90.8 V212 H44 Z"/>
+    <circle fill="#C48B3B" cx="190" cy="66" r="22"/>
+  </g>
+  <g id="wordmark" transform="translate(264 32) scale(1.12)" fill="#181614">
+    <path d="M20 64 H35 V82 C44 69 58 62 76 62 C102 62 116 78 116 105 V146 H101 V107 C101 87 91 76 72 76 C52 76 35 89 35 110 V146 H20 Z"/>
+    <path fill-rule="evenodd" d="M178 62 A42 43 0 1 0 178.1 62 Z M178 75 A27 30 0 1 1 177.9 75 Z"/>
+    <path fill-rule="evenodd" d="M270 62 A42 43 0 1 0 270.1 62 Z M270 75 A27 30 0 1 1 269.9 75 Z"/>
+    <path d="M334 64 H349 V84 C357 70 370 62 387 62 C394 62 399 63 403 65 L398 79 C394 77 390 76 384 76 C364 76 349 91 349 113 V146 H334 Z"/>
+    <circle fill="#C48B3B" cx="224" cy="36" r="11"/>
+  </g>
+</svg>

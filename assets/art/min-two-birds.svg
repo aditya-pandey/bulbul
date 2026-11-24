@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="600" height="800" viewBox="0 0 600 800" fill="none">
+  <!-- Delicate terracotta orbital arc -->
+  <path d="M138 492 A210 210 0 0 1 464 268" stroke="#B2674A" stroke-width="1.2" stroke-opacity="0.42"/>
+  <circle cx="386" cy="264" r="52" fill="#D59A74" fill-opacity="0.26"/>
+  <!-- Upper swallow — continuous minimal calligraphic stroke -->
+  <path d="M188 342 C226 306, 266 302, 294 328 C316 286, 356 262, 412 252 C368 286, 336 318, 304 348 C274 340, 232 340, 188 342 Z" fill="#211D19" fill-opacity="0.84"/>
+  <path d="M292 338 L244 388 L286 356 L262 396 L306 348" stroke="#211D19" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" stroke-opacity="0.72"/>
+  <!-- Lower distant swallow -->
+  <path d="M196 472 C222 452, 248 450, 266 468 C284 440, 314 426, 352 422 C320 444, 296 464, 272 482 C252 476, 224 474, 196 472 Z" fill="#211D19" fill-opacity="0.62"/>
+  <!-- Tiny third bird high on the horizon -->
+  <path d="M402 184 C408 178, 416 178, 421 184 C427 179, 434 180, 438 186 C432 183, 426 184, 421 188 C416 184, 409 183, 402 184 Z" fill="#211D19" fill-opacity="0.52"/>
+</svg>

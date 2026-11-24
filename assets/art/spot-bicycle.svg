@@ -1,0 +1,83 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="380" viewBox="0 0 640 380" fill="none">
+  <defs>
+    <radialGradient id="bikeShadow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#2A241E" stop-opacity="0.16"/>
+      <stop offset="75%" stop-color="#2A241E" stop-opacity="0.06"/>
+      <stop offset="100%" stop-color="#2A241E" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <!-- Soft ground shadow -->
+  <ellipse cx="320" cy="336" rx="224" ry="12" fill="url(#bikeShadow)"/>
+
+  <!-- Rear wheel (cx=178, cy=244, r=84) -->
+  <g stroke="#2C2A28">
+    <circle cx="178" cy="244" r="84" stroke-width="7" stroke="#36322E"/>
+    <circle cx="178" cy="244" r="76" stroke-width="2" stroke="#9EA6AC"/>
+    <g stroke="#7A7F84" stroke-width="1" stroke-opacity="0.65">
+      <line x1="178" y1="168" x2="178" y2="320"/><line x1="102" y1="244" x2="254" y2="244"/>
+      <line x1="124" y1="190" x2="232" y2="298"/><line x1="232" y1="190" x2="124" y2="298"/>
+      <line x1="148" y1="174" x2="208" y2="314"/><line x1="208" y1="174" x2="148" y2="314"/>
+      <line x1="108" y1="214" x2="248" y2="274"/><line x1="248" y1="214" x2="108" y2="274"/>
+    </g>
+    <circle cx="178" cy="244" r="7" fill="#5D646B" stroke="#2C2A28" stroke-width="1.5"/>
+  </g>
+
+  <!-- Front wheel (cx=466, cy=244, r=84) -->
+  <g stroke="#2C2A28">
+    <circle cx="466" cy="244" r="84" stroke-width="7" stroke="#36322E"/>
+    <circle cx="466" cy="244" r="76" stroke-width="2" stroke="#9EA6AC"/>
+    <g stroke="#7A7F84" stroke-width="1" stroke-opacity="0.65">
+      <line x1="466" y1="168" x2="466" y2="320"/><line x1="390" y1="244" x2="542" y2="244"/>
+      <line x1="412" y1="190" x2="520" y2="298"/><line x1="520" y1="190" x2="412" y2="298"/>
+      <line x1="436" y1="174" x2="496" y2="314"/><line x1="496" y1="174" x2="436" y2="314"/>
+      <line x1="396" y1="214" x2="536" y2="274"/><line x1="536" y1="214" x2="396" y2="274"/>
+    </g>
+    <circle cx="466" cy="244" r="7" fill="#5D646B" stroke="#2C2A28" stroke-width="1.5"/>
+  </g>
+
+  <!-- Sky-blue fenders -->
+  <path d="M96 228 A88 88 0 0 1 258 208" stroke="#4D86B0" stroke-width="8" stroke-linecap="round"/>
+  <path d="M98 228 A88 88 0 0 1 256 208" stroke="#85B6D9" stroke-width="2" stroke-linecap="round" stroke-opacity="0.7"/>
+  <path d="M382 214 A88 88 0 0 1 548 228" stroke="#4D86B0" stroke-width="8" stroke-linecap="round"/>
+  <path d="M384 214 A88 88 0 0 1 546 228" stroke="#85B6D9" stroke-width="2" stroke-linecap="round" stroke-opacity="0.7"/>
+
+  <!-- Classic step-through blue bicycle frame -->
+  <g stroke="#3F78A4" stroke-linecap="round" stroke-linejoin="round">
+    <!-- Rear stay + seat tube -->
+    <line x1="178" y1="244" x2="254" y2="150" stroke-width="6.5"/>
+    <line x1="178" y1="244" x2="312" y2="254" stroke-width="7"/>
+    <line x1="254" y1="150" x2="312" y2="254" stroke-width="9"/>
+    <!-- Curved step-through down tubes -->
+    <path d="M312 254 C350 248, 376 218, 404 142" stroke-width="9.5"/>
+    <path d="M270 178 C320 202, 360 190, 398 128" stroke-width="7"/>
+    <!-- Front fork & head tube -->
+    <line x1="394" y1="112" x2="466" y2="244" stroke-width="8.5"/>
+  </g>
+  <!-- Subtle light highlight along frame -->
+  <path d="M314 252 C350 246, 376 216, 402 142" stroke="#89B9DC" stroke-width="2" stroke-linecap="round" stroke-opacity="0.65"/>
+
+  <!-- Blue chain guard & crank -->
+  <path d="M178 236 L312 238 A18 18 0 0 1 312 272 L178 256 Z" fill="#4D86B0" stroke="#2D5778" stroke-width="1.5"/>
+  <circle cx="312" cy="254" r="14" fill="#6398C0" stroke="#2D5778" stroke-width="1.5"/>
+  <line x1="312" y1="254" x2="338" y2="288" stroke="#4D545B" stroke-width="4.5" stroke-linecap="round"/>
+  <rect x="328" y="286" width="22" height="7" rx="3" fill="#3B3733"/>
+
+  <!-- Seat post & warm tan leather saddle -->
+  <line x1="254" y1="150" x2="242" y2="118" stroke="#7A8289" stroke-width="5.5" stroke-linecap="round"/>
+  <path d="M206 112 C222 104, 258 106, 276 114 C272 124, 252 126, 232 126 C214 126, 202 122, 206 112 Z" fill="#A67449" stroke="#6E492B" stroke-width="1.5"/>
+  <path d="M214 113 C232 109, 252 110, 268 114" stroke="#C99B6E" stroke-width="2" stroke-linecap="round" stroke-opacity="0.7"/>
+
+  <!-- Stem, swept handlebars, cork grip & silver bell -->
+  <path d="M394 112 L386 78 C384 72, 376 72, 356 80" stroke="#7A8289" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M362 78 L334 86" stroke="#A67449" stroke-width="10" stroke-linecap="round"/>
+  <path d="M360 77 L336 84" stroke="#CA9D72" stroke-width="2.5" stroke-linecap="round" stroke-opacity="0.65"/>
+  <!-- Silver bell -->
+  <path d="M380 71 A9 9 0 0 1 398 71 Z" fill="#C4C9CE" stroke="#5A6168" stroke-width="1.4"/>
+  <line x1="378" y1="72" x2="400" y2="72" stroke="#5A6168" stroke-width="2" stroke-linecap="round"/>
+
+  <!-- Delicate terracotta-peach ribbon tied beneath handlebar -->
+  <path d="M398 92 C414 82, 424 88, 412 100 C406 105, 398 100, 398 92 Z" fill="#D58268" stroke="#9E543E" stroke-width="1.2"/>
+  <path d="M398 96 C410 112, 422 126, 434 138" stroke="#D58268" stroke-width="4.5" stroke-linecap="round"/>
+  <path d="M398 96 C404 116, 408 134, 414 150" stroke="#C67157" stroke-width="4" stroke-linecap="round"/>
+  <circle cx="398" cy="94" r="4" fill="#C26B51"/>
+</svg>

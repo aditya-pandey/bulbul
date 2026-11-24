@@ -1,0 +1,67 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="520" height="520" viewBox="0 0 520 520" fill="none">
+  <defs>
+    <radialGradient id="saffronWash" cx="54%" cy="54%" r="48%">
+      <stop offset="0%" stop-color="#F29418" stop-opacity="0.92"/>
+      <stop offset="72%" stop-color="#E67E12" stop-opacity="0.82"/>
+      <stop offset="100%" stop-color="#E67E12" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <!-- Organic painterly marigold / saffron gouache splash behind the bicycle -->
+  <path d="M188 154 C242 118, 344 126, 392 172 C424 204, 434 272, 418 336 C404 388, 366 430, 294 434 C222 438, 162 414, 134 364 C106 312, 136 188, 188 154 Z" fill="url(#saffronWash)"/>
+  <path d="M214 142 C268 124, 348 138, 384 190 C412 232, 410 342, 362 396 C318 440, 178 424, 152 356 C126 290, 168 158, 214 142 Z" fill="#F59B1A" fill-opacity="0.48"/>
+  <!-- Painterly brush edges -->
+  <circle cx="164" cy="212" r="24" fill="#F29418" fill-opacity="0.55"/>
+  <circle cx="406" cy="264" r="22" fill="#E98212" fill-opacity="0.45"/>
+
+  <!-- Ground ink line -->
+  <path d="M74 436 Q268 432 456 438" stroke="#1E1813" stroke-width="2.4" stroke-linecap="round"/>
+
+  <!-- Minimalist black-ink vintage bicycle + couple in kurta & saree -->
+  <!-- Front & Rear wheels -->
+  <g stroke="#1E1813" stroke-linecap="round">
+    <circle cx="164" cy="378" r="56" stroke-width="5"/>
+    <circle cx="164" cy="378" r="48" stroke-width="1.4" stroke-opacity="0.55"/>
+    <circle cx="352" cy="378" r="56" stroke-width="5"/>
+    <circle cx="352" cy="378" r="48" stroke-width="1.4" stroke-opacity="0.55"/>
+    <!-- Delicate spokes -->
+    <g stroke-width="1.2" stroke-opacity="0.55">
+      <line x1="164" y1="326" x2="164" y2="430"/><line x1="112" y1="378" x2="216" y2="378"/>
+      <line x1="127" y1="341" x2="201" y2="415"/><line x1="201" y1="341" x2="127" y2="415"/>
+      <line x1="352" y1="326" x2="352" y2="430"/><line x1="300" y1="378" x2="404" y2="378"/>
+      <line x1="315" y1="341" x2="389" y2="415"/><line x1="389" y1="341" x2="315" y2="415"/>
+    </g>
+    <!-- Frame & handlebar -->
+    <path d="M164 378 L216 266 L192 262 M216 266 L262 378 L352 378 M206 300 L312 308 L262 378" stroke-width="3.6" stroke-linejoin="round"/>
+  </g>
+
+  <!-- Rider (in white ink-outlined kurta, leaning gently forward) -->
+  <g stroke="#1E1813" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+    <!-- Kurta body -->
+    <path d="M276 226 C296 226, 316 244, 320 274 L328 338 L254 342 L250 282 C250 250, 260 226, 276 226 Z" fill="#FBF7EE"/>
+    <!-- Arms reaching to handlebar -->
+    <path d="M268 248 L224 274 L198 266" fill="none"/>
+    <!-- Legs pedaling -->
+    <path d="M266 340 L238 378 L252 404" fill="none"/>
+    <path d="M294 340 L272 384 L288 398" fill="none"/>
+    <!-- Head & hair -->
+    <circle cx="272" cy="196" r="18" fill="#FBF7EE"/>
+    <path d="M256 190 C256 172, 282 168, 292 184 C284 182, 270 184, 256 190 Z" fill="#1E1813"/>
+    <circle cx="264" cy="196" r="1.6" fill="#1E1813"/>
+  </g>
+
+  <!-- Companion seated behind (leaning back smiling toward the sky, saree & flowing hair) -->
+  <g stroke="#1E1813" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+    <!-- Flowing dark hair -->
+    <path d="M366 232 C386 238, 398 262, 396 292 C394 316, 382 328, 372 326 C362 316, 366 278, 356 248 Z" fill="#1E1813"/>
+    <!-- Saree drape -->
+    <path d="M342 260 C358 262, 376 280, 380 314 L384 366 L326 364 L326 294 C328 272, 334 260, 342 260 Z" fill="#FBF7EE"/>
+    <path d="M332 284 C348 296, 364 316, 378 342" fill="none" stroke-width="1.6"/>
+    <!-- Head upturned happily -->
+    <circle cx="352" cy="240" r="16" fill="#FBF7EE"/>
+    <path d="M346 238 Q350 235 354 238" fill="none" stroke-width="1.5"/>
+    <!-- Sparkle lines of quiet joy -->
+    <line x1="382" y1="212" x2="390" y2="204" stroke-width="1.6"/>
+    <line x1="392" y1="222" x2="402" y2="220" stroke-width="1.6"/>
+    <line x1="252" y1="168" x2="246" y2="158" stroke-width="1.6"/>
+  </g>
+</svg>

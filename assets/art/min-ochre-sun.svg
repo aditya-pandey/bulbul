@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="600" height="800" viewBox="0 0 600 800" fill="none">
+  <defs>
+    <radialGradient id="sunWash" cx="46%" cy="44%" r="54%">
+      <stop offset="0%" stop-color="#D4A46A" stop-opacity="0.88"/>
+      <stop offset="68%" stop-color="#C18D52" stop-opacity="0.78"/>
+      <stop offset="93%" stop-color="#B07A42" stop-opacity="0.62"/>
+      <stop offset="100%" stop-color="#B07A42" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="sunHalo" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#D7AC74" stop-opacity="0.22"/>
+      <stop offset="70%" stop-color="#D7AC74" stop-opacity="0.06"/>
+      <stop offset="100%" stop-color="#D7AC74" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <!-- Soft painterly sun glow & organic orb -->
+  <circle cx="330" cy="310" r="175" fill="url(#sunHalo)"/>
+  <path d="M330 198 C392 196, 444 246, 442 309 C440 374, 391 424, 328 422 C266 420, 217 371, 219 308 C221 247, 268 200, 330 198 Z" fill="url(#sunWash)"/>
+  <circle cx="333" cy="306" r="106" fill="#C9965B" fill-opacity="0.24"/>
+
+  <!-- Delicate ink birds in quiet flight -->
+  <g fill="#26211C">
+    <path d="M188 192 C194 185, 203 185, 208 192 C214 186, 223 187, 227 194 C220 191, 214 192, 208 197 C203 192, 195 190, 188 192 Z"/>
+    <path d="M244 152 C248 147, 255 147, 259 152 C264 148, 270 149, 273 154 C268 152, 263 152, 259 156 C255 152, 249 151, 244 152 Z" opacity="0.88"/>
+    <path d="M142 248 C148 242, 157 242, 162 248 C168 243, 176 244, 180 250 C174 248, 168 248, 162 253 C157 248, 149 247, 142 248 Z" opacity="0.82"/>
+    <path d="M276 246 C281 241, 288 241, 292 246 C297 242, 304 243, 307 248 C302 246, 297 246, 292 250 C288 246, 282 245, 276 246 Z" opacity="0.78"/>
+    <path d="M352 294 C356 290, 362 290, 366 294 C370 291, 376 291, 378 296 C374 294, 370 294, 366 298 C362 294, 357 293, 352 294 Z" opacity="0.75"/>
+    <path d="M308 134 C311 130, 316 130, 319 134 C323 131, 328 132, 330 135 C326 134, 322 134, 319 137 C316 134, 312 133, 308 134 Z" opacity="0.65"/>
+    <path d="M214 318 C219 313, 226 313, 230 318 C235 314, 241 315, 244 320 C239 318, 234 318, 230 322 C226 318, 220 317, 214 318 Z" opacity="0.72"/>
+  </g>
+
+  <!-- Subtle dry-brush horizon & floating ink flecks -->
+  <path d="M110 568 Q300 562 490 570" stroke="#2B241E" stroke-width="1.4" stroke-linecap="round" stroke-opacity="0.48"/>
+  <path d="M195 588 Q320 585 430 589" stroke="#2B241E" stroke-width="0.9" stroke-linecap="round" stroke-opacity="0.25"/>
+  <circle cx="242" cy="462" r="2.2" fill="#B5834B" fill-opacity="0.55"/>
+  <circle cx="388" cy="442" r="1.7" fill="#B5834B" fill-opacity="0.45"/>
+  <circle cx="288" cy="492" r="1.4" fill="#2B241E" fill-opacity="0.32"/>
+</svg>

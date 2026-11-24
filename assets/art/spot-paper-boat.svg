@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="560" height="360" viewBox="0 0 560 360" fill="none">
+  <!-- Folded cream origami paper boat -->
+  <!-- Inner back sail -->
+  <polygon points="280,76 206,222 354,222" fill="#E9DFCE" stroke="#25211D" stroke-width="1.5" stroke-linejoin="round"/>
+  <!-- Center sail shadow crease -->
+  <polygon points="280,76 280,222 354,222" fill="#DDD0BA" stroke="#25211D" stroke-width="1.2" stroke-linejoin="round"/>
+  <!-- Left & right outer hull folds -->
+  <polygon points="104,196 280,256 206,222" fill="#F4EDE0" stroke="#25211D" stroke-width="1.5" stroke-linejoin="round"/>
+  <polygon points="456,196 280,256 354,222" fill="#E3D7C3" stroke="#25211D" stroke-width="1.5" stroke-linejoin="round"/>
+  <!-- Front hull base -->
+  <polygon points="104,196 158,266 402,266 456,196 280,248" fill="#F8F3E9" stroke="#25211D" stroke-width="1.6" stroke-linejoin="round"/>
+  <polygon points="280,248 280,266 402,266 456,196" fill="#E8DDCA" stroke="#25211D" stroke-width="1.2" stroke-linejoin="round"/>
+  <!-- Subtle warm gold fold highlight -->
+  <line x1="280" y1="84" x2="280" y2="246" stroke="#B87F32" stroke-width="1" stroke-opacity="0.45"/>
+
+  <!-- Gentle ink water reflection ripples -->
+  <path d="M126 282 Q280 290 434 282" stroke="#25211D" stroke-width="1.35" stroke-linecap="round" stroke-opacity="0.56"/>
+  <path d="M174 302 Q280 308 386 302" stroke="#4D758F" stroke-width="1.2" stroke-linecap="round" stroke-opacity="0.46"/>
+  <path d="M222 320 Q280 324 338 320" stroke="#25211D" stroke-width="1" stroke-linecap="round" stroke-opacity="0.30"/>
+</svg>

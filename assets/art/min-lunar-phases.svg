@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="600" height="800" viewBox="0 0 600 800" fill="none">
+  <!-- Vertical meridian thread -->
+  <line x1="300" y1="88" x2="300" y2="712" stroke="#221E1A" stroke-width="0.9" stroke-opacity="0.22"/>
+  <!-- 1: Top New Moon outline -->
+  <circle cx="300" cy="148" r="28" stroke="#221E1A" stroke-width="1.25" stroke-opacity="0.68"/>
+  <!-- 2: Waxing Crescent -->
+  <circle cx="300" cy="274" r="30" stroke="#221E1A" stroke-width="1" stroke-opacity="0.22"/>
+  <path d="M300 244 A30 30 0 1 1 300 304 A20 30 0 1 0 300 244 Z" fill="#221E1A" fill-opacity="0.82"/>
+  <!-- 3: Center Full Noor Gold Moon -->
+  <circle cx="300" cy="400" r="44" fill="#D2A058" fill-opacity="0.24"/>
+  <circle cx="300" cy="400" r="34" fill="#C99449" fill-opacity="0.82"/>
+  <circle cx="300" cy="400" r="56" stroke="#B87F32" stroke-width="0.8" stroke-dasharray="2 6" stroke-opacity="0.45"/>
+  <!-- 4: Waning Crescent -->
+  <circle cx="300" cy="526" r="30" stroke="#221E1A" stroke-width="1" stroke-opacity="0.22"/>
+  <path d="M300 496 A30 30 0 1 0 300 556 A20 30 0 1 1 300 496 Z" fill="#221E1A" fill-opacity="0.82"/>
+  <!-- 5: Bottom New Moon outline -->
+  <circle cx="300" cy="652" r="28" stroke="#221E1A" stroke-width="1.25" stroke-opacity="0.68"/>
+  <!-- Pinpoint stars -->
+  <circle cx="226" cy="340" r="1.8" fill="#B87F32" fill-opacity="0.65"/>
+  <circle cx="378" cy="456" r="1.8" fill="#B87F32" fill-opacity="0.65"/>
+  <circle cx="362" cy="212" r="1.4" fill="#221E1A" fill-opacity="0.4"/>
+  <circle cx="238" cy="586" r="1.4" fill="#221E1A" fill-opacity="0.4"/>
+</svg>
