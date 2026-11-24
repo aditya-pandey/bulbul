@@ -29,6 +29,18 @@
 
 Red marks the one primary action on a screen. Selected options use ink.
 
+### Space, corners and type
+All chrome uses these tokens (`styles.css`, `:root`). Poster styles (`.poem-*`) keep their own pixel sizes, because they are content.
+
+| Token | Values |
+|---|---|
+| Space (4 px grid) | `--s-1` 4 · `--s-2` 8 · `--s-3` 12 · `--s-4` 16 · `--s-5` 20 · `--s-6` 24 · `--s-8` 32 · `--s-10` 40 |
+| Corners | `--r-xs` 4 · `--r-sm` 8 · `--r-md` 12 · `--r-lg` 16 · `--r-xl` 24 · `--r-full` pill |
+| Type (rem) | `--t-1` 12 · `--t-2` 13 · `--t-3` 14 · `--t-4` 16 · `--t-5` 18 · `--t-6` 24 · `--t-7` 32 · `--t-8` 52 |
+| Target | `--hit` 32 px, 44 px on phones and touch |
+
+Light or dark follows the system until someone chooses, and the browser's bar colour follows `--bg`.
+
 ### Motion
 Nothing animates because the page re-rendered. Two settings, following the system until the person chooses with the motion button:
 - **Full:** cards lift on hover (the frame moves, never the hit area), filtered cards glide, the poster cross-fades, carousel slides travel, a poem carries from its card to the studio.

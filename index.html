@@ -21,7 +21,7 @@
   <link rel="stylesheet" href="./styles.css">
   <script>
     // Set the theme before first paint so dark mode never flashes light
-    try { document.documentElement.dataset.theme = localStorage.getItem("noor.theme") || localStorage.getItem("folio.theme") || "light"; var m = localStorage.getItem("noor.motion"); document.documentElement.dataset.motion = m === "full" || m === "calm" ? m : (matchMedia("(prefers-reduced-motion: reduce)").matches ? "calm" : "full"); } catch (e) {}
+    try { document.documentElement.dataset.theme = localStorage.getItem("noor.theme") || localStorage.getItem("folio.theme") || (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light"); var m = localStorage.getItem("noor.motion"); document.documentElement.dataset.motion = m === "full" || m === "calm" ? m : (matchMedia("(prefers-reduced-motion: reduce)").matches ? "calm" : "full"); } catch (e) {}
   </script>
 </head>
 <body>

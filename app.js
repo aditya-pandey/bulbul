@@ -80,11 +80,21 @@ function savePoems(poems) {
   }
 }
 
-function initTheme() {
-  const saved = [THEME_KEY, ...LEGACY_THEME_KEYS].map(k => localStorage.getItem(k)).find(Boolean) || 'light';
-  document.documentElement.dataset.theme = saved;
-  return saved;
+// Light or dark follows the system until the person chooses
+const darkSystem = matchMedia('(prefers-color-scheme: dark)');
+const chosenTheme = () => [THEME_KEY, ...LEGACY_THEME_KEYS].map(k => localStorage.getItem(k)).find(v => v === 'light' || v === 'dark');
+function applyTheme(theme) {
+  document.documentElement.dataset.theme = theme;
+  const bar = getComputedStyle(document.documentElement).getPropertyValue('--bg').trim();
+  document.querySelectorAll('meta[name="theme-color"]').forEach(m => { m.removeAttribute('media'); m.content = bar; });
+  return theme;
 }
+const initTheme = () => applyTheme(chosenTheme() || (darkSystem.matches ? 'dark' : 'light'));
+darkSystem.addEventListener('change', () => {
+  if (chosenTheme()) return;
+  state.theme = initTheme();
+  render();
+});
 
 const state = {
   poems: loadPoems(),
@@ -1430,7 +1440,7 @@ function revealSubtab() {
 function toggleTheme() {
   transitionView(() => {
     state.theme = state.theme === 'dark' ? 'light' : 'dark';
-    document.documentElement.dataset.theme = state.theme;
+    applyTheme(state.theme);
     localStorage.setItem(THEME_KEY, state.theme);
     state.moreOpen = false;
     render();
