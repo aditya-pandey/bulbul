@@ -1106,6 +1106,7 @@ function toggleMine(id) {
 
 // Reads the poem for its length and a few plain cues, so the first row suits it.
 const CUES = [
+  [/god|prayer|faith|worship|temple|mosque|इबादत|ख़ुदा|खुदा|दुआ|सजदा|मंदिर|मस्जिद|बंदगी|ज़ियारत/i, ['ibadat', 'arch-dawn', 'lotus', 'stars', 'golden']],
   [/rain|monsoon|umbrella|wet|बारिश|बरसात|सावन|भीग/i, ['umbrella', 'rickshaw', 'monsoon', 'moved-on']],
   [/night|star|moon|dark|lantern|sleep|रात|तारे|चाँद|चांद|नींद/i, ['stars', 'lanterns', 'lighthouse', 'charpai', 'indigo', 'moonlit']],
   [/sea|wave|shore|river|boat|ocean|समंदर|नदी|लहर|नाव|दरिया/i, ['sea', 'wave', 'nauka', 'paper-sea', 'whale', 'lotus']],
@@ -1120,12 +1121,15 @@ const CUES = [
 ];
 function looksFor(poem) {
   const text = `${poem.title} ${poem.body}`;
-  const { lines } = poemMetrics(poem.body);
+  // A set of slides is judged by its longest slide
+  const lines = poem.carousel ? Math.max(...paginatePoem(poem.body, { ratio: poem.ratio, layout: poem.layout }).map(s => poemMetrics(s.text).lines)) : poemMetrics(poem.body).lines;
   const score = new Map();
   const add = (id, n) => score.set(id, (score.get(id) || 0) + n);
   for (const [re, ids] of CUES) {
     const hits = (text.match(new RegExp(re.source, 'gi')) || []).length;
-    if (hits) ids.forEach((id, i) => add(id, Math.min(3, hits) * 3 - i * 0.35));
+    // A word in the title says more than one in the body
+    const inTitle = new RegExp(re.source, 'i').test(poem.title) ? 4 : 0;
+    if (hits) ids.forEach((id, i) => add(id, Math.min(3, hits) * 3 + inTitle - i * 0.35));
   }
   for (const l of LOOKS) {
     const p = l.patch;
@@ -1143,7 +1147,9 @@ function looksFor(poem) {
 function lookCard(l, poem, mine) {
   const on = poem.look === l.id;
   const kept = mine.includes(l.id);
-  const sample = { ...poem, ...lookPatch(l, poem), carousel: false, title: poem.title || 'Untitled', body: poem.body || 'Begin with\none honest line,\nand let the page\ndo the rest.' };
+  // Slides show their first page, not the whole poem in miniature
+  const first = poem.carousel ? paginatePoem(poem.body, { ratio: poem.ratio, layout: poem.layout })[0].text : poem.body;
+  const sample = { ...poem, ...lookPatch(l, poem), carousel: false, title: poem.title || 'Untitled', body: first || 'Begin with\none honest line,\nand let the page\ndo the rest.' };
   return `
     <div class="look-cell" data-cell="${l.id}">
       <button type="button" class="look-btn${on ? ' on' : ''}" data-look="${l.id}" aria-pressed="${on}" aria-label="${esc(l.name)}">
@@ -1404,12 +1410,12 @@ function renderStudio(poem) {
 
   const carouselNavHTML = st.carousel ? `
     <div class="carousel-nav" aria-label="Slides">
-      <button type="button" class="btn sm ghost" id="prev-slide-btn" ${state.slideIdx <= 0 ? 'disabled' : ''}>${ICONS.back} Prev</button>
+      <button type="button" class="btn sm ghost" id="prev-slide-btn" aria-label="Previous slide" ${state.slideIdx <= 0 ? 'disabled' : ''}>${ICONS.back} <span class="c-word">Prev</span></button>
       <span class="carousel-lbl">Slide ${state.slideIdx + 1} of ${slides.length}</span>
       <div class="carousel-dots">
         ${slides.map((s, i) => `<button type="button" class="c-dot${i === state.slideIdx ? ' on' : ''}" data-slide="${i}" aria-label="Slide ${i + 1}"></button>`).join('')}
       </div>
-      <button type="button" class="btn sm ghost" id="next-slide-btn" ${state.slideIdx >= slides.length - 1 ? 'disabled' : ''}>Next ${ICONS.next}</button>
+      <button type="button" class="btn sm ghost" id="next-slide-btn" aria-label="Next slide" ${state.slideIdx >= slides.length - 1 ? 'disabled' : ''}><span class="c-word">Next</span> ${ICONS.next}</button>
       <button type="button" class="btn sm" id="edit-full-btn">Edit</button>
     </div>
   ` : '';
@@ -1569,11 +1575,13 @@ function fitStage() {
     // The panel's resting height (see .studio-rail), not its height mid-drag or when made taller
     const dock = document.querySelector('.ios-dock')?.offsetHeight || 0;
     const rest = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--sheet-h')) || 260;
-    const free = stage.clientHeight - rest - dock - 20;
+    const bar = nav ? nav.offsetHeight + 14 : 0;
+    const free = stage.clientHeight - rest - dock - 20 - bar;
     const tall = SHEET_RATIO[cls] ? (baseW / SHEET_RATIO[cls]) * zoom : sheet.offsetHeight * zoom;
     lift = Math.max(0.36, Math.min(1, free / tall));
     const padT = parseFloat(cs.paddingTop);
-    const top = padT + Math.max(0, (stage.clientHeight - padT - parseFloat(cs.paddingBottom) - tall) / 2) - stage.scrollTop;
+    // The slide bar stays at the top; the poster rises to just under it
+    const top = padT + Math.max(0, (stage.clientHeight - padT - parseFloat(cs.paddingBottom) - tall - bar) / 2) - stage.scrollTop;
     rise = (12 - top) / zoom;
   }
   root.setProperty('--stage-lift', lift.toFixed(3));

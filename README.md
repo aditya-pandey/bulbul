@@ -10,9 +10,9 @@
 - **A home that grows:** a gulmohar branch with a blossom per poem, a bulbul that hops to the one you hover and recites your lines, a daily spark and looks to start from.
 - **One tab, one layer:** `Looks` sets the whole page (with undo). `Picture`, `Type` and `Page` each change only their own part, and show a dot when they differ from the look. `Words` is for writing. Everything can be undone.
 - **Share without a server:** copy the page as an image, download it, or prepare it for WhatsApp, Instagram, Stories, Pinterest, X, Threads and Facebook at the right size, with a preview. The preview itself can be saved or copied as a 1080 × 1350 mockup on a choice of six backdrops, transparent included. Phones get the system share sheet. Nothing is uploaded by Bulbul; poems are kept in the browser.
-- **Examples:** 15 pages made from five poems by Aditya (`examples.js`), each viewable, copyable and reusable as a style.
-- **91 one-tap Looks** (Illustrated, Folk, Print, Line, Night, Light, Paper, Painted), previewed with your own poem. Hindi poems get a Devanagari face automatically.
-- **120 artworks, 24 papers and 12 frames:** 51 original pieces drawn for Bulbul, from gouache stories to Warli, Madhubani, Gond, linocut, cyanotype, paper-cut, riso, one-line and ink wash, plus museum art, sketches, light, book and watercolour, and custom photo upload.
+- **Examples:** 17 pages made from six poems by Aditya (`examples.js`), each viewable, copyable and reusable as a style.
+- **92 one-tap Looks** (Illustrated, Folk, Print, Line, Night, Light, Paper, Painted), previewed with your own poem. Hindi poems get a Devanagari face automatically.
+- **121 artworks, 24 papers and 12 frames:** 52 original pieces drawn for Bulbul, from gouache stories to Warli, Madhubani, Gond, linocut, cyanotype, paper-cut, riso, one-line and ink wash, plus museum art, sketches, light, book and watercolour, and custom photo upload.
 - **Finishing layers:** watercolour washes, light and shadow (window, palm, leaves, golden hour, old film) and keepsakes (postage, wax seal, washi tape, pressed fern, marigolds, petals, chai ring, red thread).
 - **50 Google Fonts:** Classic (12), Handwriting (14), Typewriter (4), Modern (4) and हिन्दी (16).
 - **Deep Yet Effortless Customisations:**

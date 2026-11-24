@@ -1,4 +1,5 @@
-// Example pages shown on the home screen. All poems by Aditya (आदित्य), kept exactly as written;
+// Example pages shown on the home screen. All poems by Aditya (आदित्य), kept as written
+// (इबादत with its Urdu spelling and grammar corrected at the author's request);
 // "---" marks a carousel slide and is never printed.
 import { LOOK_BASE } from './data.js';
 
@@ -230,6 +231,41 @@ A Good place.
 A Wonderful place.
 A place of you."`;
 
+const IBADAT = `काफ़िर था मैं,
+हर ख़ुदा से इनकार किया मैंने,
+बस तेरे नाम पे आकर,
+कुफ़्र में थोड़ी रियायत करता हूँ।
+
+तेरी इजाज़त से,
+तेरी इबादत करता हूँ,
+दुनिया को लगता है,
+उसकी मुख़ालिफ़त करता हूँ।
+
+गर यही दुनिया को गुनाह लगता है,
+तो ख़ारिज हर रिवायत करता हूँ,
+ख़ुद ही अपना ख़ुदा चुनकर,
+मैं आज ऐलान-ए-बग़ावत करता हूँ।
+
+न काशी, न कैलाश,
+न मदीने की तलाश,
+आँखें मूँद, तेरी मूरत बनाकर,
+हर रोज़ अब ज़ियारत करता हूँ।
+
+तेरी आँखों में डुबो के,
+तेरे नाम से शुरू,
+तेरे नाम पे ख़त्म,
+अब मुकम्मल अपनी इबारत करता हूँ।
+
+तेरे लिखे ख़तों को,
+आज भी पढ़ता रहता हूँ,
+हर लफ़्ज़ में तेरा नाम लेकर,
+तिलावत करता हूँ।
+
+तू पूछे तो बता दूँ,
+कि मेरी बंदगी क्या है,
+तुझे ख़ुदा मानकर,
+तुझसे ही शिकायत करता हूँ।`;
+
 // A verbatim run of stanzas, by first words
 const part = (text, ...starts) => starts.map(s => {
   const st = text.split(/\n\s*\n/).find(x => x.startsWith(s));
@@ -250,6 +286,8 @@ const E = '— Aditya';
 export const EXAMPLES = [
   ex('anjaan', 'Slides', 'अंजान बन जाओ', slides(ANJAAN, 'पहली बार', 'ग़मों', 'मैं फिर', 'तुम्हारी आँखों', 'मेरे कंप'), A,
     { painting: 'story-dehleez', font: 'kalam', carousel: true, texture: 'cotton' }),
+  ex('ibadat', 'Slides', 'इबादत', slides(IBADAT, 'तेरी इजाज़त', 'गर यही', 'न काशी', 'तेरी आँखों', 'तेरे लिखे', 'तू पूछे'), A,
+    { painting: 'story-ibadat', layout: 'below', font: 'kurale', align: 'center', carousel: true, look: 'ibadat' }),
   ex('tree', 'Long page', 'The tree and you', TREE, '',
     { painting: 'scene-cherry', layout: 'scene', font: 'editorial', titleStyle: 'italic', ratio: 'auto' }),
   ex('dhoop', 'Window light', 'नाराज़ हिस्से, नाराज़ किस्से', part(NAARAAZ, 'खिड़की'), A,
@@ -276,6 +314,8 @@ export const EXAMPLES = [
     { painting: 'story-place', font: 'poetic-italic', titleStyle: 'none', texture: 'cotton' }),
   ex('mehmaan', 'Story', 'अंजान बन जाओ', part(ANJAAN, 'पहली बार', 'तुम फिर'), A,
     { painting: 'story-dehleez', layout: 'below', font: 'yatra', align: 'center', titleStyle: 'none', ratio: '9:16' }),
+  ex('shikayat', 'Ajrakh frame', 'इबादत', part(IBADAT, 'तू पूछे'), A,
+    paper('ivory-press', { font: 'eczar', frame: 'ajrakh', align: 'center', titleStyle: 'none' })),
   ex('magnum', 'Highlighter', 'The tree and you', part(TREE, 'Almost', 'Not just', 'The Magnum'), '',
     paper('gallery-white', { font: 'baskerville', textStyle: 'marker', titleStyle: 'none', ratio: '1:1' }))
 ];

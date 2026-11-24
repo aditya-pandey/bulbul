@@ -1416,6 +1416,9 @@ button:focus-visible, input:focus-visible, textarea:focus-visible, [tabindex]:fo
   .bar-tools { order: 3; width: 100%; justify-content: center; height: 48px; }
   .is-write .bar-tools, .is-write .ios-dock { display: none; }
   .stage-canvas-wrap { padding: 12px 14px calc(73px + env(safe-area-inset-bottom, 0px)); }
+  /* One row for the slide bar: swipe or the arrows move, so the dots and their words go */
+  .carousel-nav { flex-wrap: nowrap; }
+  .carousel-nav .c-word, .carousel-nav .carousel-dots { display: none; }
   .is-write .stage-canvas-wrap { padding-bottom: calc(20px + env(safe-area-inset-bottom, 0px)); }
   .is-write .hint-line { bottom: calc(20px + env(safe-area-inset-bottom, 0px)); }
   .studio-rail { height: min(var(--sheet-h), 42dvh); }

@@ -39,6 +39,7 @@ export const ARTWORKS = [
   { id: 'night-lanterns', grp: 'night', name: 'Lantern River', src: './assets/art/night-lanterns.webp', bg: '#1B2747', bg2: '#162038', dark: true, ink: '#FBEFD2', sub: '#C3C9DA', acc: '#F0A24A', mat: '#FFFDF8', blend: '', contain: true, defLayout: 'scene', filter: '' },
   { id: 'night-lighthouse', grp: 'night', name: 'Lighthouse', src: './assets/art/night-lighthouse.webp', bg: '#EEF0EE', bg2: '#DFE4E6', dark: false, ink: '#1C2848', sub: '#515B72', acc: '#B3332A', mat: '#FFFDF8', blend: '', contain: true, defLayout: 'corner', filter: '' },
 
+  { id: 'story-ibadat', grp: 'story', name: 'Letters Read Aloud', src: './assets/art/story-ibadat.webp', bg: '#FAF3E6', bg2: '#F3E8D5', dark: false, ink: '#3A2A22', sub: '#6B574A', acc: '#B06B5C', mat: '#FFFDF8', blend: '', contain: true, defLayout: 'below', filter: '' },
   { id: 'story-dehleez', grp: 'story', name: 'At the Threshold', src: './assets/art/story-dehleez.webp', bg: '#F6EADB', bg2: '#EEDCC6', dark: false, ink: '#2B1D22', sub: '#63504A', acc: '#BE3A2E', mat: '#FFFDF8', blend: '', contain: true, defLayout: 'corner', filter: '' },
   { id: 'story-kursi', grp: 'story', name: 'Empty Chair', src: './assets/art/story-kursi.webp', bg: '#F0EBE0', bg2: '#E4DCCD', dark: false, ink: '#1F2E4A', sub: '#50596B', acc: '#274B8E', mat: '#FFFDF8', blend: '', contain: true, defLayout: 'corner', filter: '' },
   { id: 'story-antarman', grp: 'story', name: 'Four Storeys', src: './assets/art/story-antarman.webp', bg: '#EFEBE2', bg2: '#E3DDD0', dark: false, ink: '#2A2230', sub: '#5C5260', acc: '#8F2B2B', mat: '#FFFDF8', blend: '', contain: true, defLayout: 'corner', filter: '' },
@@ -416,6 +417,7 @@ export const LOOK_CATS = [
 ];
 
 export const LOOKS = [
+  look('ibadat', 'Ibadat', 'story', 'kurale', { painting: 'story-ibadat', layout: 'below', font: 'gilda', align: 'center' }),
   look('umbrella', 'One Umbrella', 'story', 'kalam', { painting: 'story-umbrella', font: 'badscript', titleStyle: 'none', texture: 'cotton' }),
   look('twirl', 'The Twirl', 'story', 'tillana', { painting: 'story-dancer', font: 'dancing', titleStyle: 'none', texture: 'cotton' }),
   look('warli', 'Warli Dance', 'folk', 'kalam', { painting: 'folk-warli', layout: 'below', font: 'shadows', align: 'center', titleStyle: 'none' }),
