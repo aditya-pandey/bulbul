@@ -1,4 +1,20 @@
 export const ARTWORKS = [
+  // Stories: original gouache illustrations for Bulbul
+  { id: 'story-umbrella', grp: 'story', name: 'One Umbrella', src: './assets/art/story-umbrella.webp', bg: '#F1ECE2', bg2: '#E6E3DA', dark: false, ink: '#1D2A33', sub: '#4C5B60', acc: '#BE3A2E', mat: '#FFFDF8', blend: '', contain: true, defLayout: 'corner', filter: '' },
+  { id: 'story-windows', grp: 'story', name: 'Two Windows', src: './assets/art/story-windows.webp', bg: '#F5EADB', bg2: '#EDDDC8', dark: false, ink: '#2B1D22', sub: '#63504A', acc: '#BE3A2E', mat: '#FFFDF8', blend: '', contain: true, defLayout: 'below', filter: '' },
+  { id: 'story-jhoola', grp: 'story', name: 'The Swing', src: './assets/art/story-jhoola.webp', bg: '#F3F0E2', bg2: '#E7E6D2', dark: false, ink: '#25301F', sub: '#55604A', acc: '#C9576B', mat: '#FFFDF8', blend: '', contain: true, defLayout: 'corner', filter: '' },
+  { id: 'story-gajra', grp: 'story', name: 'Gajra', src: './assets/art/story-gajra.webp', bg: '#F7E9DE', bg2: '#F0DACD', dark: false, ink: '#33191A', sub: '#6B4A45', acc: '#8F2B2B', mat: '#FFFDF8', blend: '', contain: true, defLayout: 'corner', filter: '' },
+  { id: 'story-bulbul', grp: 'story', name: 'Bulbul & Gulmohar', src: './assets/art/story-bulbul.webp', bg: '#F6EEDF', bg2: '#ECE0CA', dark: false, ink: '#2A1C16', sub: '#5E4D40', acc: '#BE3A2E', mat: '#FFFDF8', blend: '', contain: true, defLayout: 'corner', filter: '' },
+  { id: 'story-chai', grp: 'story', name: 'Two Cups', src: './assets/art/story-chai.webp', bg: '#F5E9D8', bg2: '#EBDAC0', dark: false, ink: '#2C1C14', sub: '#63503F', acc: '#B2633F', mat: '#FFFDF8', blend: '', contain: true, defLayout: 'below', filter: '' },
+  { id: 'story-letter', grp: 'story', name: 'Unsent Letter', src: './assets/art/story-letter.webp', bg: '#F3E8D8', bg2: '#E8D7BE', dark: false, ink: '#26365C', sub: '#5C5F70', acc: '#A52A26', mat: '#FFFDF8', blend: '', contain: true, defLayout: 'corner', filter: '' },
+  { id: 'story-train', grp: 'story', name: 'Train Window', src: './assets/art/story-train.webp', bg: '#EFE9DE', bg2: '#E2DACB', dark: false, ink: '#1F3340', sub: '#4F5F68', acc: '#C9822E', mat: '#FFFDF8', blend: '', contain: true, defLayout: 'below', filter: '' },
+  { id: 'story-bansuri', grp: 'story', name: 'Bansuri', src: './assets/art/story-bansuri.webp', bg: '#EFEFE2', bg2: '#E2E5D4', dark: false, ink: '#1F2F2A', sub: '#4D5E54', acc: '#2C7C7C', mat: '#FFFDF8', blend: '', contain: true, defLayout: 'corner', filter: '' },
+  { id: 'story-gramophone', grp: 'story', name: 'Old Record', src: './assets/art/story-gramophone.webp', bg: '#F5EADA', bg2: '#EBDABF', dark: false, ink: '#2E1B15', sub: '#664E41', acc: '#B8822F', mat: '#FFFDF8', blend: '', contain: true, defLayout: 'corner', filter: '' },
+  { id: 'scene-nauka', grp: 'story', name: 'Boat at Sundown', src: './assets/art/scene-nauka.webp', bg: '#F6EBDC', bg2: '#F3E3CF', dark: false, ink: '#24323A', sub: '#55646A', acc: '#DB5A3C', mat: '#FFFDF8', blend: '', contain: true, defLayout: 'scene', filter: '' },
+  { id: 'scene-lotus', grp: 'story', name: 'Lotus Pond', src: './assets/art/scene-lotus.webp', bg: '#F4EDE3', bg2: '#EFE5DA', dark: false, ink: '#24343A', sub: '#54666B', acc: '#C9576B', mat: '#FFFDF8', blend: '', contain: true, defLayout: 'scene', filter: '' },
+  { id: 'scene-kites', grp: 'story', name: 'Rooftop Kites', src: './assets/art/scene-kites.webp', bg: '#F8ECDD', bg2: '#F5E3D0', dark: false, ink: '#2C2230', sub: '#645260', acc: '#BE3A2E', mat: '#FFFDF8', blend: '', contain: true, defLayout: 'scene', filter: '' },
+  { id: 'scene-kaash', grp: 'story', name: 'Kaash Field', src: './assets/art/scene-kaash.webp', bg: '#EFE9DC', bg2: '#E9E0CE', dark: false, ink: '#2A2F24', sub: '#5C6152', acc: '#C2522E', mat: '#FFFDF8', blend: '', contain: true, defLayout: 'scene', filter: '' },
+
   // Sketches — Pencil, Graphite, Charcoal & Fine Pen-and-Ink
   { id: 'sketch-unravel', grp: 'sketch', name: 'Unraveling Ink', src: './assets/art/sketch-unravel.svg', bg: '#FFFFFF', bg2: '#FAF9F7', dark: false, ink: '#1A1816', sub: '#544E47', acc: '#6D443B', mat: '#FFFFFF', blend: 'multiply', contain: true, defLayout: 'side', defTextStyle: 'plain', filter: '' },
   { id: 'sketch-sargent-lily', grp: 'sketch', name: 'Pencil Lily', src: './assets/art/sketch-sargent-lily.jpg', bg: '#FFFFFF', bg2: '#FAF9F6', dark: false, ink: '#1A1A1A', sub: '#555555', acc: '#3A3A3A', mat: '#FFFFFF', blend: 'multiply', defLayout: 'side', filter: 'contrast(1.18) brightness(1.05)' },
@@ -108,7 +124,17 @@ export const FONTS = [
   { id: 'fraunces', cat: 'classic', name: 'Fraunces Soft', fam: "'Fraunces',Georgia,serif", titleW: 500, bodyW: 400, ls: '-.01em', lh: 1.68, italicTitle: false },
   { id: 'crimson', cat: 'classic', name: 'Crimson Pro', fam: "'Crimson Pro',Georgia,serif", titleW: 500, bodyW: 400, ls: '0em', lh: 1.68, italicTitle: false },
 
+  { id: 'fell', cat: 'classic', name: 'IM Fell Letterpress', fam: "'IM Fell English',Georgia,serif", titleW: 400, bodyW: 400, ls: '.005em', lh: 1.62, italicTitle: true, scaleBoost: 1.04 },
+  { id: 'italiana', cat: 'classic', name: 'Italiana', fam: "'Italiana',Georgia,serif", titleW: 400, bodyW: 400, ls: '.02em', lh: 1.64, italicTitle: false, scaleBoost: 1.08 },
+  { id: 'gilda', cat: 'classic', name: 'Gilda Display', fam: "'Gilda Display',Georgia,serif", titleW: 400, bodyW: 400, ls: '.01em', lh: 1.72, italicTitle: false },
+
   // Handwriting & Script
+  { id: 'cedarville', cat: 'hand', name: 'Cedarville Letter', fam: "'Cedarville Cursive',cursive", titleW: 400, bodyW: 400, ls: '.01em', lh: 1.8, italicTitle: false, scaleBoost: 1.06 },
+  { id: 'nothing', cat: 'hand', name: 'Nothing You Could Do', fam: "'Nothing You Could Do',cursive", titleW: 400, bodyW: 400, ls: '0em', lh: 1.9, italicTitle: false, scaleBoost: 0.98 },
+  { id: 'zeyada', cat: 'hand', name: 'Zeyada', fam: "'Zeyada',cursive", titleW: 400, bodyW: 400, ls: '.01em', lh: 1.42, italicTitle: false, scaleBoost: 1.46 },
+  { id: 'badscript', cat: 'hand', name: 'Bad Script', fam: "'Bad Script',cursive", titleW: 400, bodyW: 400, ls: '0em', lh: 1.76, italicTitle: false },
+  { id: 'pinyon', cat: 'hand', name: 'Pinyon Script', fam: "'Pinyon Script',cursive", titleW: 400, bodyW: 400, ls: '.01em', lh: 1.5, italicTitle: false, scaleBoost: 1.28 },
+  { id: 'delafield', cat: 'hand', name: 'Saint Delafield', fam: "'Mrs Saint Delafield',cursive", titleW: 400, bodyW: 400, ls: '.01em', lh: 1.34, italicTitle: false, scaleBoost: 1.74 },
   { id: 'caveat', cat: 'hand', name: 'Caveat', fam: "'Caveat',cursive", titleW: 600, bodyW: 500, ls: '.01em', lh: 1.56, italicTitle: false, scaleBoost: 1.18 },
   { id: 'belle', cat: 'hand', name: 'La Belle Aurore', fam: "'La Belle Aurore',cursive", titleW: 400, bodyW: 400, ls: '.02em', lh: 1.7, italicTitle: false, scaleBoost: 1.16 },
   { id: 'reenie', cat: 'hand', name: 'Reenie Beanie', fam: "'Reenie Beanie',cursive", titleW: 400, bodyW: 400, ls: '.02em', lh: 1.48, italicTitle: false, scaleBoost: 1.28 },
@@ -119,6 +145,7 @@ export const FONTS = [
   { id: 'shadows', cat: 'hand', name: 'Shadows Light', fam: "'Shadows Into Light',cursive", titleW: 400, bodyW: 400, ls: '.03em', lh: 1.68, italicTitle: false, scaleBoost: 1.1 },
 
   // Typewriter & Mono
+  { id: 'cutive', cat: 'mono', name: 'Cutive Mono', fam: "'Cutive Mono','Courier New',monospace", titleW: 400, bodyW: 400, ls: '0em', lh: 1.74, italicTitle: false, scaleBoost: 0.94 },
   { id: 'typewriter', cat: 'mono', name: 'Special Elite', fam: "'Special Elite','Courier New',monospace", titleW: 400, bodyW: 400, ls: '.01em', lh: 1.82, italicTitle: false, scaleBoost: 0.92 },
   { id: 'courier-prime', cat: 'mono', name: 'Courier Prime', fam: "'Courier Prime',monospace", titleW: 400, bodyW: 400, ls: '0em', lh: 1.78, italicTitle: false, scaleBoost: 0.9 },
   { id: 'ibm-mono', cat: 'mono', name: 'IBM Plex Mono', fam: "'IBM Plex Mono',monospace", titleW: 500, bodyW: 400, ls: '-.01em', lh: 1.78, italicTitle: false, scaleBoost: 0.88 },
@@ -130,6 +157,14 @@ export const FONTS = [
   { id: 'inter', cat: 'modern', name: 'Inter Clean', fam: "'Inter',sans-serif", titleW: 500, bodyW: 400, ls: '-.01em', lh: 1.74, italicTitle: false, scaleBoost: 0.92 },
 
   // Hindi / Devanagari
+  { id: 'kalam-light', cat: 'hindi', name: 'Kalam Light', fam: "'Kalam','Noto Serif Devanagari',cursive", titleW: 400, bodyW: 300, ls: '0em', lh: 1.76, italicTitle: false, scaleBoost: 1.08 },
+  { id: 'tillana', cat: 'hindi', name: 'Tillana Brush', fam: "'Tillana','Noto Serif Devanagari',cursive", titleW: 600, bodyW: 400, ls: '0em', lh: 1.78, italicTitle: false, scaleBoost: 1.04 },
+  { id: 'dekko', cat: 'hindi', name: 'Dekko Diary', fam: "'Dekko','Noto Serif Devanagari',cursive", titleW: 400, bodyW: 400, ls: '0em', lh: 1.66, italicTitle: false, scaleBoost: 1.14 },
+  { id: 'ranga', cat: 'hindi', name: 'Ranga Poster', fam: "'Ranga','Noto Serif Devanagari',cursive", titleW: 700, bodyW: 400, ls: '.01em', lh: 1.6, italicTitle: false, scaleBoost: 1.22 },
+  { id: 'jaini', cat: 'hindi', name: 'Jaini Manuscript', fam: "'Jaini','Noto Serif Devanagari',serif", titleW: 400, bodyW: 400, ls: '.005em', lh: 1.56, italicTitle: false, scaleBoost: 1.22 },
+  { id: 'playpen-deva', cat: 'hindi', name: 'Playpen Note', fam: "'Playpen Sans Deva','Noto Serif Devanagari',cursive", titleW: 500, bodyW: 300, ls: '0em', lh: 1.84, italicTitle: false, scaleBoost: 0.94 },
+  { id: 'laila', cat: 'hindi', name: 'Laila Soft', fam: "'Laila','Noto Serif Devanagari',serif", titleW: 600, bodyW: 400, ls: '0em', lh: 1.84, italicTitle: false, scaleBoost: 0.98 },
+  { id: 'kurale', cat: 'hindi', name: 'Kurale Classic', fam: "'Kurale','Noto Serif Devanagari',serif", titleW: 400, bodyW: 400, ls: '0em', lh: 1.8, italicTitle: false },
   { id: 'devanagari', cat: 'hindi', name: 'Tiro Devanagari', fam: "'Tiro Devanagari Hindi','Noto Serif Devanagari',Georgia,serif", titleW: 500, bodyW: 400, ls: '0em', lh: 1.92, italicTitle: false },
   { id: 'kalam', cat: 'hindi', name: 'Kalam Hand', fam: "'Kalam','Noto Serif Devanagari',cursive", titleW: 700, bodyW: 400, ls: '0em', lh: 1.76, italicTitle: false, scaleBoost: 1.04 },
   { id: 'yatra', cat: 'hindi', name: 'Yatra Calligraphic', fam: "'Yatra One','Noto Serif Devanagari',serif", titleW: 400, bodyW: 400, ls: '.01em', lh: 1.84, italicTitle: false, scaleBoost: 1.04 },
@@ -141,7 +176,7 @@ export const FONTS = [
 ];
 
 export const FONT_CATS = [
-  { id: 'all', label: 'All (32)' },
+  { id: 'all', label: `All (${FONTS.length})` },
   { id: 'classic', label: 'Classic' },
   { id: 'hand', label: 'Handwriting' },
   { id: 'mono', label: 'Typewriter' },
@@ -153,7 +188,10 @@ export const LAYOUTS = [
   { id: 'side', label: 'Book Editorial' },
   { id: 'overlay', label: 'Full Canvas' },
   { id: 'below', label: 'Art Below' },
-  { id: 'corner', label: 'Corner Art' }
+  { id: 'corner', label: 'Corner Art' },
+  { id: 'scene', label: 'Landscape' },
+  { id: 'arch', label: 'Arch Window' },
+  { id: 'print', label: 'Taped Print' }
 ];
 
 export const FRAMES = [
@@ -176,7 +214,10 @@ export const TEXT_STYLES = [
   { id: 'plain', label: 'Plain' },
   { id: 'torn', label: 'Torn Paper' },
   { id: 'cutout-line', label: 'Line Cut-Out' },
-  { id: 'cutout-word', label: 'Word Cut-Out' }
+  { id: 'cutout-word', label: 'Word Cut-Out' },
+  { id: 'ruled', label: 'Underlined' },
+  { id: 'marker', label: 'Highlighter' },
+  { id: 'blackout', label: 'Blackout' }
 ];
 
 export const TITLE_STYLES = [
@@ -220,6 +261,44 @@ export const TEXT_SIZES = [
   { id: 'lg', label: 'L' }
 ];
 
+// Finishing layers, stacked over the paper: watercolour, then light, then a keepsake
+export const ATMOS = [
+  { id: 'wash-teal', label: 'Teal mist' },
+  { id: 'wash-blush', label: 'Blush' },
+  { id: 'wash-monsoon', label: 'Monsoon' },
+  { id: 'wash-turmeric', label: 'Turmeric' },
+  { id: 'wash-sage', label: 'Sage' },
+  { id: 'wash-rose', label: 'Rose' }
+];
+
+export const LIGHTS = [
+  { id: 'light-panes', label: 'Window' },
+  { id: 'light-palm', label: 'Palm' },
+  { id: 'light-leaves', label: 'Leaves' },
+  { id: 'light-golden', label: 'Golden hour' },
+  { id: 'light-film', label: 'Old film' }
+];
+
+export const CHARMS = [
+  { id: 'charm-stamp', label: 'Postage', pos: 'tr' },
+  { id: 'charm-seal', label: 'Wax seal', pos: 'br' },
+  { id: 'charm-tape', label: 'Washi tape', pos: 'tc' },
+  { id: 'charm-fern', label: 'Pressed fern', pos: 'br' },
+  { id: 'charm-marigold', label: 'Marigolds', pos: 'tl' },
+  { id: 'charm-petals', label: 'Petals', pos: 'br' },
+  { id: 'charm-coffee', label: 'Chai ring', pos: 'br' },
+  { id: 'charm-thread', label: 'Red thread', pos: 'br' }
+];
+
+export const CHARM_POS = [
+  { id: 'tl', label: 'Top left' },
+  { id: 'tr', label: 'Top right' },
+  { id: 'bl', label: 'Bottom left' },
+  { id: 'br', label: 'Bottom right' }
+];
+
+export const finishSrc = id => `./assets/finish/${id}.webp`;
+
 export const MOODS = ['Love', 'Life', 'Stillness', 'Late Night', 'Minimal', 'Nature', 'Hindi', 'Long'];
 
 export const PRESETS = [
@@ -247,6 +326,65 @@ export const PRESETS = [
   { bgMode: 'art', painting: 'sketch-unravel', layout: 'side', textStyle: 'plain', font: 'baskerville', frame: 'none', align: 'left', ratio: '4:5', wash: 0 },
   { bgMode: 'art', painting: 'lotus-gold', layout: 'overlay', font: 'devanagari', frame: 'hairline', align: 'center', ratio: '4:5', wash: 0 }
 ];
+
+// One-tap looks. Each is a complete setting; `hi` swaps in a Devanagari face for Hindi poems.
+const LOOK_BASE = {
+  bgMode: 'art', layout: 'corner', font: 'eb-garamond', frame: 'none', align: 'left', textStyle: 'plain',
+  titleStyle: 'classic', texture: 'grain', inkColor: 'auto', rhythm: 'balanced', textSize: 'auto', wash: 0,
+  atmos: '', light: '', charm: '', charmPos: '', paperPick: '', textX: 0, textY: 0
+};
+const look = (id, name, cat, hi, patch) => ({ id, name, cat, hi, patch: { ...LOOK_BASE, ...patch } });
+const onPaper = (paper, patch) => ({ bgMode: 'solid', paper, layout: 'overlay', ...patch });
+
+export const LOOK_CATS = [
+  { id: 'all', label: 'All' },
+  { id: 'story', label: 'Illustrated' },
+  { id: 'light', label: 'Light' },
+  { id: 'paper', label: 'Paper' },
+  { id: 'paint', label: 'Painted' }
+];
+
+export const LOOKS = [
+  look('umbrella', 'One Umbrella', 'story', 'kalam', { painting: 'story-umbrella', font: 'badscript', titleStyle: 'none', texture: 'cotton' }),
+  look('lotus', 'Lotus Pond', 'story', 'tillana', { painting: 'scene-lotus', layout: 'scene', font: 'editorial', titleStyle: 'italic' }),
+  look('window', 'Window Light', 'light', 'devanagari', onPaper('ivory-press', { font: 'cutive', light: 'light-panes', rhythm: 'airy' })),
+  look('moved-on', 'Moved On', 'paint', 'kalam-light', onPaper('blush-vellum', { font: 'nothing', textStyle: 'ruled', atmos: 'wash-teal', titleStyle: 'none', texture: 'cotton' })),
+  look('letter', 'Unsent Letter', 'story', 'dekko', { painting: 'story-letter', font: 'cedarville', titleStyle: 'none', inkColor: 'indigo', texture: 'cotton' }),
+  look('arch-dawn', 'Arch at Dawn', 'paint', 'laila', { painting: 'light-turner-dawn', layout: 'arch', font: 'italiana', align: 'center' }),
+  look('kites', 'Rooftop Kites', 'story', 'yatra', { painting: 'scene-kites', layout: 'scene', font: 'fraunces' }),
+  look('taped', 'Taped Memory', 'paper', 'playpen-deva', { painting: 'light-monet-train', layout: 'print', font: 'typewriter', titleStyle: 'none' }),
+  look('gajra', 'Gajra', 'story', 'amita', { painting: 'story-gajra', font: 'dancing', titleStyle: 'none', texture: 'cotton' }),
+  look('palm', 'Palm Noon', 'light', 'gotu', onPaper('handmade-cotton', { font: 'gilda', light: 'light-palm', titleStyle: 'smallcaps', texture: 'cotton' })),
+  look('nauka', 'Boat at Sundown', 'story', 'jaini', { painting: 'scene-nauka', layout: 'scene', font: 'fell' }),
+  look('blackout', 'Blackout', 'paper', 'sahitya', onPaper('gallery-white', { font: 'courier-prime', textStyle: 'blackout', titleStyle: 'none', rhythm: 'airy' })),
+  look('bulbul', 'Bulbul & Gulmohar', 'story', 'kurale', { painting: 'story-bulbul', font: 'poetic-italic', titleStyle: 'italic', texture: 'cotton' }),
+  look('golden', 'Golden Hour', 'light', 'tillana', onPaper('parchment', { font: 'editorial', light: 'light-golden', align: 'center', titleStyle: 'italic' })),
+  look('marigold', 'Marigold', 'paint', 'ranga', onPaper('ivory-press', { font: 'instrument', atmos: 'wash-turmeric', charm: 'charm-marigold', charmPos: 'tr' })),
+  look('chai', 'Two Cups', 'story', 'laila', { painting: 'story-chai', layout: 'below', font: 'fell', align: 'center' }),
+  look('moonlit', 'Moonlit Arch', 'paint', 'rozha', { painting: 'hasui-moon-magome', layout: 'arch', font: 'bodoni', align: 'center', titleStyle: 'smallcaps' }),
+  look('turned', 'Turned Page', 'paper', 'sahitya', onPaper('parchment', { font: 'fell', frame: 'bookpage', charm: 'charm-coffee', charmPos: 'br', titleStyle: 'dropcap' })),
+  look('jhoola', 'The Swing', 'story', 'dekko', { painting: 'story-jhoola', font: 'zeyada', titleStyle: 'none', texture: 'cotton' }),
+  look('leaves', 'Leaf Shadow', 'light', 'playpen-deva', onPaper('sage-linen', { font: 'italiana', light: 'light-leaves', align: 'center' })),
+  look('monsoon', 'Monsoon', 'paint', 'ranga', onPaper('mist-blue', { font: 'zeyada', atmos: 'wash-monsoon', titleStyle: 'none', inkColor: 'indigo', textStyle: 'plain' })),
+  look('kaash', 'Kaash Field', 'story', 'kalam-light', { painting: 'scene-kaash', layout: 'scene', font: 'editorial', titleStyle: 'none' }),
+  look('sealed', 'Sealed', 'paper', 'amita', onPaper('obsidian-gold', { font: 'pinyon', frame: 'hairline', charm: 'charm-seal', charmPos: 'br', align: 'center', titleStyle: 'none' })),
+  look('marked', 'Marked Lines', 'paper', 'eczar', onPaper('gallery-white', { font: 'baskerville', textStyle: 'marker', titleStyle: 'none' })),
+  look('train', 'Train Window', 'story', 'laila', { painting: 'story-train', layout: 'below', font: 'gilda', align: 'center' }),
+  look('petals', 'Falling Petals', 'paint', 'tillana', onPaper('blush-vellum', { font: 'belle', charm: 'charm-petals', charmPos: 'br', titleStyle: 'none' })),
+  look('fern', 'Pressed Fern', 'paper', 'kurale', onPaper('handmade-cotton', { font: 'cedarville', charm: 'charm-fern', charmPos: 'br', frame: 'none', texture: 'cotton', titleStyle: 'none' })),
+  look('film', 'Old Film', 'light', 'gotu', { painting: 'light-window', layout: 'overlay', font: 'typewriter', light: 'light-film', wash: 42 }),
+  look('windows', 'Two Windows', 'story', 'yatra', { painting: 'story-windows', layout: 'below', font: 'fraunces', align: 'center' }),
+  look('postcard', 'Postcard', 'paper', 'dekko', onPaper('sandstone', { font: 'homemade', charm: 'charm-stamp', charmPos: 'tr', titleStyle: 'none', inkColor: 'indigo', texture: 'cotton' })),
+  look('melting', 'Melting Sky', 'paint', 'gotu', { painting: 'pastel-clouds', layout: 'scene', font: 'italiana', align: 'center' }),
+  look('thread', 'Red Thread', 'paper', 'kalam', onPaper('gallery-white', { font: 'nothing', charm: 'charm-thread', charmPos: 'br', titleStyle: 'none' })),
+  look('bansuri', 'Bansuri', 'story', 'jaini', { painting: 'story-bansuri', font: 'crimson', titleStyle: 'italic', texture: 'cotton' }),
+  look('record', 'Old Record', 'story', 'rozha', { painting: 'story-gramophone', font: 'bodoni', titleStyle: 'smallcaps' })
+];
+
+export const isHindi = text => /[\u0900-\u097F]/.test(String(text || ''));
+export function lookPatch(lk, poem) {
+  return { ...lk.patch, font: isHindi(`${poem.title} ${poem.body}`) ? lk.hi : lk.patch.font };
+}
 
 export const RHYME_GROUPS = [
   ['night', 'light', 'bright', 'sight', 'flight', 'quiet', 'midnight', 'starlight', 'twilight', 'white', 'might', 'write', 'ignite'],
@@ -335,7 +473,7 @@ export function computeTypeScale(body, { ratio = '4:5', layout = 'side', textSiz
     else visualLines += Math.max(1, Math.ceil(t.length / charsPerLine));
   }
   const cap = ratio === '1:1' ? 11 : ratio === '9:16' ? 21 : ratio === '2:3' ? 18 : 15;
-  const effCap = layout === 'below' ? cap * 0.78 : cap;
+  const effCap = layout === 'below' ? cap * 0.78 : ['scene', 'arch', 'print'].includes(layout) ? cap * 0.66 : cap;
   if (visualLines <= effCap) return { scale: 1.0, lhMult: 1.0, padMult: 1.0 };
   const over = visualLines / effCap;
   // Smooth step-down down to 0.66 so 24-30 line poems fit on a single 4:5 poster just like published Instagram book pages
@@ -445,7 +583,11 @@ export function resolveStyle(poem) {
   const font = FONTS.find(f => f.id === poem.font) || FONTS[0];
   const photoDark = poem.photoDark !== false;
   let pal;
-  if (bgMode === 'art') pal = painting;
+  // A chosen paper shows under the picture, unless the picture covers the page or would vanish on it.
+  const underPicture = bgMode === 'art' && (poem.layout || painting.defLayout) !== 'overlay' && poem.paperPick
+    ? PAPERS.find(p => p.id === poem.paperPick && !(p.dark && painting.blend === 'multiply'))
+    : null;
+  if (bgMode === 'art') pal = underPicture || painting;
   else if (bgMode === 'solid') pal = paper;
   else {
     pal = photoDark
@@ -458,6 +600,7 @@ export function resolveStyle(poem) {
     bgMode,
     painting,
     paper,
+    paperPick: underPicture ? underPicture.id : '',
     font,
     pal,
     layout: poem.layout || painting.defLayout || 'side',
@@ -474,6 +617,10 @@ export function resolveStyle(poem) {
     textY: Number.isFinite(poem.textY) ? poem.textY : 0,
     carousel: Boolean(poem.carousel),
     wash: Number.isFinite(poem.wash) ? poem.wash : 0,
+    atmos: ATMOS.some(a => a.id === poem.atmos) ? poem.atmos : '',
+    light: LIGHTS.some(l => l.id === poem.light) ? poem.light : '',
+    charm: CHARMS.some(c => c.id === poem.charm) ? poem.charm : '',
+    charmPos: poem.charmPos || (CHARMS.find(c => c.id === poem.charm)?.pos ?? 'br'),
     sign: poem.sign || '',
     pageNo: poem.pageNo || '',
     mood: poem.mood || '',
@@ -610,3 +757,59 @@ export const STARTER_POEMS = [
     updatedAt: 1795400100000
   }
 ];
+
+/* ---------- Home ---------- */
+
+// Where blossoms open along assets/home/branch.webp, in the order they appear, and where the bird can land (percent).
+export const BLOOMS = [[65.32, 65.81], [36.1, 53.07], [46.48, 24.39], [29.08, 77.52], [73.37, 37.3], [18.66, 37.54], [11.64, 64.76], [77.49, 17.31], [48.04, 49.3], [70.35, 50.25], [35.12, 65.93], [53.17, 33.09], [86.88, 29.02], [25.92, 43.64], [23.76, 57.9], [59.19, 45.2], [50.06, 28.49], [32.3, 71.75], [68, 58.05], [17.81, 60.96], [22.38, 40.02], [80.12, 33.03], [41.63, 51.3], [81.83, 21.06]];
+export const PERCHES = [[90.31, 26.55], [80.96, 31.83], [70.8, 38.22], [57.78, 45.14], [45.3, 49.48], [34.7, 52.86], [23.76, 57.22], [12.69, 63.39]];
+
+export const SPARKS = [
+  'The last voice note you never played.',
+  'A room that still remembers you.',
+  'Something your mother hums without noticing.',
+  'The first rain, and who you thought of.',
+  'A letter to the person you were at seventeen.',
+  'What the kettle says at 2 a.m.',
+  'The colour of a word you avoid.',
+  'Two cups, one of them untouched.',
+  'A street you only know in the dark.',
+  'What your hands would say if asked.',
+  'Someone else’s umbrella.',
+  'The smell of a book you never finished.',
+  'A goodbye that happened by text.',
+  'The exact moment you stopped waiting.',
+  'An apology to the plant on the balcony.',
+  'The sound of home, without naming it.',
+  'A photograph you are not in.',
+  'What the sea would keep if you let it.',
+  'The weight of a small kindness.',
+  'Something you have only told the ceiling.',
+  'The bus you let pass.',
+  'A festival from far away.',
+  'What love looks like on a Tuesday.',
+  'The name you almost called.',
+  'Light, on the wall, doing nothing.',
+  'An old song in a new city.',
+  'What you would pack in ten seconds.',
+  'A silence that was not awkward.',
+  'The tree outside every house you have lived in.',
+  'A promise made to no one.',
+  'The distance between two chairs.',
+  'Everything the bulbul saw today.'
+];
+
+// Where the pieces of a page live. Looks set all of them; each other tab changes one.
+export const LAYERS = {
+  picture: ['bgMode', 'painting', 'layout', 'wash'],
+  type: ['font', 'align', 'textStyle', 'titleStyle', 'inkColor', 'rhythm', 'textSize', 'textX', 'textY'],
+  page: ['paper', 'paperPick', 'frame', 'texture', 'atmos', 'light', 'charm']
+};
+const LAYER_DEFAULTS = { paperPick: '', textX: 0, textY: 0, wash: 0, atmos: '', light: '', charm: '' };
+export function changedLayers(poem) {
+  const lk = LOOKS.find(l => l.id === poem.look);
+  if (!lk) return null;
+  const want = lookPatch(lk, poem);
+  const differs = k => k in want && (poem[k] ?? LAYER_DEFAULTS[k] ?? '') !== want[k];
+  return Object.keys(LAYERS).filter(layer => LAYERS[layer].some(differs));
+}

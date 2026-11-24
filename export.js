@@ -1,3 +1,4 @@
+import { snapshotPoem } from './snapshot.js';
 import { RATIOS, RHYTHMS, computeTypeScale, paginatePoem, resolveStyle } from './data.js';
 
 function loadImg(src) {
@@ -263,7 +264,9 @@ function drawCutoutWords(ctx, text, tx, y, lh, align, inkCol, seedIdx) {
   ctx.restore();
 }
 
-export async function renderPoemSlideCanvas(poem, slideMeta = null) {
+// Fallback for when the snapshot can't run (offline before the fonts were cached, or an older browser).
+// Covers the classic layouts only.
+async function drawPoemCanvas(poem, slideMeta = null) {
   try { await document.fonts?.ready; } catch {}
 
   const style = resolveStyle(poem);
@@ -605,24 +608,36 @@ export async function renderPoemSlideCanvas(poem, slideMeta = null) {
   return cv;
 }
 
+async function renderPoem(poem, slide) {
+  try {
+    return await snapshotPoem(poem, slide);
+  } catch (err) {
+    console.warn('Snapshot unavailable, drawing a simplified poster instead.', err);
+    return drawPoemCanvas(poem, slide);
+  }
+}
+
 function downloadCanvas(cv, filename) {
   return new Promise(resolve => {
-    const a = document.createElement('a');
-    a.download = filename;
-    a.href = cv.toDataURL('image/png');
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    setTimeout(resolve, 140);
+    cv.toBlob(blob => {
+      const a = document.createElement('a');
+      a.download = filename;
+      a.href = URL.createObjectURL(blob);
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+      setTimeout(resolve, 160);
+    }, 'image/png');
   });
 }
 
 function slug(s) {
-  return String(s || 'poem').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'poem';
+  return String(s || 'poem').toLowerCase().replace(/[^\p{L}\p{M}\p{N}]+/gu, '-').replace(/^-|-$/g, '') || 'poem';
 }
 
 export async function exportPoemPNG(poem) {
-  const cv = await renderPoemSlideCanvas(poem, null);
+  const cv = await renderPoem(poem, null);
   await downloadCanvas(cv, `${slug(poem.title)}.png`);
 }
 
@@ -632,7 +647,7 @@ export async function exportCarouselPNGs(poem) {
   const slides = paginatePoem(poem.body, { ratio: effRatio, layout: style.layout });
   const base = slug(poem.title);
   for (const sl of slides) {
-    const cv = await renderPoemSlideCanvas(poem, sl);
+    const cv = await renderPoem(poem, sl);
     await downloadCanvas(cv, `${base}-slide-${sl.index + 1}.png`);
   }
   return slides.length;

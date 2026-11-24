@@ -1,15 +1,19 @@
 import {
   ARTWORKS, PAPERS, FONTS, FONT_CATS, LAYOUTS, FRAMES, RATIOS, TEXT_SIZES, TEXT_STYLES,
-  TITLE_STYLES, TEXTURES, INK_SWATCHES, RHYTHMS, MOODS,
-  PRESETS, WORD_BANKS, STARTER_POEMS,
+  TITLE_STYLES, TEXTURES, INK_SWATCHES, RHYTHMS, MOODS, ATMOS, LIGHTS, CHARMS, CHARM_POS,
+  LOOKS, LOOK_CATS, lookPatch, isHindi, finishSrc,
+  BLOOMS, PERCHES, SPARKS, changedLayers,
+  WORD_BANKS, STARTER_POEMS,
   findRhymes, poemMetrics, computeTypeScale, paginatePoem, resolveStyle
 } from './data.js';
 import { exportPoemPNG, exportCarouselPNGs } from './export.js';
 import { morph } from './morph.js';
+import { renderSheetHTML, fitSheet, clearFits, esc, stripEmphasis, SHEET_W, SHEET_RATIO } from './sheet.js';
 
 // Storage keys predate the current name. Keep them: renaming would orphan saved poems.
 const STORAGE_KEY = 'noor.poems.v1';
 const THEME_KEY = 'noor.theme';
+const MOTION_KEY = 'noor.motion';
 const LEGACY_KEYS = ['folio.poems.v1'];
 const LEGACY_THEME_KEYS = ['folio.theme'];
 
@@ -30,6 +34,8 @@ const ICONS = {
   archive: `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><polyline points="21 8 21 21 3 21 3 8"/><rect x="1" y="3" width="22" height="5"/><line x1="10" y1="12" x2="14" y2="12"/></svg>`,
   trash: `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>`,
   more: `<svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="19" cy="12" r="1.8"/></svg>`,
+  looks: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="11" height="15" rx="2"/><path d="M17 6.5l2.6.7a2 2 0 0 1 1.4 2.4L18.6 19a2 2 0 0 1-2.4 1.4"/></svg>`,
+  motion: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><path d="M3 9c3-4 6-4 9 0s6 4 9 0"/><path d="M3 16c3-4 6-4 9 0s6 4 9 0"/></svg>`,
   move: `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="5 9 2 12 5 15"/><polyline points="9 5 12 2 15 5"/><polyline points="15 19 12 22 9 19"/><polyline points="19 9 22 12 19 15"/><line x1="2" y1="12" x2="22" y2="12"/><line x1="12" y1="2" x2="12" y2="22"/></svg>`,
   artwork: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="4"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>`,
   fonts: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 7 4 4 20 4 20 7"/><line x1="9" y1="20" x2="15" y2="20"/><line x1="12" y1="4" x2="12" y2="20"/></svg>`,
@@ -37,26 +43,6 @@ const ICONS = {
   write: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 1 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>`,
   copy: `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>`
 };
-
-function esc(s) {
-  return String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-}
-
-// Render inline poetic emphasis (**bold**, __underline__, *italic*) safely from escaped text
-function formatInlineHTML(text) {
-  let out = esc(text);
-  out = out.replace(/\*\*([^*]+)\*\*/g, '<strong class="poem-em-b">$1</strong>');
-  out = out.replace(/__([^_]+)__/g, '<span class="poem-em-u">$1</span>');
-  out = out.replace(/\*([^*]+)\*/g, '<em>$1</em>');
-  return out;
-}
-
-function stripEmphasis(s) {
-  return String(s || '')
-    .replace(/\*\*([^*]+)\*\*/g, '$1')
-    .replace(/__([^_]+)__/g, '$1')
-    .replace(/\*([^*]+)\*/g, '$1');
-}
 
 function loadPoems() {
   try {
@@ -96,7 +82,8 @@ const state = {
   activeId: null,
   search: '',
   moodFilter: 'All',
-  railTab: 'artwork',
+  railTab: 'looks',
+  lookCat: 'all',
   artSub: 'minimal',
   fontCat: 'all',
   focusMode: false,
@@ -106,17 +93,34 @@ const state = {
   rhymeQuery: '',
   editingRich: false,
   exporting: false,
-  galleryScroll: 0
+  galleryScroll: 0,
+  sparkShift: 0,
+  firstLine: '',
+  perch: 2,
+  facing: 1,
+  song: null
 };
 
-function toast(msg, ms = 2200) {
+function toast(msg, ms = 2200, action = null) {
   const root = document.getElementById('toast-root');
   if (!root) return;
   const el = document.createElement('div');
   el.className = 'toast';
   el.textContent = msg;
+  if (action) {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'toast-btn';
+    btn.textContent = action.label;
+    btn.addEventListener('click', () => { action.run(); el.remove(); });
+    el.appendChild(btn);
+  }
+  root.querySelectorAll('.toast:has(.toast-btn)').forEach(n => n.remove());
   root.appendChild(el);
-  setTimeout(() => el.remove(), ms);
+  setTimeout(() => {
+    el.classList.add('is-leaving');
+    setTimeout(() => el.remove(), 260);
+  }, ms);
 }
 
 function getActivePoem() {
@@ -131,11 +135,20 @@ function patchActive(patch, { rerender = true, fade = true } = {}) {
   if (rerender) render({ fade });
 }
 
+// Motion: "full", or "calm" (fades only, nothing travels). Follows the system until the person chooses.
 const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
+function applyMotion() {
+  const m = localStorage.getItem(MOTION_KEY);
+  document.documentElement.dataset.motion = m === 'full' || m === 'calm' ? m : (reducedMotion.matches ? 'calm' : 'full');
+}
+applyMotion();
+reducedMotion.addEventListener('change', applyMotion);
+const calm = () => document.documentElement.dataset.motion === 'calm';
 
 // Cross-fade between the anthology and the studio, carrying the poem from its card to the sheet.
 function transitionView(update, heroBefore, heroAfter) {
-  if (!document.startViewTransition || reducedMotion.matches || document.hidden) { update(); return; }
+  if (!document.startViewTransition || document.hidden) { update(); return; }
+  if (calm()) { heroBefore = heroAfter = null; }
   const from = heroBefore?.();
   if (from) from.style.viewTransitionName = 'poem-hero';
   let to = null;
@@ -221,30 +234,19 @@ async function patchWhenReady(ready, patch, after) {
   after?.();
 }
 
-function createPoem() {
-  const pr = PRESETS[Math.floor(Math.random() * PRESETS.length)];
+function createPoem({ body = '', spark = '', lookId = '' } = {}) {
+  const start = LOOKS.find(l => l.id === lookId) || LOOKS[Math.floor(Math.random() * 8)];
+  const setting = lookPatch(start, { title: '', body: body || spark });
   const p = {
+    ...setting,
+    look: start.id,
     id: 'poem-' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
     title: '',
-    body: '',
-    bgMode: pr.bgMode,
-    painting: pr.painting,
-    paper: 'ivory-press',
-    layout: pr.layout,
-    font: pr.font,
-    frame: pr.frame,
-    align: pr.align,
-    ratio: pr.ratio,
-    textSize: 'auto',
-    textStyle: pr.textStyle || 'plain',
-    titleStyle: pr.titleStyle || 'classic',
-    texture: pr.texture || 'grain',
-    inkColor: 'auto',
-    rhythm: 'balanced',
-    textX: 0,
-    textY: 0,
+    body,
+    spark,
+    paper: setting.paper || 'ivory-press',
+    ratio: '4:5',
     carousel: false,
-    wash: pr.wash,
     sign: '',
     pageNo: '',
     mood: '',
@@ -252,192 +254,147 @@ function createPoem() {
     createdAt: Date.now(),
     updatedAt: Date.now()
   };
+  state.railTab = 'looks';
   state.poems.unshift(p);
   savePoems(state.poems);
   openPoem(p.id);
-  setTimeout(() => (document.getElementById('poem-title-in') || document.getElementById('poem-body-in'))?.focus(), 40);
+  setTimeout(() => {
+    const el = body ? document.getElementById('poem-body-in') : (document.getElementById('poem-title-in') || document.getElementById('poem-body-in'));
+    el?.focus();
+    if (el?.id === 'poem-body-in') el.setSelectionRange(el.value.length, el.value.length);
+  }, 40);
 }
 
-function ratioClass(ratio) {
-  if (ratio === 'auto') return 'rat-auto';
-  return 'rat-' + ratio.replace(':', '-');
+/* ---------- Home ---------- */
+
+const DAY = Math.floor(Date.now() / 864e5);
+const todaysSpark = () => SPARKS[(DAY * 7 + state.sparkShift) % SPARKS.length];
+
+function dayPart() {
+  const h = new Date().getHours();
+  if (h < 5) return { greet: 'Still awake?', wash: 'wash-monsoon' };
+  if (h < 12) return { greet: 'Good morning', wash: 'wash-blush' };
+  if (h < 17) return { greet: 'Good afternoon', wash: 'wash-turmeric' };
+  if (h < 21) return { greet: 'Good evening', wash: 'wash-rose' };
+  return { greet: 'The quiet hours', wash: 'wash-monsoon' };
 }
 
-function renderSheetHTML(poem, { editable = false, slide = null, miniature = false } = {}) {
-  const st = resolveStyle(poem);
-  const pal = st.pal;
-  const fn = st.font;
-  const rhythmMult = (RHYTHMS.find(r => r.id === st.rhythm) || RHYTHMS[1]).mult;
+function poemLines(p) {
+  return stripEmphasis(p.body || '').split('\n').map(l => l.trim()).filter(l => l.length > 7 && l.length < 64 && !/^[-—]{3,}$/.test(l));
+}
+function pickSong(id) {
+  const pool = state.poems.filter(p => !p.archived && (!id || p.id === id) && poemLines(p).length);
+  if (!pool.length) return null;
+  const p = pool[Math.floor(Math.random() * pool.length)];
+  const lines = poemLines(p);
+  return { id: p.id, line: lines[Math.floor(Math.random() * lines.length)] };
+}
 
-  const isCarousel = Boolean(slide && slide.total > 1);
-  const effRatio = isCarousel && st.ratio === 'auto' ? '4:5' : (miniature ? '4:5' : st.ratio);
-  const bodyText = slide ? slide.text : String(poem.body || '');
-  const cleanBody = editable ? bodyText : bodyText.replace(/^\s*[-—]{3,}\s*$/gm, '').trim();
-
-  const tStyle = st.titleStyle || 'classic';
-  const showTitleBlock = (!slide || slide.isFirst) && tStyle !== 'none' && tStyle !== 'dropcap' && tStyle !== 'vertical';
-  const showVerticalTitle = (!slide || slide.isFirst) && tStyle === 'vertical' && Boolean(poem.title?.trim());
-  const showSign = !slide || slide.isLast;
-
-  const ts = computeTypeScale(cleanBody, {
-    ratio: effRatio,
-    layout: st.layout,
-    textSize: st.textSize,
-    isCarousel
-  });
-  const boost = fn.scaleBoost || 1;
-  const finalScale = Number((ts.scale * boost).toFixed(3));
-  const finalLh = Number((fn.lh * ts.lhMult * rhythmMult).toFixed(3));
-
-  const imgSrc = st.bgMode === 'art' ? st.painting.src : (st.bgMode === 'photo' && st.photo ? st.photo : '');
-  const effLayout = imgSrc ? st.layout : 'overlay';
-  const imgBlend = st.bgMode === 'art' && st.painting.blend === 'multiply';
-  const imgContain = imgBlend || (st.bgMode === 'art' && Boolean(st.painting.contain));
-  const imgVignette = st.bgMode === 'art' && Boolean(st.painting.vignette);
-  const imgFilter = st.bgMode === 'art' && st.painting.filter ? `filter:${st.painting.filter};` : '';
-
-  const washAlpha = st.bgMode === 'photo' ? Math.max(0.28, st.wash / 100) : st.wash / 100;
-  const washBg = pal.dark ? `rgba(12,14,20,${washAlpha})` : `rgba(250,247,240,${washAlpha})`;
-
-  const isTorn = st.textStyle === 'torn';
-  const isLineCut = st.textStyle === 'cutout-line';
-  const isWordCut = st.textStyle === 'cutout-word';
-  const isAnyCut = isLineCut || isWordCut;
-  const hasEmphasis = /\*\*[^*]+\*\*|__[^_]+__|\*[^*]+\*/.test(cleanBody);
-  const useRichView = (isAnyCut || tStyle === 'dropcap' || hasEmphasis) && (!editable || !state.editingRich);
-
-  const textAlign = (effLayout === 'side' || isTorn) ? 'left' : st.align;
-  const sheetBg = `linear-gradient(145deg, ${pal.bg}, ${pal.bg2 || pal.bg})`;
-
-  const isMat = st.frame === 'polaroid';
-  const outerStyle = isMat
-    ? `background:${pal.mat || '#FAF8F3'};color:${pal.ink};--ps-scale:${finalScale};--ps-lh-mult:${ts.lhMult};--ps-pad-mult:${ts.padMult};--t-acc:${pal.acc || pal.ink};`
-    : `background:${sheetBg};color:${pal.ink};--ps-scale:${finalScale};--ps-lh-mult:${ts.lhMult};--ps-pad-mult:${ts.padMult};--t-acc:${pal.acc || pal.ink};`;
-  const innerStyle = isMat ? `background:${sheetBg};` : '';
-
-  const titleCls = tStyle === 'smallcaps'
-    ? ' poem-title-smallcaps'
-    : tStyle === 'italic'
-      ? ' poem-title-italic'
-      : tStyle === 'highlight'
-        ? ' poem-title-highlight'
-        : '';
-
-  const fontTitleStyle = `font-family:${fn.fam};font-weight:${fn.titleW};letter-spacing:${fn.ls};font-style:${fn.italicTitle ? 'italic' : 'normal'};text-align:${textAlign};`;
-  const fontBodyStyle = `font-family:${fn.fam};font-weight:${fn.bodyW};letter-spacing:${fn.ls};line-height:${finalLh};text-align:${textAlign};`;
-
-  let innerTextHTML = '';
-  if (isAnyCut && (!editable || !state.editingRich)) {
-    const rawLines = (cleanBody || 'Tap to write…').split('\n');
-    const shownLines = miniature ? rawLines.slice(0, 9) : rawLines;
-    let tStrip = '';
-    if (showTitleBlock && poem.title) {
-      if (isWordCut) {
-        const tWords = poem.title.trim().split(/\s+/).filter(Boolean);
-        tStrip = `<div class="cutout-word-row" style="margin-bottom:8px;">${tWords.map(w => `<span class="cutout-word-tile" style="${fontTitleStyle};font-size:calc(19px * var(--ps-scale));">${esc(w)}</span>`).join('')}</div>`;
-      } else {
-        tStrip = `<span class="cutout-strip is-title${titleCls}" style="${fontTitleStyle};font-size:calc(20px * var(--ps-scale));">${esc(poem.title)}</span>`;
-      }
-    }
-    const bStrips = shownLines.map(ln => {
-      if (!ln.trim()) return `<div class="cutout-gap"></div>`;
-      if (isWordCut) {
-        const words = stripEmphasis(ln).trim().split(/\s+/).filter(Boolean);
-        return `<div class="cutout-word-row">${words.map(w => `<span class="cutout-word-tile" style="${fontBodyStyle};font-size:calc(13.2px * var(--ps-scale));">${esc(w)}</span>`).join('')}</div>`;
-      }
-      return `<span class="cutout-strip" style="${fontBodyStyle};font-size:calc(13.5px * var(--ps-scale));">${formatInlineHTML(ln)}</span>`;
-    }).join('');
-    const sStrip = (showSign && st.sign.trim())
-      ? `<span class="cutout-strip is-sign" style="font-family:${fn.fam};font-size:max(11px,calc(12px * var(--ps-scale)));">${esc(st.sign)}</span>`
-      : '';
-    innerTextHTML = `<div class="poem-cutout-block" ${editable ? 'id="rich-tap-edit" title="Tap to edit poem text"' : ''}>${tStrip}${bStrips}${sStrip}</div>`;
-  } else {
-    const titleHTML = showTitleBlock
-      ? (editable
-        ? `<input id="poem-title-in" class="poem-title-in${titleCls}" type="text" placeholder="Untitled poem…" value="${esc(poem.title)}" style="${fontTitleStyle}" aria-label="Poem title">`
-        : (poem.title ? `<div class="poem-title-ro${titleCls}" style="${fontTitleStyle}">${esc(poem.title)}</div>` : ''))
-      : '';
-
-    const showRule = showTitleBlock && tStyle !== 'highlight' && (editable || poem.title);
-    const ruleHTML = showRule
-      ? `<div class="poem-rule" style="background:${pal.acc || pal.ink}"></div>`
-      : '';
-
-    const dropCls = tStyle === 'dropcap' ? ' poem-body-dropcap' : '';
-    let bodyHTML;
-    if (editable && !useRichView) {
-      bodyHTML = `<textarea id="poem-body-in" class="${isAnyCut ? 'cutout-edit-ta' : 'poem-body-in'}" rows="5" placeholder="Begin writing…\n\nTip: use **bold** or __underline__ for emphasis, or --- for a carousel break." style="${fontBodyStyle}" aria-label="Poem body">${esc(poem.body)}</textarea>`;
-    } else if (editable && useRichView) {
-      bodyHTML = `<div id="rich-tap-edit" class="poem-body-ro${dropCls}" style="${fontBodyStyle};cursor:text;" title="Tap to edit text">${formatInlineHTML(cleanBody || 'Tap to write…')}</div>`;
-    } else {
-      bodyHTML = `<div class="poem-body-ro${dropCls}" style="${fontBodyStyle}">${formatInlineHTML(cleanBody || '…')}</div>`;
-    }
-
-    const signHTML = (showSign && st.sign.trim())
-      ? `<div class="poem-sign" style="font-family:${fn.fam};color:${pal.sub || pal.ink};text-align:${textAlign}">${esc(st.sign)}</div>`
-      : '';
-
-    innerTextHTML = `${titleHTML}${ruleHTML}${bodyHTML}${signHTML}`;
-  }
-
-  const tsCls = isTorn ? ' ts-torn' : isAnyCut ? ' ts-cutout' : '';
-  const hasOff = st.textX !== 0 || st.textY !== 0;
-  const dragHandle = editable
-    ? `<button type="button" class="drag-handle" id="drag-text-handle" title="Drag to move textbox">${ICONS.move}<span>Move</span></button>`
-    : '';
-  const wrappedInner = isTorn ? `<div class="poem-torn-scrap">${innerTextHTML}</div>` : innerTextHTML;
-  const txStyle = `--tx:${st.textX}%;--ty:${st.textY}%;`;
-  const textCol = `<div ${editable ? 'id="movable-text-col" ' : ''}class="poem-text-col al-${textAlign}${effLayout === 'overlay' ? ' poem-overlay-pad' : ''}${tsCls}${hasOff ? ' has-offset' : ''}" style="${txStyle}">${dragHandle}${wrappedInner}</div>`;
-
-  const sideArtImg = imgSrc
-    ? `<img decoding="sync" class="poem-side-img${imgBlend ? ' blend-mul' : ''}${imgContain ? ' is-contain' : ''}${imgVignette ? ' is-vignette' : ''}" src="${esc(imgSrc)}" alt="${esc(st.painting.name || 'Poem artwork')}" style="${imgFilter}">`
-    : '';
-
-  const bgOverlayHTML = (imgSrc && effLayout === 'overlay')
-    ? `<img decoding="sync" class="poem-bg-img${imgBlend ? ' blend-mul' : ''}" src="${esc(imgSrc)}" alt="" style="${imgFilter}">${washAlpha > 0.005 ? `<div class="poem-wash" style="background:${washBg}"></div>` : ''}`
-    : '';
-
-  const frameHTML = st.frame === 'hairline'
-    ? `<div class="poem-frame-hairline" style="color:${pal.acc || pal.ink}"></div>`
-    : st.frame === 'arch'
-      ? `<div class="poem-frame-arch" style="color:${pal.acc || pal.ink}"></div>`
-      : st.frame === 'bookpage'
-        ? `<div class="poem-book-top" style="color:${pal.acc || pal.ink}"></div><div class="poem-book-bot" style="color:${pal.sub || pal.ink};font-family:${fn.fam}">${slide && slide.total > 1 ? `— ${slide.index + 1} / ${slide.total} —` : (st.pageNo.trim() ? `— ${esc(st.pageNo.trim())} —` : '✦')}</div>`
-        : '';
-
-  const verticalTitleHTML = showVerticalTitle
-    ? `<div class="poem-title-vertical" style="font-family:${fn.fam};color:${pal.sub || pal.ink}">${esc(poem.title)}</div>`
-    : '';
-
-  const slideBadge = (slide && slide.total > 1 && st.frame !== 'bookpage')
-    ? `<div class="poem-slide-badge" style="color:${pal.sub || pal.ink};font-family:${fn.fam}">${slide.index + 1} / ${slide.total}</div>`
-    : '';
-
-  const artWrapCls = `${imgBlend ? ' is-blend' : ''}${imgContain ? ' is-contain' : ''}`;
-  let contentHTML;
-  if (effLayout === 'side') {
-    contentHTML = `<div class="poem-split">${textCol}<div class="poem-split-art${artWrapCls}">${sideArtImg}</div></div>`;
-  } else if (effLayout === 'below') {
-    contentHTML = `<div class="poem-stack">${textCol}<div class="poem-stack-art${artWrapCls}">${sideArtImg}</div></div>`;
-  } else if (effLayout === 'corner') {
-    contentHTML = `<div class="poem-corner-wrap">${textCol}<div class="poem-corner-art${artWrapCls}">${sideArtImg}</div></div>`;
-  } else {
-    contentHTML = textCol;
-  }
-
+function renderHero() {
+  const part = dayPart();
+  const kept = state.poems.filter(p => !p.archived);
+  const inBloom = [...kept].sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0)).slice(-BLOOMS.length);
+  const [px, py] = PERCHES[state.perch];
+  const buds = BLOOMS.slice(inBloom.length, inBloom.length + 3);
   return `
-    <div ${editable || slide ? 'id="active-poem-sheet" ' : ''}class="poem-sheet ${ratioClass(effRatio)} fr-${st.frame}${isMat ? ' is-mat' : ''}" style="${outerStyle}">
-      <div class="poem-sheet-inner" style="${innerStyle}">
-        ${bgOverlayHTML}
-        <div class="poem-grain tex-${st.texture}"></div>
-        ${frameHTML}
-        ${verticalTitleHTML}
-        ${contentHTML}
-        ${slideBadge}
+    <section class="hero" data-part="hero">
+      <img class="hero-wash" src="${finishSrc(part.wash)}" alt="">
+      <div class="hero-copy">
+        <h2 class="hero-greet">${part.greet}</h2>
+        <form class="first-line" id="first-line-form">
+          <input id="first-line-in" type="text" autocomplete="off" placeholder="Begin with one line…" aria-label="First line of a new poem" value="${esc(state.firstLine)}">
+          <button type="submit" class="first-line-go" aria-label="Start this poem">${ICONS.next}</button>
+        </form>
+        <div class="spark">
+          <button type="button" class="spark-text" id="spark-use" title="Write from this">${esc(todaysSpark())}</button>
+          <button type="button" class="spark-next" id="spark-next" aria-label="Another idea" title="Another idea">${ICONS.sparkles}</button>
+        </div>
       </div>
-    </div>
-  `;
+      <div class="hero-branch">
+        <div class="branch-sway">
+          <img class="branch-img" src="./assets/home/branch.webp" alt="" width="1300" height="590">
+          ${buds.map(([x, y], i) => `<img class="bud" data-bud="${inBloom.length + i}" src="./assets/home/bud.webp" alt="" style="left:${x}%;top:${y}%">`).join('')}
+          ${inBloom.map((p, i) => `<button type="button" class="bloom" data-bloom="${esc(p.id)}" data-label="${esc(p.title || 'Untitled poem')}" aria-label="Open ${esc(p.title || 'Untitled poem')}" style="left:${BLOOMS[i][0]}%;top:${BLOOMS[i][1]}%;--i:${i}"><img src="./assets/home/bloom-${i % 3 + 1}.webp" alt=""></button>`).join('')}
+        </div>
+        <button type="button" class="bird" id="bird" aria-label="Hear a line from your poems" style="left:${px}%;top:${py}%"><span class="bird-turn" style="--face:${state.facing}"><img src="./assets/home/bulbul.webp" alt=""></span></button>
+        ${state.song ? `<button type="button" class="song ${px < 46 ? 'to-right' : 'to-left'}" data-song="${esc(state.song.id)}" style="left:${px}%;top:${py}%">${esc(state.song.line)}</button>` : ''}
+        <span class="petal p1"></span><span class="petal p2"></span><span class="petal p3"></span>
+        <p class="branch-note">${kept.length ? 'A blossom for every poem' : 'Your first poem will be the first blossom'}</p>
+      </div>
+    </section>`;
 }
+
+function renderLookStrip() {
+  const shown = LOOKS.map((l, i) => LOOKS[(i + DAY * 5) % LOOKS.length]).slice(0, 14);
+  return `
+    <section class="home-looks">
+      <h2 class="home-h">Start from a look</h2>
+      <div class="look-strip">
+        ${shown.map(l => `
+          <button type="button" class="look-btn" data-startlook="${l.id}" aria-label="New poem with the ${esc(l.name)} look">
+            <span class="look-frame"><span class="look-scale">${renderSheetHTML({ ...l.patch, title: l.name, body: 'Begin with\none honest line,\nand let the page\ndo the rest.', sign: '' }, { thumb: true, ratio: '4:5' })}</span></span>
+            <span class="look-nm">${esc(l.name)}</span>
+          </button>`).join('')}
+      </div>
+    </section>`;
+}
+
+const birdEl = () => document.getElementById('bird');
+let songTimer = 0;
+function sing(song, wait = 620) {
+  clearTimeout(songTimer);
+  if (state.song) { state.song = null; render(); }
+  songTimer = setTimeout(() => {
+    if (state.activeId || !birdEl()) return;
+    state.song = song;
+    render();
+  }, wait);
+}
+function hopTo(i, song) {
+  const bird = birdEl();
+  if (!bird) return;
+  if (i !== state.perch) {
+    const was = bird.getBoundingClientRect();
+    state.facing = PERCHES[i][0] < PERCHES[state.perch][0] ? -1 : 1;
+    state.perch = i;
+    state.song = null;
+    render();
+    const now = bird.getBoundingClientRect();
+    const dx = was.left - now.left;
+    const dy = was.top - now.top;
+    if (calm()) bird.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 260 });
+    else {
+      const far = Math.min(90, 26 + Math.abs(dx) * 0.16);
+      bird.animate([
+        { transform: `translate(${dx}px, ${dy}px)`, easing: 'cubic-bezier(.3,0,.5,1)' },
+        { transform: `translate(${dx * 0.5}px, ${dy * 0.5 - far}px) rotate(${-8 * state.facing}deg)`, easing: 'cubic-bezier(.4,0,.5,1)', offset: 0.52 },
+        { transform: 'translate(0, 3px)', offset: 0.9 },
+        { transform: 'none' }
+      ], { duration: 420 + Math.abs(dx) * 0.7, composite: 'add' });
+    }
+  }
+  sing(song);
+}
+function nearestPerch(x, y) {
+  let best = 0;
+  PERCHES.forEach(([a, b], i) => { if (Math.hypot(a - x, (b - y) * 0.45) < Math.hypot(PERCHES[best][0] - x, (PERCHES[best][1] - y) * 0.45)) best = i; });
+  return best;
+}
+let hoverBloom = '';
+document.addEventListener('pointerover', e => {
+  const bloom = e.target.closest?.('.bloom');
+  const id = bloom?.dataset.bloom || '';
+  if (id === hoverBloom) return;
+  hoverBloom = id;
+  if (bloom && e.pointerType === 'mouse') hopTo(nearestPerch(parseFloat(bloom.style.left), parseFloat(bloom.style.top)), pickSong(id));
+});
+// Left alone, the bird moves about and sings something of yours.
+setInterval(() => {
+  if (state.activeId || document.hidden || calm() || hoverBloom || state.search || document.activeElement?.id === 'first-line-in') return;
+  const hero = document.querySelector('.hero');
+  if (!hero || hero.getBoundingClientRect().bottom < 80) return;
+  hopTo(Math.floor(Math.random() * PERCHES.length), pickSong());
+}, 9000);
 
 function renderGallery() {
   const q = state.search.trim().toLowerCase();
@@ -466,23 +423,19 @@ function renderGallery() {
     ? `<div class="anthology-grid">${filtered.map(p => {
         const m = poemMetrics(p.body);
         const st = resolveStyle(p);
-        const isLong = m.lines > 11;
-        const fadeHTML = isLong
-          ? `<div class="poem-card-fade" style="background:linear-gradient(to bottom, transparent, ${st.pal.bg2 || st.pal.bg} 86%)"></div>`
-          : '';
+        const cardRatio = st.ratio === 'auto' ? '2:3' : st.ratio;
         return `
           <button type="button" class="poem-card" data-open="${esc(p.id)}">
-            <div class="poem-card-frame">
-              ${renderSheetHTML(p, { editable: false, miniature: true })}
-              ${fadeHTML}
+            <div class="poem-card-frame" style="aspect-ratio:${cardRatio.replace(':', ' / ')}">
+              <div class="thumb-scale">${renderSheetHTML(p, { thumb: true, ratio: cardRatio })}</div>
             </div>
             <div class="poem-card-meta">
-              <h2 class="poem-card-title">${esc(p.title || 'Untitled poem')}</h2>
-              <span class="poem-card-sub">${m.lines} ${m.lines === 1 ? 'line' : 'lines'}${p.mood ? ' · ' + esc(p.mood) : ''}</span>
+              <h2 class="poem-card-title"><span>${esc(p.title || "Untitled poem")}</span></h2>
+              <span class="poem-card-sub">${m.lines} ${m.lines === 1 ? 'line' : 'lines'}</span>
             </div>
           </button>
         `;
-      }).join('')}</div>`
+      }).join('')}${!q && !isArchTab ? `<button type="button" class="poem-card new-card" id="new-card-btn"><span class="poem-card-frame">${ICONS.plus}<span>New page</span></span></button>` : ''}</div>`
     : `<div class="empty-state">
         ${SYMBOL_SVG}
         <h2>An open page</h2>
@@ -494,6 +447,7 @@ function renderGallery() {
     <div class="ios-menu" role="menu">
       <button type="button" class="ios-menu-item" id="m-backup-btn" role="menuitem"><span>Backup JSON</span>${ICONS.download}</button>
       <button type="button" class="ios-menu-item" id="m-import-btn" role="menuitem"><span>Import JSON</span>${ICONS.upload}</button>
+      <button type="button" class="ios-menu-item" id="m-motion-btn" role="menuitem"><span>${calm() ? 'Turn motion on' : 'Turn motion off'}</span>${ICONS.motion}</button>
     </div>
   ` : '';
 
@@ -513,6 +467,7 @@ function renderGallery() {
           <button type="button" class="btn sm ghost desktop-only" id="backup-btn" title="Export anthology JSON">${ICONS.download} Backup</button>
           <button type="button" class="btn sm ghost desktop-only" id="import-btn" title="Import anthology JSON">${ICONS.upload} Import</button>
           <input id="import-file" type="file" accept="application/json" hidden>
+          <button type="button" class="btn sm icon-only desktop-only" id="motion-btn" title="${calm() ? 'Turn motion on' : 'Turn motion off'}" aria-label="Motion" aria-pressed="${!calm()}">${ICONS.motion}</button>
           <button type="button" class="btn sm icon-only" id="theme-btn" title="Toggle light or night studio" aria-label="Toggle studio theme">${state.theme === 'dark' ? ICONS.sun : ICONS.moon}</button>
           <div class="menu-wrap mobile-only">
             <button type="button" class="btn sm icon-only" id="more-btn" aria-label="More options" aria-expanded="${state.moreOpen}">${ICONS.more}</button>
@@ -522,16 +477,18 @@ function renderGallery() {
         </div>
       </header>
 
+      </div>
+      ${q ? '' : renderHero()}
         <div class="filter-bar">
           <div class="mood-pills" role="tablist" aria-label="Filter poems by collection">
             ${pills.map(md => `<button type="button" role="tab" aria-selected="${state.moodFilter === md}" class="pill${state.moodFilter === md ? ' on' : ''}" data-mood="${esc(md)}">${esc(md)}${md === 'Archived' ? ` (${archivedCount})` : ''}</button>`).join('')}
           </div>
           <span class="gallery-stat">${filtered.length === activeCount || isArchTab ? `${filtered.length} ${filtered.length === 1 ? 'poem' : 'poems'}` : `${filtered.length} of ${activeCount}`}</span>
         </div>
-      </div>
       <main>
         ${cardsHTML}
       </main>
+      ${q ? '' : renderLookStrip()}
     </div>
 
     <div class="mobile-fab-wrap" data-view="gallery-fab">
@@ -549,6 +506,7 @@ function renderStudio(poem) {
   const activeSlide = st.carousel ? slides[state.slideIdx] : null;
 
   const grps = {
+    story: ARTWORKS.filter(a => a.grp === 'story'),
     minimal: ARTWORKS.filter(a => a.grp === 'minimal'),
     sketch: ARTWORKS.filter(a => a.grp === 'sketch'),
     light: ARTWORKS.filter(a => a.grp === 'light'),
@@ -557,20 +515,38 @@ function renderStudio(poem) {
   };
 
   let railContent = '';
-  if (state.railTab === 'artwork') {
+  if (state.railTab === 'looks') {
+    const shown = LOOKS.filter(l => state.lookCat === 'all' || l.cat === state.lookCat);
+    railContent = `
+      <div class="subtabs" role="group" aria-label="Categories">${LOOK_CATS.map(c => `<button type="button" class="subtab${state.lookCat === c.id ? ' on' : ''}" data-lookcat="${c.id}">${esc(c.label)}</button>`).join('')}</div>
+      <div class="look-grid" data-grid="looks-${state.lookCat}">
+        ${shown.map(l => {
+          const patch = lookPatch(l, poem);
+          const on = poem.look === l.id;
+          const sample = { ...poem, ...patch, carousel: false, title: poem.title || 'Untitled', body: poem.body || 'Begin with\none honest line,\nand let the page\ndo the rest.' };
+          return `
+          <button type="button" class="look-btn${on ? ' on' : ''}" data-look="${l.id}" aria-pressed="${on}">
+            <span class="look-frame"><span class="look-scale">${renderSheetHTML(sample, { thumb: true, ratio: '4:5' })}</span></span>
+            <span class="look-nm">${esc(l.name)}</span>
+          </button>`;
+        }).join('')}
+      </div>
+    `;
+  } else if (state.railTab === 'artwork') {
     const subTabs = [
+      { id: 'story', label: `Illustrations (${grps.story.length})` },
       { id: 'minimal', label: `Minimal (${grps.minimal.length})` },
       { id: 'sketch', label: `Sketches (${grps.sketch.length})` },
       { id: 'light', label: `Light (${grps.light.length})` },
       { id: 'editorial', label: `Book & Ink (${grps.editorial.length})` },
       { id: 'canvas', label: `Watercolour (${grps.canvas.length})` },
-      { id: 'solid', label: 'Papers' },
       { id: 'photo', label: 'Your Photo' }
     ];
 
     let picker = '';
+    if (!grps[state.artSub] && state.artSub !== 'photo') state.artSub = 'story';
     if (grps[state.artSub]) {
-      picker = `<div class="paint-grid" data-grid="${state.artSub}">${grps[state.artSub].map(pt => {
+      picker = `<div class="paint-grid" data-grid="${state.artSub}"><button type="button" class="paint-btn${st.bgMode === 'solid' ? ' on' : ''}" id="no-picture-btn"><span class="paint-thumb finish-th is-none"></span><span class="paint-nm">No picture</span></button>${grps[state.artSub].map(pt => {
         const isBlend = pt.blend === 'multiply';
         const isContain = isBlend || Boolean(pt.contain);
         return `
@@ -582,13 +558,6 @@ function renderStudio(poem) {
           </button>
         `;
       }).join('')}</div>`;
-    } else if (state.artSub === 'solid') {
-      picker = `<div class="paper-grid" data-grid="solid">${PAPERS.map(pa => `
-        <button type="button" class="paper-btn${st.bgMode === 'solid' && st.paper.id === pa.id ? ' on' : ''}" data-paper="${esc(pa.id)}">
-          <span class="paper-sw" style="background:linear-gradient(135deg,${pa.bg},${pa.bg2});color:${pa.ink};border-color:${pa.acc}">Aa</span>
-          <span class="paper-nm">${esc(pa.name)}</span>
-        </button>
-      `).join('')}</div>`;
     } else {
       picker = `
         <div class="photo-panel" data-grid="photo">
@@ -627,38 +596,25 @@ function renderStudio(poem) {
       ${picker}
     `;
   } else if (state.railTab === 'fonts') {
+    const firstLine = stripEmphasis(String(poem.body || '').split('\n').find(l => l.trim()) || '').trim().slice(0, 30);
+    const hasOffset = st.textX !== 0 || st.textY !== 0;
     const shown = state.fontCat === 'all' ? FONTS : FONTS.filter(f => f.cat === state.fontCat);
     railContent = `
-      <div class="subtabs" role="group" aria-label="Categories">${FONT_CATS.map(fc => `<button type="button" class="subtab${state.fontCat === fc.id ? ' on' : ''}" data-fontcat="${fc.id}">${esc(fc.label)}</button>`).join('')}</div>
-      <div class="font-list" data-grid="font-${state.fontCat}">
-        ${shown.map(fn => `
-          <button type="button" class="font-btn${st.font.id === fn.id ? ' on' : ''}" data-font="${fn.id}">
-            <span class="font-sample" style="font-family:${fn.fam};font-weight:${fn.titleW};font-style:${fn.italicTitle ? 'italic' : 'normal'}">${esc(fn.name)}</span>
-            <span class="font-cat">${esc(fn.cat)}</span>
-          </button>
-        `).join('')}
-      </div>
-    `;
-  } else if (state.railTab === 'style') {
-    const hasOffset = st.textX !== 0 || st.textY !== 0;
-    railContent = `
+      <div class="subtabs" role="group" aria-label="Categories">${[{ id: 'setting', label: 'Size & style' }, ...FONT_CATS].map(fc => `<button type="button" class="subtab${state.fontCat === fc.id ? ' on' : ''}" data-fontcat="${fc.id}">${esc(fc.label)}</button>`).join('')}</div>
+      ${state.fontCat === 'setting' ? `
       <div>
-        <div class="sec-lbl">Title style</div>
+        <div class="sec-lbl">Text size &amp; line rhythm</div>
+        <div class="pills" style="margin-bottom:6px;">
+          ${TEXT_SIZES.map(ts => `<button type="button" class="choice-pill${st.textSize === ts.id ? ' on' : ''}" data-textsize="${ts.id}">${esc(ts.label)}</button>`).join('')}
+        </div>
         <div class="pills">
-          ${TITLE_STYLES.map(ts => `<button type="button" class="choice-pill${st.titleStyle === ts.id ? ' on' : ''}" data-titlestyle="${ts.id}">${esc(ts.label)}</button>`).join('')}
+          ${RHYTHMS.map(rh => `<button type="button" class="choice-pill${st.rhythm === rh.id ? ' on' : ''}" data-rhythm="${rh.id}">${esc(rh.label)}</button>`).join('')}
         </div>
       </div>
       <div>
-        <div class="sec-lbl">Text paper style</div>
+        <div class="sec-lbl">Alignment</div>
         <div class="pills">
-          ${TEXT_STYLES.map(ts => `<button type="button" class="choice-pill${st.textStyle === ts.id ? ' on' : ''}" data-textstyle="${ts.id}">${esc(ts.label)}</button>`).join('')}
-        </div>
-      </div>
-      <div>
-        <div class="sec-lbl">Textbox position</div>
-        <div class="pills">
-          <span class="hint" style="align-self:center;">Drag the <strong>Move</strong> handle on the poem</span>
-          ${hasOffset ? `<button type="button" class="choice-pill on" id="reset-pos-btn">Reset center</button>` : ''}
+          ${['left', 'center', 'right'].map(al => `<button type="button" class="choice-pill${st.align === al ? ' on' : ''}" data-align="${al}" style="text-transform:capitalize">${al}</button>`).join('')}
         </div>
       </div>
       <div>
@@ -670,25 +626,71 @@ function renderStudio(poem) {
         </div>
       </div>
       <div>
+        <div class="sec-lbl">Title style</div>
+        <div class="pills">
+          ${TITLE_STYLES.map(ts => `<button type="button" class="choice-pill${st.titleStyle === ts.id ? ' on' : ''}" data-titlestyle="${ts.id}">${esc(ts.label)}</button>`).join('')}
+        </div>
+      </div>
+      <div>
+        <div class="sec-lbl">Line style</div>
+        <div class="pills">
+          ${TEXT_STYLES.map(ts => `<button type="button" class="choice-pill${st.textStyle === ts.id ? ' on' : ''}" data-textstyle="${ts.id}">${esc(ts.label)}</button>`).join('')}
+        </div>
+      </div>
+      <div>
+        <div class="sec-lbl">Textbox position</div>
+        <div class="pills">
+          <span class="hint" style="align-self:center;">Drag the <strong>Move</strong> handle on the poem</span>
+          ${hasOffset ? `<button type="button" class="choice-pill on" id="reset-pos-btn">Reset center</button>` : ''}
+        </div>
+      </div>
+      ` : `
+      <div class="font-list" data-grid="font-${state.fontCat}">
+        ${shown.map(fn => `
+          <button type="button" class="font-btn${st.font.id === fn.id ? ' on' : ''}" data-font="${fn.id}">
+            <span class="font-sample" style="font-family:${fn.fam};font-weight:${fn.titleW};font-style:${fn.italicTitle ? 'italic' : 'normal'}">${esc(fn.cat === 'hindi' && !isHindi(firstLine) ? 'कुछ शब्द, कुछ ख़ामोशी' : firstLine || fn.name)}</span>
+            <span class="font-cat">${esc(fn.name)}</span>
+          </button>
+        `).join('')}
+      </div>
+      `}
+    `;
+  } else if (state.railTab === 'style') {
+    railContent = `
+      <div>
+        <div class="sec-lbl">Paper</div>
+        <div class="finish-row">
+          ${st.bgMode === 'art' ? `<button type="button" class="finish-btn${!st.paperPick ? ' on' : ''}" data-paper=""><span class="finish-th sw" style="background:linear-gradient(135deg,${st.painting.bg},${st.painting.bg2 || st.painting.bg});color:${st.painting.ink}">Aa</span><span>Original</span></button>` : ''}
+          ${PAPERS.filter(pa => !(st.bgMode === 'art' && pa.dark && st.painting.blend === 'multiply')).map(pa => `<button type="button" class="finish-btn${(st.bgMode === 'art' ? st.paperPick : st.paper.id) === pa.id ? ' on' : ''}" data-paper="${esc(pa.id)}"><span class="finish-th sw" style="background:linear-gradient(135deg,${pa.bg},${pa.bg2});color:${pa.ink}">Aa</span><span>${esc(pa.name)}</span></button>`).join('')}
+        </div>
+      </div>
+      <div>
         <div class="sec-lbl">Paper texture</div>
         <div class="pills">
           ${TEXTURES.map(tx => `<button type="button" class="choice-pill${st.texture === tx.id ? ' on' : ''}" data-texture="${tx.id}">${esc(tx.label)}</button>`).join('')}
         </div>
       </div>
       <div>
-        <div class="sec-lbl">Text size &amp; line rhythm</div>
-        <div class="pills" style="margin-bottom:6px;">
-          ${TEXT_SIZES.map(ts => `<button type="button" class="choice-pill${st.textSize === ts.id ? ' on' : ''}" data-textsize="${ts.id}">${esc(ts.label)}</button>`).join('')}
-        </div>
-        <div class="pills">
-          ${RHYTHMS.map(rh => `<button type="button" class="choice-pill${st.rhythm === rh.id ? ' on' : ''}" data-rhythm="${rh.id}">${esc(rh.label)}</button>`).join('')}
+        <div class="sec-lbl">Watercolour</div>
+        <div class="finish-row">
+          <button type="button" class="finish-btn${!st.atmos ? ' on' : ''}" data-atmos=""><span class="finish-th is-none"></span><span>None</span></button>
+          ${ATMOS.map(x => `<button type="button" class="finish-btn${st.atmos === x.id ? ' on' : ''}" data-atmos="${x.id}"><span class="finish-th"><img src="${finishSrc(x.id)}" alt="" loading="lazy"></span><span>${esc(x.label)}</span></button>`).join('')}
         </div>
       </div>
       <div>
-        <div class="sec-lbl">Poster format</div>
-        <div class="pills">
-          ${RATIOS.map(r => `<button type="button" class="choice-pill${st.ratio === r.id ? ' on' : ''}" data-ratio="${r.id}">${esc(r.label)}</button>`).join('')}
+        <div class="sec-lbl">Light</div>
+        <div class="finish-row">
+          <button type="button" class="finish-btn${!st.light ? ' on' : ''}" data-light=""><span class="finish-th is-none"></span><span>None</span></button>
+          ${LIGHTS.map(x => `<button type="button" class="finish-btn${st.light === x.id ? ' on' : ''}" data-light="${x.id}"><span class="finish-th"><img src="${finishSrc(x.id)}" alt="" loading="lazy"></span><span>${esc(x.label)}</span></button>`).join('')}
         </div>
+      </div>
+      <div>
+        <div class="sec-lbl">Keepsake</div>
+        <div class="finish-row">
+          <button type="button" class="finish-btn${!st.charm ? ' on' : ''}" data-charm=""><span class="finish-th is-none"></span><span>None</span></button>
+          ${CHARMS.map(x => `<button type="button" class="finish-btn${st.charm === x.id ? ' on' : ''}" data-charm="${x.id}"><span class="finish-th"><img src="${finishSrc(x.id)}" alt="" loading="lazy"></span><span>${esc(x.label)}</span></button>`).join('')}
+        </div>
+        ${st.charm ? `<div class="pills" style="margin-top:8px;">${CHARM_POS.map(p => `<button type="button" class="choice-pill${st.charmPos === p.id ? ' on' : ''}" data-charmpos="${p.id}">${esc(p.label)}</button>`).join('')}</div>` : ''}
       </div>
       <div>
         <div class="sec-lbl">Frame</div>
@@ -697,23 +699,9 @@ function renderStudio(poem) {
         </div>
       </div>
       <div>
-        <div class="sec-lbl">Alignment</div>
+        <div class="sec-lbl">Poster format</div>
         <div class="pills">
-          ${['left', 'center', 'right'].map(al => `<button type="button" class="choice-pill${st.align === al ? ' on' : ''}" data-align="${al}" style="text-transform:capitalize">${al}</button>`).join('')}
-        </div>
-      </div>
-      <div>
-        <div class="sec-lbl">Signature</div>
-        <input id="sign-in" class="field-in" type="text" placeholder="— your name or pen name" value="${esc(st.sign)}">
-      </div>
-      <div>
-        <div class="sec-lbl">Book page number</div>
-        <input id="page-in" class="field-in" type="text" placeholder="e.g. 143" value="${esc(st.pageNo)}">
-      </div>
-      <div>
-        <div class="sec-lbl">Collection tag</div>
-        <div class="pills">
-          ${MOODS.map(md => `<button type="button" class="choice-pill${st.mood === md ? ' on' : ''}" data-setmood="${esc(md)}">${esc(md)}</button>`).join('')}
+          ${RATIOS.map(r => `<button type="button" class="choice-pill${st.ratio === r.id ? ' on' : ''}" data-ratio="${r.id}">${esc(r.label)}</button>`).join('')}
         </div>
       </div>
     `;
@@ -732,6 +720,20 @@ function renderStudio(poem) {
           <button type="button" class="choice-pill${st.ratio === 'auto' ? ' on' : ''}" data-ratio="auto">Long Page</button>
         </div>
         <p class="hint" style="margin-top:8px;">Wrap lines in <code>**bold**</code> or <code>__underline__</code> for visual punch, or place <code>---</code> on its own line for manual carousel breaks.</p>
+      </div>
+      <div>
+        <div class="sec-lbl">Signature</div>
+        <input id="sign-in" class="field-in" type="text" placeholder="— your name or pen name" value="${esc(st.sign)}">
+      </div>
+      <div>
+        <div class="sec-lbl">Collection tag</div>
+        <div class="pills">
+          ${MOODS.map(md => `<button type="button" class="choice-pill${st.mood === md ? ' on' : ''}" data-setmood="${esc(md)}">${esc(md)}</button>`).join('')}
+        </div>
+      </div>
+      <div>
+        <div class="sec-lbl">Book page number</div>
+        <input id="page-in" class="field-in" type="text" placeholder="e.g. 143" value="${esc(st.pageNo)}">
       </div>
       <div>
         <div class="sec-lbl">Rhyme finder</div>
@@ -771,18 +773,27 @@ function renderStudio(poem) {
     : `<span class="stage-tip">${st.carousel ? `Previewing ${slides.length}-slide carousel` : (st.ratio === 'auto' ? 'Unclipped Long Page · exports full height' : 'Hover poem to drag & reposition · tap to write')}</span>`;
 
   const tabMeta = [
-    { id: 'artwork', label: 'Artwork', icon: ICONS.artwork },
-    { id: 'fonts', label: 'Fonts', icon: ICONS.fonts },
-    { id: 'style', label: 'Style', icon: ICONS.style },
-    { id: 'write', label: 'Write', icon: ICONS.write }
+    { id: 'looks', label: 'Looks', icon: ICONS.looks, note: 'Sets the whole page: picture, type and paper.' },
+    { id: 'artwork', label: 'Picture', icon: ICONS.artwork, layer: 'picture', note: 'Changes only the picture and where it sits.' },
+    { id: 'fonts', label: 'Type', icon: ICONS.fonts, layer: 'type', note: 'Changes only how the words look.' },
+    { id: 'style', label: 'Page', icon: ICONS.style, layer: 'page', note: 'Changes only the paper, light and frame.' },
+    { id: 'write', label: 'Words', icon: ICONS.write, note: 'The words themselves, and help writing them.' }
   ];
-  const activeTabLabel = tabMeta.find(t => t.id === state.railTab)?.label || 'Artwork';
+  const activeTab = tabMeta.find(t => t.id === state.railTab) || tabMeta[0];
+  const activeTabLabel = activeTab.label;
+  const changed = changedLayers(poem);
+  const lookName = LOOKS.find(l => l.id === poem.look)?.name;
+  const layerNames = { picture: 'picture', type: 'type', page: 'page' };
+  const railNote = state.railTab === 'looks' && lookName
+    ? `<span>${changed.length ? `<b>${esc(lookName)}</b>, with your own ${changed.map(c => layerNames[c]).join(changed.length > 2 ? ', ' : ' and ')}` : `<b>${esc(lookName)}</b>, as designed`}</span>${changed.length ? '<button type="button" class="note-btn" id="look-reset-btn">Reset</button>' : ''}`
+    : `<span>${activeTab.note}</span>`;
 
   const mobileMoreMenu = state.moreOpen ? `
     <div class="ios-menu" role="menu">
       <button type="button" class="ios-menu-item" id="m-shuffle-btn" role="menuitem"><span>Shuffle pairing</span>${ICONS.sparkles}</button>
       <button type="button" class="ios-menu-item" id="m-copy-btn" role="menuitem"><span>Copy poem text</span>${ICONS.copy}</button>
       <button type="button" class="ios-menu-item" id="m-theme-btn" role="menuitem"><span>${state.theme === 'dark' ? 'Light studio' : 'Night studio'}</span>${state.theme === 'dark' ? ICONS.sun : ICONS.moon}</button>
+      <button type="button" class="ios-menu-item" id="m-motion-btn" role="menuitem"><span>${calm() ? 'Turn motion on' : 'Turn motion off'}</span>${ICONS.motion}</button>
       <div class="ios-menu-sep"></div>
       <button type="button" class="ios-menu-item" id="m-archive-btn" role="menuitem"><span>${poem.archived ? 'Unarchive poem' : 'Archive poem'}</span>${ICONS.archive}</button>
       <button type="button" class="ios-menu-item danger" id="m-delete-btn" role="menuitem"><span>Delete poem</span>${ICONS.trash}</button>
@@ -817,7 +828,7 @@ function renderStudio(poem) {
 
         <div class="stage-canvas-wrap">
           ${carouselNavHTML}
-          <div class="sheet-holder" id="sheet-holder">${renderSheetHTML(poem, { editable: !st.carousel, slide: activeSlide })}</div>
+          <div class="sheet-holder" id="sheet-holder">${renderSheetHTML(poem, { editable: !st.carousel, editingRich: state.editingRich, slide: activeSlide })}</div>
         </div>
 
         <div class="stage-footer">
@@ -836,9 +847,10 @@ function renderStudio(poem) {
             <button type="button" class="btn sm primary" id="sheet-done-btn">Done</button>
           </div>
         </div>
-        <div class="rail-tabs" role="tablist">
-          ${tabMeta.map(tb => `<button type="button" role="tab" aria-selected="${state.railTab === tb.id}" class="rail-tab${state.railTab === tb.id ? ' on' : ''}" data-railtab="${tb.id}">${tb.label}</button>`).join('')}
+        <div class="rail-tabs" role="tablist" style="--tab:${tabMeta.findIndex(t => t.id === state.railTab)}">
+          ${tabMeta.map(tb => `<button type="button" role="tab" aria-selected="${state.railTab === tb.id}" class="rail-tab${state.railTab === tb.id ? ' on' : ''}" data-railtab="${tb.id}">${tb.label}${changed?.includes(tb.layer) ? '<i class="tab-dot" title="Changed from the look"></i>' : ''}</button>`).join('')}
         </div>
+        <div class="rail-note">${railNote}</div>
         <div class="rail-body" data-tabpanel="${state.railTab}">${railContent}</div>
         <div class="rail-foot">
           <button type="button" class="btn sm" id="archive-btn">${ICONS.archive} ${poem.archived ? 'Unarchive' : 'Archive'}</button>
@@ -874,9 +886,6 @@ function autoSizeTextarea() {
   if (stage && stage.scrollTop !== top) stage.scrollTop = top;
 }
 
-const SHEET_W = { 'rat-4-5': 458, 'rat-1-1': 458, 'rat-9-16': 350, 'rat-2-3': 408 };
-const SHEET_RATIO = { 'rat-4-5': 4 / 5, 'rat-1-1': 1, 'rat-9-16': 9 / 16, 'rat-2-3': 2 / 3 };
-
 // Size the poster to the space it has on desktop; on phones, lift it clear of the open sheet.
 function fitStage() {
   const root = document.documentElement.style;
@@ -887,27 +896,61 @@ function fitStage() {
   let lift = 1;
   let rise = 0;
   const cls = Object.keys(SHEET_W).find(c => sheet.classList.contains(c));
-  if (desktopStage.matches) {
-    if (cls) {
-      const cs = getComputedStyle(stage);
-      const nav = stage.querySelector('.carousel-nav');
-      const h = stage.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom) - (nav ? nav.offsetHeight + 14 : 0);
-      const w = stage.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
-      const baseW = SHEET_W[cls];
-      zoom = Math.max(0.7, Math.min(1.6, w / baseW, h / (baseW / SHEET_RATIO[cls])));
-    }
-  } else if (state.mobileSheetOpen && cls) {
-    const rail = document.querySelector('.studio-rail');
-    const free = stage.clientHeight - (rail?.offsetHeight || 0) - 24;
-    lift = Math.max(0.42, Math.min(1, free / sheet.offsetHeight));
-    rise = 12 - (sheetHolder().offsetTop - stage.scrollTop);
+  const cs = getComputedStyle(stage);
+  const w = stage.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
+  const baseW = SHEET_W[cls];
+  zoom = Math.min(cls === 'rat-auto' ? 1.2 : 1.6, w / baseW);
+  if (desktopStage.matches && SHEET_RATIO[cls]) {
+    const nav = stage.querySelector('.carousel-nav');
+    const h = stage.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom) - (nav ? nav.offsetHeight + 14 : 0);
+    zoom = Math.max(0.6, Math.min(zoom, h / (baseW / SHEET_RATIO[cls])));
   }
   root.setProperty('--stage-zoom', zoom.toFixed(3));
+  if (!desktopStage.matches && state.mobileSheetOpen) {
+    const rail = document.querySelector('.studio-rail');
+    const free = stage.clientHeight - (rail?.offsetHeight || 0) - 24;
+    const tall = SHEET_RATIO[cls] ? (baseW / SHEET_RATIO[cls]) * zoom : sheet.offsetHeight * zoom;
+    lift = Math.max(0.36, Math.min(1, free / tall));
+    const padT = parseFloat(cs.paddingTop);
+    const top = padT + Math.max(0, (stage.clientHeight - padT - parseFloat(cs.paddingBottom) - tall) / 2) - stage.scrollTop;
+    rise = (12 - top) / zoom;
+  }
   root.setProperty('--stage-lift', lift.toFixed(3));
   root.setProperty('--stage-rise', Math.round(rise) + 'px');
 }
 
 const stageObserver = new ResizeObserver(() => fitStage());
+
+// Thumbnails are the real sheet, scaled to their frame
+function fitThumbs() {
+  const grid = document.querySelector('.anthology-grid');
+  if (grid) {
+    const gap = innerWidth <= 600 ? 12 : 22;
+    const meta = innerWidth <= 600 ? 32 : 44;
+    for (const card of grid.children) {
+      const frame = card.querySelector('.poem-card-frame');
+      const sheet = card.querySelector('.poem-sheet');
+      if (!sheet) { card.style.gridRowEnd = `span ${Math.round(frame.clientWidth / 0.8 + meta + gap)}`; continue; }
+      const cls = Object.keys(SHEET_W).find(c => sheet.classList.contains(c));
+      const w = frame.clientWidth;
+      frame.style.setProperty('--thumb', (w / SHEET_W[cls]).toFixed(4));
+      card.style.gridRowEnd = `span ${Math.round(w / SHEET_RATIO[cls] + meta + gap)}`;
+    }
+  }
+  const look = document.querySelector('.look-frame');
+  if (look) document.documentElement.style.setProperty('--look', (look.clientWidth / SHEET_W['rat-4-5']).toFixed(4));
+}
+const thumbObserver = new ResizeObserver(() => fitThumbs());
+thumbObserver.observe(document.body);
+
+function fitSheets() {
+  document.querySelectorAll('.poem-sheet[data-fit]').forEach(fitSheet);
+}
+let refit = 0;
+document.fonts?.addEventListener?.('loadingdone', () => {
+  clearTimeout(refit);
+  refit = setTimeout(() => { clearFits(); render(); }, 120);
+});
 
 function liveUpdateMetricsAndScale(poem) {
   const st = resolveStyle(poem);
@@ -932,6 +975,7 @@ function liveUpdateMetricsAndScale(poem) {
     if (ta) ta.style.lineHeight = Number((st.font.lh * ts.lhMult * rhythmMult).toFixed(3));
   }
   autoSizeTextarea();
+  if (sheet) fitSheet(sheet, { cache: false });
 }
 
 /* ---------- Rendering ---------- */
@@ -939,7 +983,7 @@ function liveUpdateMetricsAndScale(poem) {
 // A copy of the current sheet, laid over the new one and faded away.
 function captureGhost() {
   const sheet = document.getElementById('active-poem-sheet');
-  if (!sheet || reducedMotion.matches || document.hidden) return null;
+  if (!sheet || document.hidden) return null;
   const ghost = sheet.cloneNode(true);
   const ta = sheet.querySelector('textarea');
   if (ta) ghost.querySelector('textarea').value = ta.value;
@@ -954,18 +998,21 @@ function captureGhost() {
   return { ghost, sheet, before: sheet.outerHTML };
 }
 
-function playGhost(cap) {
+function playGhost(cap, dir = 0) {
   const holder = sheetHolder();
   if (!holder || !cap.sheet.isConnected || cap.sheet.outerHTML === cap.before) return;
   holder.querySelectorAll('.sheet-ghost').forEach(n => n.remove());
   holder.appendChild(cap.ghost);
   const done = () => cap.ghost.remove();
-  cap.ghost.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 220, easing: 'ease-out', fill: 'forwards' }).finished.then(done, done);
-  setTimeout(done, 400); // never leave the copy behind if frames stall
+  const travel = calm() ? 0 : dir * 46;
+  const ease = 'cubic-bezier(0.32, 0.72, 0, 1)';
+  cap.ghost.animate([{ opacity: 1, transform: 'none' }, { opacity: 0, transform: `translateX(${-travel}px)` }], { duration: dir ? 340 : 260, easing: dir ? ease : 'ease-out', fill: 'forwards' }).finished.then(done, done);
+  if (travel) cap.sheet.animate([{ transform: `translateX(${travel}px)` }, { transform: 'none' }], { duration: 340, easing: ease });
+  setTimeout(done, 480); // never leave the copy behind if frames stall
 }
 
 let observedStage = null;
-function render({ fade = false } = {}) {
+function render({ fade = false, dir = 0 } = {}) {
   const root = document.getElementById('app');
   if (!root) return;
   const poem = getActivePoem();
@@ -983,30 +1030,35 @@ function render({ fade = false } = {}) {
     fitStage();
     autoSizeTextarea();
   }
-  if (cap) playGhost(cap);
+  fitThumbs();
+  fitSheets();
+  if (cap) playGhost(cap, dir);
 }
 
 // Re-render the anthology, gliding cards that stay to their new place.
 function renderGalleryFlow() {
   const cards = () => Array.from(document.querySelectorAll('.poem-card'));
-  if (reducedMotion.matches) { render(); return; }
   const was = new Map(cards().map(c => [c.dataset.open, c.getBoundingClientRect()]));
   render();
   const head = document.querySelector('.gallery-head');
   const grid = document.querySelector('.anthology-grid');
-  if (head && grid && grid.getBoundingClientRect().top < head.getBoundingClientRect().bottom) window.scrollTo(0, 0);
+  const bar = document.querySelector('.filter-bar');
+  if (head && grid && bar && grid.getBoundingClientRect().top < bar.getBoundingClientRect().bottom - 4) {
+    window.scrollBy(0, grid.getBoundingClientRect().top - bar.getBoundingClientRect().bottom - 8);
+  }
   for (const card of cards()) {
     card.getAnimations().forEach(a => a.cancel());
     const from = was.get(card.dataset.open);
     const to = card.getBoundingClientRect();
     if (!from) {
-      card.animate([{ opacity: 0, transform: 'scale(.97)' }, { opacity: 1, transform: 'none' }], { duration: 240, easing: 'ease-out' });
+      card.animate([{ opacity: 0, transform: calm() ? 'none' : 'scale(.96)' }, { opacity: 1, transform: 'none' }], { duration: 280, easing: 'ease-out' });
       continue;
     }
     const dx = from.left - to.left;
     const dy = from.top - to.top;
     if (Math.abs(dx) < 1 && Math.abs(dy) < 1) continue;
-    card.animate([{ transform: `translate(${dx}px, ${dy}px)` }, { transform: 'none' }], { duration: 320, easing: 'cubic-bezier(0.32, 0.72, 0, 1)' });
+    if (calm()) { card.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 220, easing: 'ease-out' }); continue; }
+    card.animate([{ transform: `translate(${dx}px, ${dy}px)` }, { transform: 'none' }], { duration: 460, easing: 'cubic-bezier(0.22, 0.9, 0.24, 1)' });
   }
 }
 
@@ -1015,17 +1067,44 @@ function revealSubtab() {
   const on = document.querySelector('.subtab.on');
   const bar = on?.parentElement;
   if (!bar) return;
-  bar.scrollTo({ left: on.offsetLeft - (bar.clientWidth - on.offsetWidth) / 2, behavior: reducedMotion.matches ? 'auto' : 'smooth' });
+  bar.scrollTo({ left: on.offsetLeft - (bar.clientWidth - on.offsetWidth) / 2, behavior: calm() ? 'auto' : 'smooth' });
 }
 
 /* ---------- Actions ---------- */
 
 function toggleTheme() {
-  state.theme = state.theme === 'dark' ? 'light' : 'dark';
-  document.documentElement.dataset.theme = state.theme;
-  localStorage.setItem(THEME_KEY, state.theme);
+  transitionView(() => {
+    state.theme = state.theme === 'dark' ? 'light' : 'dark';
+    document.documentElement.dataset.theme = state.theme;
+    localStorage.setItem(THEME_KEY, state.theme);
+    state.moreOpen = false;
+    render();
+  });
+}
+
+function toggleMotion() {
+  const next = calm() ? 'full' : 'calm';
+  localStorage.setItem(MOTION_KEY, next);
+  applyMotion();
   state.moreOpen = false;
   render();
+  toast(next === 'full' ? 'Motion on' : 'Motion off');
+}
+
+const STYLE_KEYS = ['look', 'bgMode', 'painting', 'paper', 'paperPick', 'layout', 'wash', 'font', 'align', 'textStyle', 'titleStyle', 'inkColor', 'rhythm', 'textSize', 'textX', 'textY', 'frame', 'texture', 'atmos', 'light', 'charm', 'charmPos'];
+function pickLook(id) {
+  const l = LOOKS.find(x => x.id === id);
+  const poem = getActivePoem();
+  if (!l || !poem) return;
+  state.editingRich = false;
+  const before = Object.fromEntries(STYLE_KEYS.map(k => [k, poem[k]]));
+  const patch = { ...lookPatch(l, poem), look: l.id };
+  const art = patch.bgMode === 'art' ? ARTWORKS.find(a => a.id === patch.painting) : null;
+  const assets = [art?.src, patch.atmos && finishSrc(patch.atmos), patch.light && finishSrc(patch.light), patch.charm && finishSrc(patch.charm)];
+  patchWhenReady(Promise.all([...assets.map(imageReady), fontReady(patch.font, poem.body)]), patch, () => {
+    if (art) state.artSub = art.grp;
+    toast(`${l.name} set the whole page`, 4200, { label: 'Undo', run: () => { if (getActivePoem() === poem) patchActive(before); } });
+  });
 }
 
 function doBackup() {
@@ -1072,30 +1151,11 @@ async function importFile(input) {
 }
 
 function doShuffle() {
-  const pr = PRESETS[Math.floor(Math.random() * PRESETS.length)];
+  const look = LOOKS[Math.floor(Math.random() * LOOKS.length)];
   state.moreOpen = false;
-  state.editingRich = false;
-  const pt = ARTWORKS.find(a => a.id === pr.painting);
   render();
-  patchWhenReady(Promise.all([imageReady(pt?.src), fontReady(pr.font, getActivePoem()?.body)]), {
-    bgMode: pr.bgMode,
-    painting: pr.painting,
-    layout: pr.layout,
-    textStyle: pr.textStyle || 'plain',
-    titleStyle: pr.titleStyle || 'classic',
-    texture: pr.texture || 'grain',
-    font: pr.font,
-    frame: pr.frame,
-    align: pr.align,
-    wash: pr.wash,
-    textX: 0,
-    textY: 0
-  }, () => {
-    if (pt && state.artSub !== pt.grp) { state.artSub = pt.grp; render(); revealSubtab(); }
-    toast('Tried a fresh pairing');
-  });
+  pickLook(look.id);
 }
-
 async function doCopy() {
   const poem = getActivePoem();
   state.moreOpen = false;
@@ -1132,26 +1192,34 @@ async function doExport() {
 
 function pickArt(id) {
   const pt = ARTWORKS.find(a => a.id === id);
-  if (!pt) return;
-  state.editingRich = false;
-  const patch = {
-    bgMode: 'art',
-    painting: pt.id,
-    layout: pt.defLayout || 'overlay',
-    textStyle: pt.defTextStyle || 'plain',
-    textX: 0,
-    textY: 0
-  };
-  if (pt.defLayout === 'below') patch.align = 'center';
-  if (pt.defTexture) patch.texture = pt.defTexture;
-  if (pt.defTitleStyle) patch.titleStyle = pt.defTitleStyle;
+  const poem = getActivePoem();
+  if (!pt || !poem) return;
+  const st = resolveStyle(poem);
+  // Only the picture changes. It moves only when it can't sit where the last one did.
+  const loose = pt.contain || pt.blend === 'multiply';
+  const keep = st.bgMode === 'art' && !(loose && st.layout === 'overlay');
+  const patch = { bgMode: 'art', painting: pt.id };
+  if (!keep) Object.assign(patch, { layout: pt.defLayout || 'side', textX: 0, textY: 0 });
   patchWhenReady(imageReady(pt.src), patch);
 }
 
+function removePicture() {
+  const st = resolveStyle(getActivePoem());
+  patchActive({ bgMode: 'solid', layout: 'overlay', paper: st.paperPick || st.paper.id, textX: 0, textY: 0 });
+}
+
+function pickFinish(key, id) {
+  const patch = { [key]: id };
+  if (key === 'charm') patch.charmPos = '';
+  patchWhenReady(imageReady(id && finishSrc(id)), patch);
+}
+
 function pickPaper(id) {
-  const patch = { bgMode: 'solid', paper: id, layout: 'overlay' };
-  if (id === 'raw-kraft') patch.texture = 'kraft';
-  if (id === 'handmade-cotton') patch.texture = 'cotton';
+  const st = resolveStyle(getActivePoem());
+  if (st.bgMode !== 'art') { patchActive({ bgMode: 'solid', paper: id }); return; }
+  const patch = { paperPick: id };
+  // A picture that fills the page would hide the paper, so frame it instead.
+  if (id && st.layout === 'overlay') patch.layout = st.painting.defLayout && st.painting.defLayout !== 'overlay' ? st.painting.defLayout : 'arch';
   patchActive(patch);
 }
 
@@ -1204,16 +1272,23 @@ function doDelete() {
 
 function setTab(tab) { state.railTab = tab; render(); revealSubtab(); }
 function closeSheet() { state.mobileSheetOpen = false; render(); }
-function goToSlide(i) { state.slideIdx = i; render({ fade: true }); }
+function goToSlide(i) { const dir = Math.sign(i - state.slideIdx); state.slideIdx = i; render({ fade: true, dir }); }
 
 /* ---------- Events: one set of listeners, delegated from the document ---------- */
 
 const CLICKS = [
   ['#theme-btn, #m-theme-btn', toggleTheme],
+  ['#motion-btn, #m-motion-btn', toggleMotion],
   ['#more-btn', () => { state.moreOpen = !state.moreOpen; render(); }],
 
   // Anthology
-  ['#new-poem-btn, #mobile-new-btn, #empty-new-btn', createPoem],
+  ['#new-poem-btn, #mobile-new-btn, #empty-new-btn, #new-card-btn', () => createPoem()],
+  ['#spark-use', () => createPoem({ spark: todaysSpark() })],
+  ['#spark-next', () => { state.sparkShift += 1; render(); }],
+  ['[data-startlook]', el => createPoem({ lookId: el.dataset.startlook })],
+  ['[data-bloom]', el => openPoem(el.dataset.bloom)],
+  ['[data-song]', el => openPoem(el.dataset.song)],
+  ['#bird', () => hopTo((state.perch + 1 + Math.floor(Math.random() * (PERCHES.length - 1))) % PERCHES.length, pickSong())],
   ['[data-mood]', el => { if (state.moodFilter !== el.dataset.mood) { state.moodFilter = el.dataset.mood; renderGalleryFlow(); } }],
   ['[data-open]', el => openPoem(el.dataset.open)],
   ['#backup-btn, #m-backup-btn', doBackup],
@@ -1261,6 +1336,16 @@ const CLICKS = [
   ['[data-artsub]', el => { state.artSub = el.dataset.artsub; render(); revealSubtab(); }],
   ['[data-fontcat]', el => { state.fontCat = el.dataset.fontcat; render(); revealSubtab(); }],
 
+  // Looks and finishes
+  ['[data-look]', el => pickLook(el.dataset.look)],
+  ['#look-reset-btn', () => pickLook(getActivePoem().look)],
+  ['#no-picture-btn', removePicture],
+  ['[data-lookcat]', el => { state.lookCat = el.dataset.lookcat; render(); revealSubtab(); }],
+  ['[data-atmos]', el => pickFinish('atmos', el.dataset.atmos)],
+  ['[data-light]', el => pickFinish('light', el.dataset.light)],
+  ['[data-charmpos]', el => patchActive({ charmPos: el.dataset.charmpos })],
+  ['[data-charm]', el => pickFinish('charm', el.dataset.charm)],
+
   // Artwork
   ['[data-art]', el => pickArt(el.dataset.art)],
   ['[data-paper]', el => pickPaper(el.dataset.paper)],
@@ -1299,6 +1384,7 @@ const CLICKS = [
 ];
 
 const INPUTS = [
+  ['#first-line-in', el => { state.firstLine = el.value; }],
   ['#gallery-search', el => { state.search = el.value; renderGalleryFlow(); }],
   ['#poem-title-in', el => patchActive({ title: el.value }, { rerender: false })],
   ['#poem-body-in', el => {
@@ -1330,6 +1416,14 @@ function delegate(type, table) {
 delegate('click', CLICKS);
 delegate('input', INPUTS);
 delegate('change', CHANGES);
+
+document.addEventListener('submit', e => {
+  if (e.target.id !== 'first-line-form') return;
+  e.preventDefault();
+  const line = document.getElementById('first-line-in').value.trim();
+  state.firstLine = '';
+  createPoem(line ? { body: line + '\n' } : {});
+});
 
 document.addEventListener('click', e => {
   if (state.moreOpen && !e.target.closest?.('.menu-wrap')) { state.moreOpen = false; render(); }
@@ -1415,4 +1509,5 @@ if (state.activeId) {
   state.artSub = st.bgMode === 'solid' ? 'solid' : st.bgMode === 'photo' ? 'photo' : (st.painting.grp || 'minimal');
 }
 render();
-setTimeout(() => document.getElementById('app')?.setAttribute('data-ready', ''), 700);
+setTimeout(() => document.getElementById('app')?.setAttribute('data-ready', ''), 900);
+if (!state.activeId) sing(pickSong(), 1600);

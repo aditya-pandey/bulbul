@@ -30,11 +30,19 @@
 Red marks the one primary action on a screen. Selected options use ink.
 
 ### Motion
-Nothing animates because the page re-rendered. Motion only explains a change: cards glide to a new place, the poster cross-fades, a poem travels between its card and the studio. All of it is off under Reduce Motion.
+Nothing animates because the page re-rendered. Two settings, following the system until the person chooses with the motion button:
+- **Full:** cards lift on hover (the frame moves, never the hit area), filtered cards glide, the poster cross-fades, carousel slides travel, a poem carries from its card to the studio.
+- **Calm:** everything fades, nothing travels.
+
+### Editing model
+A page is a stack: picture, type, page (paper, light, frame) and words. A look sets the first three together. Every other control changes one layer and leaves the rest alone: choosing a picture keeps its placement, choosing a paper keeps the picture. Layer keys live in `LAYERS` in `data.js`.
+
+### Illustration
+Gouache shapes with a wobbling edge and dry-brush texture over a watercolour bloom. Figures are seen from behind or without features. Madder, vermilion, turmeric, indigo, teal and sage on warm paper. Transparent WebP, square for Stories, 2:1 for landscapes.
 
 ---
 
 ## 3. Studio Craft & Capabilities
-- **69 Curated Artworks** across Minimal (18), Sketches (10), Light (11), Book & Ink (16), Watercolour (14) + 14 Solid Editorial Papers (including Raw Kraft & Cotton Rag) + Custom Photo Upload.
-- **32 Curated Fonts** across Classic (9), Handwriting (8), Typewriter (3), Modern (4), and हिन्दी / Devanagari (8).
-- **Editorial Customisations:** Draggable poem textbox with magnetic center snap, 7 Title styles (`Classic · No Title · Drop Cap · Small Caps · Lyrical Italic · Highlight · Side Margin`), 4 Text Paper styles (`Plain · Torn Paper · Line Cut-Out · Word Cut-Out`), 4 Artwork placements (`Book Editorial · Full Canvas · Art Below · Corner Art`), 4 Paper Textures (`Fine Grain · Kraft Fiber · Cotton Rag · Smooth`), 8 Ink Colour Swatches, Line Rhythm (`Tight · Balanced · Airy`), and inline poetic emphasis (`**bold**`, `__underline__`, `*italic*`).
+- **83 artworks** (14 original Stories and landscapes), 14 papers and custom photos; **34 Looks**; watercolour, light and keepsake layers.
+- **50 fonts:** Classic (12), Handwriting (14), Typewriter (4), Modern (4), हिन्दी (16).
+- **Editorial Customisations:** Draggable poem textbox with magnetic center snap, 7 Title styles (`Classic · No Title · Drop Cap · Small Caps · Lyrical Italic · Highlight · Side Margin`), 7 text styles (`Plain · Torn Paper · Line Cut-Out · Word Cut-Out · Underlined · Highlighter · Blackout`), 7 artwork placements (`Book Editorial · Full Canvas · Art Below · Corner Art · Landscape · Arch Window · Taped Print`), 4 Paper Textures (`Fine Grain · Kraft Fiber · Cotton Rag · Smooth`), 8 Ink Colour Swatches, Line Rhythm (`Tight · Balanced · Airy`), and inline poetic emphasis (`**bold**`, `__underline__`, `*italic*`).
