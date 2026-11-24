@@ -1,4 +1,4 @@
-const CACHE = 'noor-poetry-v5';
+const CACHE = 'bulbul-v1';
 const SHELL = [
   './',
   './index.html',
@@ -6,11 +6,12 @@ const SHELL = [
   './data.js',
   './export.js',
   './app.js',
+  './morph.js',
   './manifest.webmanifest',
-  './assets/brand/noor-symbol.svg',
-  './assets/brand/noor-wordmark.svg',
-  './assets/brand/noor-lockup.svg',
-  './assets/brand/noor-app-icon.svg',
+  './assets/brand/bulbul-symbol.svg',
+  './assets/brand/bulbul-wordmark.svg',
+  './assets/brand/bulbul-lockup.svg',
+  './assets/brand/bulbul-app-icon.svg',
   './assets/brand/apple-touch-icon.png'
 ];
 

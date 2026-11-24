@@ -6,7 +6,7 @@
   <!-- 2: Waxing Crescent -->
   <circle cx="300" cy="274" r="30" stroke="#221E1A" stroke-width="1" stroke-opacity="0.22"/>
   <path d="M300 244 A30 30 0 1 1 300 304 A20 30 0 1 0 300 244 Z" fill="#221E1A" fill-opacity="0.82"/>
-  <!-- 3: Center Full Noor Gold Moon -->
+  <!-- 3: Center Full Gold Moon -->
   <circle cx="300" cy="400" r="44" fill="#D2A058" fill-opacity="0.24"/>
   <circle cx="300" cy="400" r="34" fill="#C99449" fill-opacity="0.82"/>
   <circle cx="300" cy="400" r="56" stroke="#B87F32" stroke-width="0.8" stroke-dasharray="2 6" stroke-opacity="0.45"/>

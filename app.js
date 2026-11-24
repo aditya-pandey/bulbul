@@ -5,14 +5,17 @@ import {
   findRhymes, poemMetrics, computeTypeScale, paginatePoem, resolveStyle
 } from './data.js';
 import { exportPoemPNG, exportCarouselPNGs } from './export.js';
+import { morph } from './morph.js';
 
+// Storage keys predate the current name. Keep them: renaming would orphan saved poems.
 const STORAGE_KEY = 'noor.poems.v1';
-const LEGACY_KEY = 'folio.poems.v1';
 const THEME_KEY = 'noor.theme';
+const LEGACY_KEYS = ['folio.poems.v1'];
+const LEGACY_THEME_KEYS = ['folio.theme'];
 
-// Bespoke Zero-Moon Noor Brand Lockup — Dawn Light Monogram (N + Sun Orb) + Outlined Custom "noor" Wordmark
-const NOOR_SYMBOL_SVG = `<svg class="brand-arch" viewBox="0 0 256 256" fill="none" aria-hidden="true"><path fill="currentColor" d="M44 64 A20 20 0 0 1 64 44 H98 L168 165.2 V116 H212 V192 A20 20 0 0 1 192 212 H158 L88 90.8 V212 H44 Z"/><circle class="brand-gold" cx="190" cy="66" r="22"/></svg>`;
-const NOOR_LOCKUP_SVG = `<svg class="brand-lockup-svg" viewBox="0 0 740 256" fill="none" role="img" aria-label="Noor"><g><path fill="currentColor" d="M44 64 A20 20 0 0 1 64 44 H98 L168 165.2 V116 H212 V192 A20 20 0 0 1 192 212 H158 L88 90.8 V212 H44 Z"/><circle class="brand-gold" cx="190" cy="66" r="22"/></g><g transform="translate(260 32) scale(1.12)" fill="currentColor"><path d="M20 64 H35 V82 C44 69 58 62 76 62 C102 62 116 78 116 105 V146 H101 V107 C101 87 91 76 72 76 C52 76 35 89 35 110 V146 H20 Z"/><path fill-rule="evenodd" d="M178 62 A42 43 0 1 0 178.1 62 Z M178 75 A27 30 0 1 1 177.9 75 Z"/><path fill-rule="evenodd" d="M270 62 A42 43 0 1 0 270.1 62 Z M270 75 A27 30 0 1 1 269.9 75 Z"/><path d="M334 64 H349 V84 C357 70 370 62 387 62 C394 62 399 63 403 65 L398 79 C394 77 390 76 384 76 C364 76 349 91 349 113 V146 H334 Z"/><circle class="brand-gold" cx="224" cy="36" r="11"/></g></svg>`;
+// Bulbul: a comma that is also a songbird; the marks on its wing are lines of verse.
+const SYMBOL_SVG = `<svg class="brand-symbol" viewBox="38 6 212 242" aria-hidden="true"><path class="brand-body" fill-rule="evenodd" d="M106 10 C114 30 130 40 150 42 C176 45 196 60 204 80 C216 80 230 84 244 92 C232 98 220 102 209 103 C216 106 224 112 230 122 C220 122 212 120 206 117 C206 182 140 236 42 244 C84 220 108 192 113 160 C92 146 82 122 84 94 C86 62 94 34 106 10 Z M163 76 A9 9 0 1 1 181 76 A9 9 0 1 1 163 76 Z M187 157 C173 186 150 206 116 220 C146 200 164 180 176 152 Z M160 154 C150 176 136 192 112 206 C130 188 141 172 149 150 Z"/><path class="brand-cheek" d="M186 98 C190 120 172 138 142 136 C146 114 162 98 186 98 Z"/></svg>`;
+const LOCKUP_SVG = `<svg class="brand-lockup-svg" viewBox="38 6 854 242" role="img" aria-label="Bulbul"><path class="brand-body" fill-rule="evenodd" d="M106 10 C114 30 130 40 150 42 C176 45 196 60 204 80 C216 80 230 84 244 92 C232 98 220 102 209 103 C216 106 224 112 230 122 C220 122 212 120 206 117 C206 182 140 236 42 244 C84 220 108 192 113 160 C92 146 82 122 84 94 C86 62 94 34 106 10 Z M163 76 A9 9 0 1 1 181 76 A9 9 0 1 1 163 76 Z M187 157 C173 186 150 206 116 220 C146 200 164 180 176 152 Z M160 154 C150 176 136 192 112 206 C130 188 141 172 149 150 Z"/><path class="brand-cheek" d="M186 98 C190 120 172 138 142 136 C146 114 162 98 186 98 Z"/><g class="brand-body" transform="translate(268 34) scale(.92)"><g transform="translate(0 0)"><path fill-rule="evenodd" d="M0 54 L36 38 V116 C46 105 58 100 74 100 C106 100 128 121 128 151 C128 182 105 203 72 203 C56 203 44 198 34 189 L20 200 H0 Z M36 138 V170 C40 184 49 191 61 191 C80 191 91 176 91 151 C91 127 80 113 63 113 C51 113 41 122 36 138 Z"/></g><g transform="translate(144 0)"><path d="M0 116 L36 102 V160 C36 177 43 185 56 185 C68 185 78 178 85 166 V116 L121 102 V200 H88 L86 184 C76 197 62 203 45 203 C16 203 0 187 0 157 Z"/></g><g transform="translate(283 0)"><path d="M0 54 L36 38 V200 H0 Z"/></g><g transform="translate(337 0)"><path fill-rule="evenodd" d="M0 54 L36 38 V116 C46 105 58 100 74 100 C106 100 128 121 128 151 C128 182 105 203 72 203 C56 203 44 198 34 189 L20 200 H0 Z M36 138 V170 C40 184 49 191 61 191 C80 191 91 176 91 151 C91 127 80 113 63 113 C51 113 41 122 36 138 Z"/></g><g transform="translate(481 0)"><path d="M0 116 L36 102 V160 C36 177 43 185 56 185 C68 185 78 178 85 166 V116 L121 102 V200 H88 L86 184 C76 197 62 203 45 203 C16 203 0 187 0 157 Z"/></g><g transform="translate(620 0)"><path d="M0 54 L36 38 V200 H0 Z"/></g></g></svg>`;
 
 const ICONS = {
   plus: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>`,
@@ -57,8 +60,9 @@ function stripEmphasis(s) {
 
 function loadPoems() {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY) || localStorage.getItem(LEGACY_KEY);
-    if (raw) {
+    for (const key of [STORAGE_KEY, ...LEGACY_KEYS]) {
+      const raw = localStorage.getItem(key);
+      if (!raw) continue;
       const arr = JSON.parse(raw);
       if (Array.isArray(arr) && arr.length) return arr;
     }
@@ -68,12 +72,20 @@ function loadPoems() {
   return seeded;
 }
 
+let saveWarned = false;
 function savePoems(poems) {
-  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(poems)); } catch {}
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(poems));
+    saveWarned = false;
+  } catch {
+    if (saveWarned) return;
+    saveWarned = true;
+    toast('Storage is full, so this change isn’t saved. Try a smaller photo.', 5000);
+  }
 }
 
 function initTheme() {
-  const saved = localStorage.getItem(THEME_KEY) || localStorage.getItem('folio.theme') || 'light';
+  const saved = [THEME_KEY, ...LEGACY_THEME_KEYS].map(k => localStorage.getItem(k)).find(Boolean) || 'light';
   document.documentElement.dataset.theme = saved;
   return saved;
 }
@@ -93,7 +105,8 @@ const state = {
   slideIdx: 0,
   rhymeQuery: '',
   editingRich: false,
-  exporting: false
+  exporting: false,
+  galleryScroll: 0
 };
 
 function toast(msg, ms = 2200) {
@@ -110,27 +123,102 @@ function getActivePoem() {
   return state.poems.find(p => p.id === state.activeId) || null;
 }
 
-function patchActive(patch, { rerender = true } = {}) {
+function patchActive(patch, { rerender = true, fade = true } = {}) {
   const p = getActivePoem();
   if (!p) return;
   Object.assign(p, patch, { updatedAt: Date.now() });
   savePoems(state.poems);
-  if (rerender) render();
+  if (rerender) render({ fade });
 }
 
-function openPoem(id) {
+const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
+
+// Cross-fade between the anthology and the studio, carrying the poem from its card to the sheet.
+function transitionView(update, heroBefore, heroAfter) {
+  if (!document.startViewTransition || reducedMotion.matches || document.hidden) { update(); return; }
+  const from = heroBefore?.();
+  if (from) from.style.viewTransitionName = 'poem-hero';
+  let to = null;
+  const vt = document.startViewTransition(() => {
+    if (from) from.style.viewTransitionName = '';
+    update();
+    to = heroAfter?.();
+    if (to) to.style.viewTransitionName = 'poem-hero';
+  });
+  vt.ready.catch(() => {}); // rejects when a newer transition takes over
+  vt.finished.catch(() => {}).finally(() => { if (to) to.style.viewTransitionName = ''; });
+}
+
+const cardFrameOf = id => document.querySelector(`[data-open="${CSS.escape(id)}"] .poem-card-frame`);
+const sheetHolder = () => document.getElementById('sheet-holder');
+
+function openPoem(id, { push = true } = {}) {
   const p = state.poems.find(x => x.id === id);
   if (!p) return;
-  state.activeId = id;
-  state.slideIdx = 0;
-  state.focusMode = false;
-  state.mobileSheetOpen = false;
-  state.moreOpen = false;
-  state.editingRich = false;
-  const st = resolveStyle(p);
-  state.artSub = st.bgMode === 'solid' ? 'solid' : st.bgMode === 'photo' ? 'photo' : (st.painting.grp || 'minimal');
-  render();
-  window.scrollTo(0, 0);
+  if (!state.activeId) state.galleryScroll = window.scrollY;
+  transitionView(() => {
+    state.activeId = id;
+    state.slideIdx = 0;
+    state.focusMode = false;
+    state.mobileSheetOpen = false;
+    state.moreOpen = false;
+    state.editingRich = false;
+    const st = resolveStyle(p);
+    state.artSub = st.bgMode === 'solid' ? 'solid' : st.bgMode === 'photo' ? 'photo' : (st.painting.grp || 'minimal');
+    render();
+    window.scrollTo(0, 0);
+  }, () => cardFrameOf(id), sheetHolder);
+  if (push) history.pushState({ inApp: true }, '', '#/' + encodeURIComponent(id));
+}
+
+function showGallery() {
+  const id = state.activeId;
+  if (!id) return;
+  transitionView(() => {
+    state.activeId = null;
+    state.mobileSheetOpen = false;
+    state.moreOpen = false;
+    state.editingRich = false;
+    render();
+    window.scrollTo(0, state.galleryScroll);
+  }, sheetHolder, () => cardFrameOf(id));
+}
+
+function closeStudio() {
+  showGallery();
+  if (history.state?.inApp) history.back();
+  else history.replaceState(null, '', location.pathname + location.search);
+}
+
+function routeId() {
+  const m = location.hash.match(/^#\/(.+)$/);
+  const id = m ? decodeURIComponent(m[1]) : null;
+  return id && state.poems.some(p => p.id === id) ? id : null;
+}
+
+// Wait briefly for an image or font so a style change swaps in finished, not half-loaded.
+const within = (ms, promise) => Promise.race([promise.catch(() => {}), new Promise(r => setTimeout(r, ms))]);
+function imageReady(src) {
+  if (!src) return Promise.resolve();
+  const img = new Image();
+  img.src = src;
+  return within(600, img.decode());
+}
+function fontReady(fontId, text) {
+  const fn = FONTS.find(f => f.id === fontId);
+  if (!fn || !document.fonts?.load) return Promise.resolve();
+  return within(600, Promise.all([fn.titleW, fn.bodyW].map(w => document.fonts.load(`${w} 20px ${fn.fam}`, text || 'a'))));
+}
+
+// Latest pick wins when several are clicked in quick succession.
+let pickToken = 0;
+async function patchWhenReady(ready, patch, after) {
+  const token = ++pickToken;
+  const id = state.activeId;
+  await ready;
+  if (token !== pickToken || state.activeId !== id) return;
+  patchActive(patch);
+  after?.();
 }
 
 function createPoem() {
@@ -299,14 +387,14 @@ function renderSheetHTML(poem, { editable = false, slide = null, miniature = fal
     : '';
   const wrappedInner = isTorn ? `<div class="poem-torn-scrap">${innerTextHTML}</div>` : innerTextHTML;
   const txStyle = `--tx:${st.textX}%;--ty:${st.textY}%;`;
-  const textCol = `<div id="${editable ? 'movable-text-col' : ''}" class="poem-text-col al-${textAlign}${effLayout === 'overlay' ? ' poem-overlay-pad' : ''}${tsCls}${hasOff ? ' has-offset' : ''}" style="${txStyle}">${dragHandle}${wrappedInner}</div>`;
+  const textCol = `<div ${editable ? 'id="movable-text-col" ' : ''}class="poem-text-col al-${textAlign}${effLayout === 'overlay' ? ' poem-overlay-pad' : ''}${tsCls}${hasOff ? ' has-offset' : ''}" style="${txStyle}">${dragHandle}${wrappedInner}</div>`;
 
   const sideArtImg = imgSrc
-    ? `<img class="poem-side-img${imgBlend ? ' blend-mul' : ''}${imgContain ? ' is-contain' : ''}${imgVignette ? ' is-vignette' : ''}" src="${esc(imgSrc)}" alt="${esc(st.painting.name || 'Poem artwork')}" style="${imgFilter}">`
+    ? `<img decoding="sync" class="poem-side-img${imgBlend ? ' blend-mul' : ''}${imgContain ? ' is-contain' : ''}${imgVignette ? ' is-vignette' : ''}" src="${esc(imgSrc)}" alt="${esc(st.painting.name || 'Poem artwork')}" style="${imgFilter}">`
     : '';
 
   const bgOverlayHTML = (imgSrc && effLayout === 'overlay')
-    ? `<img class="poem-bg-img${imgBlend ? ' blend-mul' : ''}" src="${esc(imgSrc)}" alt="" style="${imgFilter}">${washAlpha > 0.005 ? `<div class="poem-wash" style="background:${washBg}"></div>` : ''}`
+    ? `<img decoding="sync" class="poem-bg-img${imgBlend ? ' blend-mul' : ''}" src="${esc(imgSrc)}" alt="" style="${imgFilter}">${washAlpha > 0.005 ? `<div class="poem-wash" style="background:${washBg}"></div>` : ''}`
     : '';
 
   const frameHTML = st.frame === 'hairline'
@@ -338,7 +426,7 @@ function renderSheetHTML(poem, { editable = false, slide = null, miniature = fal
   }
 
   return `
-    <div id="${editable || slide ? 'active-poem-sheet' : ''}" class="poem-sheet ${ratioClass(effRatio)} fr-${st.frame}${isMat ? ' is-mat' : ''}" style="${outerStyle}">
+    <div ${editable || slide ? 'id="active-poem-sheet" ' : ''}class="poem-sheet ${ratioClass(effRatio)} fr-${st.frame}${isMat ? ' is-mat' : ''}" style="${outerStyle}">
       <div class="poem-sheet-inner" style="${innerStyle}">
         ${bgOverlayHTML}
         <div class="poem-grain tex-${st.texture}"></div>
@@ -396,9 +484,9 @@ function renderGallery() {
         `;
       }).join('')}</div>`
     : `<div class="empty-state">
-        ${NOOR_SYMBOL_SVG}
-        <h2>A quiet, open page</h2>
-        <p>${q || state.moodFilter !== 'All' ? 'No poems match this filter yet.' : 'Begin your anthology with your first poem.'}</p>
+        ${SYMBOL_SVG}
+        <h2>An open page</h2>
+        <p>${q ? `Nothing matches “${esc(state.search.trim())}”.` : state.moodFilter !== 'All' ? 'No poems in this collection yet.' : 'Begin your anthology with your first poem.'}</p>
         <button type="button" class="btn primary" id="empty-new-btn">${ICONS.plus} Write a poem</button>
       </div>`;
 
@@ -410,10 +498,11 @@ function renderGallery() {
   ` : '';
 
   return `
-    <div class="shell">
+    <div class="shell" data-view="gallery">
+      <div class="gallery-head">
       <header class="topbar">
         <div class="brand">
-          <h1 class="brand-mark">${NOOR_LOCKUP_SVG}</h1>
+          <h1 class="brand-mark">${LOCKUP_SVG}</h1>
           <span class="brand-sub">Poetry studio</span>
         </div>
         <div class="search-wrap">
@@ -433,18 +522,19 @@ function renderGallery() {
         </div>
       </header>
 
-      <main>
         <div class="filter-bar">
           <div class="mood-pills" role="tablist" aria-label="Filter poems by collection">
             ${pills.map(md => `<button type="button" role="tab" aria-selected="${state.moodFilter === md}" class="pill${state.moodFilter === md ? ' on' : ''}" data-mood="${esc(md)}">${esc(md)}${md === 'Archived' ? ` (${archivedCount})` : ''}</button>`).join('')}
           </div>
-          <span class="gallery-stat">${activeCount} ${activeCount === 1 ? 'poem' : 'poems'}</span>
+          <span class="gallery-stat">${filtered.length === activeCount || isArchTab ? `${filtered.length} ${filtered.length === 1 ? 'poem' : 'poems'}` : `${filtered.length} of ${activeCount}`}</span>
         </div>
+      </div>
+      <main>
         ${cardsHTML}
       </main>
     </div>
 
-    <div class="mobile-fab-wrap">
+    <div class="mobile-fab-wrap" data-view="gallery-fab">
       <button type="button" class="mobile-fab" id="mobile-new-btn">${ICONS.plus}<span>Write a poem</span></button>
     </div>
   `;
@@ -480,7 +570,7 @@ function renderStudio(poem) {
 
     let picker = '';
     if (grps[state.artSub]) {
-      picker = `<div class="paint-grid">${grps[state.artSub].map(pt => {
+      picker = `<div class="paint-grid" data-grid="${state.artSub}">${grps[state.artSub].map(pt => {
         const isBlend = pt.blend === 'multiply';
         const isContain = isBlend || Boolean(pt.contain);
         return `
@@ -493,7 +583,7 @@ function renderStudio(poem) {
         `;
       }).join('')}</div>`;
     } else if (state.artSub === 'solid') {
-      picker = `<div class="paper-grid">${PAPERS.map(pa => `
+      picker = `<div class="paper-grid" data-grid="solid">${PAPERS.map(pa => `
         <button type="button" class="paper-btn${st.bgMode === 'solid' && st.paper.id === pa.id ? ' on' : ''}" data-paper="${esc(pa.id)}">
           <span class="paper-sw" style="background:linear-gradient(135deg,${pa.bg},${pa.bg2});color:${pa.ink};border-color:${pa.acc}">Aa</span>
           <span class="paper-nm">${esc(pa.name)}</span>
@@ -501,7 +591,7 @@ function renderStudio(poem) {
       `).join('')}</div>`;
     } else {
       picker = `
-        <div style="display:flex;flex-direction:column;gap:12px;">
+        <div class="photo-panel" data-grid="photo">
           <button type="button" class="btn primary" id="pick-photo-btn">${ICONS.plus} ${st.photo ? 'Change photo' : 'Upload background photo'}</button>
           <input id="photo-file-in" type="file" accept="image/*" hidden>
           <div>
@@ -516,44 +606,31 @@ function renderStudio(poem) {
       `;
     }
 
+    const canWash = st.bgMode !== 'solid' && st.layout === 'overlay';
     const placementHTML = st.bgMode !== 'solid' ? `
-      <div>
-        <div class="sec-lbl">Artwork placement</div>
-        <div class="pills">
+      <div class="placement">
+        <div class="sec-lbl">Placement</div>
+        <div class="pills fill">
           ${LAYOUTS.map(ly => `<button type="button" class="choice-pill${st.layout === ly.id ? ' on' : ''}" data-layout="${ly.id}">${esc(ly.label)}</button>`).join('')}
         </div>
+        <label class="range-row${canWash ? '' : ' is-off'}">
+          <span>Softness</span>
+          <input id="wash-range" class="range-in" type="range" min="0" max="65" value="${st.wash}" ${canWash ? '' : 'disabled'} aria-label="Backdrop softness">
+          <output>${canWash ? st.wash + '%' : 'Full canvas only'}</output>
+        </label>
       </div>
-      <div>
-        <div class="sec-lbl">Text paper style</div>
-        <div class="pills">
-          ${TEXT_STYLES.map(ts => `<button type="button" class="choice-pill${st.textStyle === ts.id ? ' on' : ''}" data-textstyle="${ts.id}">${esc(ts.label)}</button>`).join('')}
-        </div>
-      </div>
-      ${st.layout === 'overlay' ? `
-        <div>
-          <div class="sec-lbl">Backdrop softness (${st.wash}%)</div>
-          <input id="wash-range" class="range-in" type="range" min="0" max="65" value="${st.wash}">
-        </div>
-      ` : ''}
-    ` : `
-      <div>
-        <div class="sec-lbl">Text paper style</div>
-        <div class="pills">
-          ${TEXT_STYLES.map(ts => `<button type="button" class="choice-pill${st.textStyle === ts.id ? ' on' : ''}" data-textstyle="${ts.id}">${esc(ts.label)}</button>`).join('')}
-        </div>
-      </div>
-    `;
+    ` : '';
 
     railContent = `
-      <div class="subtabs">${subTabs.map(t => `<button type="button" class="subtab${state.artSub === t.id ? ' on' : ''}" data-artsub="${t.id}">${esc(t.label)}</button>`).join('')}</div>
-      ${picker}
+      <div class="subtabs" role="group" aria-label="Categories">${subTabs.map(t => `<button type="button" class="subtab${state.artSub === t.id ? ' on' : ''}" data-artsub="${t.id}">${esc(t.label)}</button>`).join('')}</div>
       ${placementHTML}
+      ${picker}
     `;
   } else if (state.railTab === 'fonts') {
     const shown = state.fontCat === 'all' ? FONTS : FONTS.filter(f => f.cat === state.fontCat);
     railContent = `
-      <div class="subtabs">${FONT_CATS.map(fc => `<button type="button" class="subtab${state.fontCat === fc.id ? ' on' : ''}" data-fontcat="${fc.id}">${esc(fc.label)}</button>`).join('')}</div>
-      <div class="font-list">
+      <div class="subtabs" role="group" aria-label="Categories">${FONT_CATS.map(fc => `<button type="button" class="subtab${state.fontCat === fc.id ? ' on' : ''}" data-fontcat="${fc.id}">${esc(fc.label)}</button>`).join('')}</div>
+      <div class="font-list" data-grid="font-${state.fontCat}">
         ${shown.map(fn => `
           <button type="button" class="font-btn${st.font.id === fn.id ? ' on' : ''}" data-font="${fn.id}">
             <span class="font-sample" style="font-family:${fn.fam};font-weight:${fn.titleW};font-style:${fn.italicTitle ? 'italic' : 'normal'}">${esc(fn.name)}</span>
@@ -713,11 +790,11 @@ function renderStudio(poem) {
   ` : '';
 
   return `
-    <div class="studio${state.focusMode ? ' is-focus' : ''}">
+    <div class="studio${state.focusMode ? ' is-focus' : ''}${state.mobileSheetOpen ? ' has-sheet' : ''}" data-view="studio-${esc(poem.id)}">
       <div class="studio-stage">
         <div class="stage-bar">
           <div class="stage-bar-left">
-            <button type="button" class="btn sm ghost" id="back-gallery-btn" style="padding-left:6px;">${ICONS.back}<span>noor</span></button>
+            <button type="button" class="btn sm ghost" id="back-gallery-btn" style="padding-left:6px;" aria-label="Back to all poems">${ICONS.back}<span>Poems</span></button>
             <button type="button" class="btn sm desktop-only" id="shuffle-btn" title="Try a curated art & font pairing">${ICONS.sparkles} Shuffle</button>
             <button type="button" class="btn sm desktop-only${state.focusMode ? ' primary' : ''}" id="focus-btn">${state.focusMode ? 'Exit Focus' : 'Focus'}</button>
             <div class="seg" role="group" aria-label="Single or Carousel view">
@@ -740,7 +817,7 @@ function renderStudio(poem) {
 
         <div class="stage-canvas-wrap">
           ${carouselNavHTML}
-          ${renderSheetHTML(poem, { editable: !st.carousel, slide: activeSlide })}
+          <div class="sheet-holder" id="sheet-holder">${renderSheetHTML(poem, { editable: !st.carousel, slide: activeSlide })}</div>
         </div>
 
         <div class="stage-footer">
@@ -762,7 +839,7 @@ function renderStudio(poem) {
         <div class="rail-tabs" role="tablist">
           ${tabMeta.map(tb => `<button type="button" role="tab" aria-selected="${state.railTab === tb.id}" class="rail-tab${state.railTab === tb.id ? ' on' : ''}" data-railtab="${tb.id}">${tb.label}</button>`).join('')}
         </div>
-        <div class="rail-body">${railContent}</div>
+        <div class="rail-body" data-tabpanel="${state.railTab}">${railContent}</div>
         <div class="rail-foot">
           <button type="button" class="btn sm" id="archive-btn">${ICONS.archive} ${poem.archived ? 'Unarchive' : 'Archive'}</button>
           <button type="button" class="btn sm danger" id="delete-btn">${ICONS.trash} Delete</button>
@@ -781,12 +858,56 @@ function renderStudio(poem) {
   `;
 }
 
+/* ---------- Stage measurement ---------- */
+
+const desktopStage = matchMedia('(min-width: 861px)');
+const autoSizesNatively = CSS.supports('field-sizing', 'content');
+
 function autoSizeTextarea() {
   const ta = document.getElementById('poem-body-in');
-  if (!ta) return;
+  if (!ta || autoSizesNatively) return;
+  // Collapsing to measure would clamp the stage's scroll, so put it back afterwards.
+  const stage = document.querySelector('.stage-canvas-wrap');
+  const top = stage?.scrollTop;
   ta.style.height = 'auto';
   ta.style.height = Math.max(88, ta.scrollHeight) + 'px';
+  if (stage && stage.scrollTop !== top) stage.scrollTop = top;
 }
+
+const SHEET_W = { 'rat-4-5': 458, 'rat-1-1': 458, 'rat-9-16': 350, 'rat-2-3': 408 };
+const SHEET_RATIO = { 'rat-4-5': 4 / 5, 'rat-1-1': 1, 'rat-9-16': 9 / 16, 'rat-2-3': 2 / 3 };
+
+// Size the poster to the space it has on desktop; on phones, lift it clear of the open sheet.
+function fitStage() {
+  const root = document.documentElement.style;
+  const stage = document.querySelector('.stage-canvas-wrap');
+  const sheet = document.getElementById('active-poem-sheet');
+  if (!stage || !sheet) return;
+  let zoom = 1;
+  let lift = 1;
+  let rise = 0;
+  const cls = Object.keys(SHEET_W).find(c => sheet.classList.contains(c));
+  if (desktopStage.matches) {
+    if (cls) {
+      const cs = getComputedStyle(stage);
+      const nav = stage.querySelector('.carousel-nav');
+      const h = stage.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom) - (nav ? nav.offsetHeight + 14 : 0);
+      const w = stage.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
+      const baseW = SHEET_W[cls];
+      zoom = Math.max(0.7, Math.min(1.6, w / baseW, h / (baseW / SHEET_RATIO[cls])));
+    }
+  } else if (state.mobileSheetOpen && cls) {
+    const rail = document.querySelector('.studio-rail');
+    const free = stage.clientHeight - (rail?.offsetHeight || 0) - 24;
+    lift = Math.max(0.42, Math.min(1, free / sheet.offsetHeight));
+    rise = 12 - (sheetHolder().offsetTop - stage.scrollTop);
+  }
+  root.setProperty('--stage-zoom', zoom.toFixed(3));
+  root.setProperty('--stage-lift', lift.toFixed(3));
+  root.setProperty('--stage-rise', Math.round(rise) + 'px');
+}
+
+const stageObserver = new ResizeObserver(() => fitStage());
 
 function liveUpdateMetricsAndScale(poem) {
   const st = resolveStyle(poem);
@@ -813,54 +934,91 @@ function liveUpdateMetricsAndScale(poem) {
   autoSizeTextarea();
 }
 
-function wireDraggableTextbox(poem) {
-  const handle = document.getElementById('drag-text-handle');
-  const col = document.getElementById('movable-text-col');
+/* ---------- Rendering ---------- */
+
+// A copy of the current sheet, laid over the new one and faded away.
+function captureGhost() {
   const sheet = document.getElementById('active-poem-sheet');
-  if (!handle || !col || !sheet) return;
-
-  let startX = 0, startY = 0, baseX = 0, baseY = 0, curX = 0, curY = 0, dragging = false;
-
-  handle.addEventListener('pointerdown', e => {
-    e.preventDefault();
-    e.stopPropagation();
-    handle.setPointerCapture(e.pointerId);
-    dragging = true;
-    startX = e.clientX;
-    startY = e.clientY;
-    baseX = Number.isFinite(poem.textX) ? poem.textX : 0;
-    baseY = Number.isFinite(poem.textY) ? poem.textY : 0;
-    curX = baseX;
-    curY = baseY;
-    col.classList.add('is-dragging');
-  });
-
-  handle.addEventListener('pointermove', e => {
-    if (!dragging) return;
-    const rect = sheet.getBoundingClientRect();
-    const dxPct = ((e.clientX - startX) / Math.max(180, rect.width * 0.65)) * 100;
-    const dyPct = ((e.clientY - startY) / Math.max(180, rect.height * 0.65)) * 100;
-    let nx = Math.max(-44, Math.min(44, Math.round(baseX + dxPct)));
-    let ny = Math.max(-44, Math.min(44, Math.round(baseY + dyPct)));
-    // Gentle magnetic snap near center
-    if (Math.abs(nx) <= 2) nx = 0;
-    if (Math.abs(ny) <= 2) ny = 0;
-    curX = nx;
-    curY = ny;
-    col.style.setProperty('--tx', nx + '%');
-    col.style.setProperty('--ty', ny + '%');
-  });
-
-  const endDrag = () => {
-    if (!dragging) return;
-    dragging = false;
-    col.classList.remove('is-dragging');
-    patchActive({ textX: curX, textY: curY }, { rerender: false });
-    col.classList.toggle('has-offset', curX !== 0 || curY !== 0);
-  };
-  handle.addEventListener('pointerup', endDrag);
-  handle.addEventListener('pointercancel', endDrag);
+  if (!sheet || reducedMotion.matches || document.hidden) return null;
+  const ghost = sheet.cloneNode(true);
+  const ta = sheet.querySelector('textarea');
+  if (ta) ghost.querySelector('textarea').value = ta.value;
+  const inp = sheet.querySelector('input');
+  if (inp) ghost.querySelector('input').value = inp.value;
+  ghost.removeAttribute('id');
+  ghost.querySelectorAll('[id]').forEach(n => n.removeAttribute('id'));
+  ghost.setAttribute('data-morph-ignore', '');
+  ghost.setAttribute('aria-hidden', 'true');
+  ghost.inert = true;
+  ghost.classList.add('sheet-ghost');
+  return { ghost, sheet, before: sheet.outerHTML };
 }
+
+function playGhost(cap) {
+  const holder = sheetHolder();
+  if (!holder || !cap.sheet.isConnected || cap.sheet.outerHTML === cap.before) return;
+  holder.querySelectorAll('.sheet-ghost').forEach(n => n.remove());
+  holder.appendChild(cap.ghost);
+  const done = () => cap.ghost.remove();
+  cap.ghost.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 220, easing: 'ease-out', fill: 'forwards' }).finished.then(done, done);
+  setTimeout(done, 400); // never leave the copy behind if frames stall
+}
+
+let observedStage = null;
+function render({ fade = false } = {}) {
+  const root = document.getElementById('app');
+  if (!root) return;
+  const poem = getActivePoem();
+  const cap = fade && poem ? captureGhost() : null;
+  morph(root, poem ? renderStudio(poem) : renderGallery());
+  document.title = poem ? `${poem.title || 'Untitled poem'} · Bulbul` : 'Bulbul · Poetry studio';
+
+  const stage = document.querySelector('.stage-canvas-wrap');
+  if (stage !== observedStage) {
+    stageObserver.disconnect();
+    if (stage) stageObserver.observe(stage);
+    observedStage = stage;
+  }
+  if (poem) {
+    fitStage();
+    autoSizeTextarea();
+  }
+  if (cap) playGhost(cap);
+}
+
+// Re-render the anthology, gliding cards that stay to their new place.
+function renderGalleryFlow() {
+  const cards = () => Array.from(document.querySelectorAll('.poem-card'));
+  if (reducedMotion.matches) { render(); return; }
+  const was = new Map(cards().map(c => [c.dataset.open, c.getBoundingClientRect()]));
+  render();
+  const head = document.querySelector('.gallery-head');
+  const grid = document.querySelector('.anthology-grid');
+  if (head && grid && grid.getBoundingClientRect().top < head.getBoundingClientRect().bottom) window.scrollTo(0, 0);
+  for (const card of cards()) {
+    card.getAnimations().forEach(a => a.cancel());
+    const from = was.get(card.dataset.open);
+    const to = card.getBoundingClientRect();
+    if (!from) {
+      card.animate([{ opacity: 0, transform: 'scale(.97)' }, { opacity: 1, transform: 'none' }], { duration: 240, easing: 'ease-out' });
+      continue;
+    }
+    const dx = from.left - to.left;
+    const dy = from.top - to.top;
+    if (Math.abs(dx) < 1 && Math.abs(dy) < 1) continue;
+    card.animate([{ transform: `translate(${dx}px, ${dy}px)` }, { transform: 'none' }], { duration: 320, easing: 'cubic-bezier(0.32, 0.72, 0, 1)' });
+  }
+}
+
+// Bring the selected category into view inside its own scroller, without moving anything else.
+function revealSubtab() {
+  const on = document.querySelector('.subtab.on');
+  const bar = on?.parentElement;
+  if (!bar) return;
+  bar.scrollTo({ left: on.offsetLeft - (bar.clientWidth - on.offsetWidth) / 2, behavior: reducedMotion.matches ? 'auto' : 'smooth' });
+}
+
+/* ---------- Actions ---------- */
 
 function toggleTheme() {
   state.theme = state.theme === 'dark' ? 'light' : 'dark';
@@ -871,432 +1029,365 @@ function toggleTheme() {
 }
 
 function doBackup() {
-  const blob = new Blob([JSON.stringify({ app: 'Noor', version: 2, poems: state.poems }, null, 2)], { type: 'application/json' });
+  const blob = new Blob([JSON.stringify({ app: 'Bulbul', version: 2, poems: state.poems }, null, 2)], { type: 'application/json' });
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
-  a.download = 'noor-anthology.json';
+  a.download = 'bulbul-anthology.json';
   a.click();
   setTimeout(() => URL.revokeObjectURL(a.href), 500);
   state.moreOpen = false;
   render();
-  toast('Exported Noor anthology JSON');
+  toast('Anthology backup downloaded');
 }
 
-function wireEvents() {
-  document.getElementById('theme-btn')?.addEventListener('click', toggleTheme);
-  document.getElementById('m-theme-btn')?.addEventListener('click', toggleTheme);
+function triggerImport() {
+  state.moreOpen = false;
+  render();
+  document.getElementById('import-file')?.click();
+}
 
-  document.getElementById('more-btn')?.addEventListener('click', e => {
-    e.stopPropagation();
-    state.moreOpen = !state.moreOpen;
-    render();
-  });
-
-  if (!state.activeId) {
-    document.getElementById('new-poem-btn')?.addEventListener('click', createPoem);
-    document.getElementById('mobile-new-btn')?.addEventListener('click', createPoem);
-    document.getElementById('empty-new-btn')?.addEventListener('click', createPoem);
-
-    const searchIn = document.getElementById('gallery-search');
-    searchIn?.addEventListener('input', e => {
-      state.search = e.target.value;
-      const pos = e.target.selectionStart;
-      render();
-      const next = document.getElementById('gallery-search');
-      if (next) { next.focus(); next.setSelectionRange(pos, pos); }
-    });
-
-    document.querySelectorAll('[data-mood]').forEach(btn => {
-      btn.addEventListener('click', () => { state.moodFilter = btn.dataset.mood; render(); });
-    });
-
-    document.querySelectorAll('[data-open]').forEach(card => {
-      card.addEventListener('click', () => openPoem(card.dataset.open));
-    });
-
-    document.getElementById('backup-btn')?.addEventListener('click', doBackup);
-    document.getElementById('m-backup-btn')?.addEventListener('click', doBackup);
-
-    const impIn = document.getElementById('import-file');
-    const triggerImport = () => { state.moreOpen = false; impIn?.click(); };
-    document.getElementById('import-btn')?.addEventListener('click', triggerImport);
-    document.getElementById('m-import-btn')?.addEventListener('click', triggerImport);
-    impIn?.addEventListener('change', async e => {
-      const file = e.target.files?.[0];
-      if (!file) return;
-      try {
-        const parsed = JSON.parse(await file.text());
-        const arr = Array.isArray(parsed) ? parsed : parsed?.poems;
-        if (!Array.isArray(arr)) throw new Error('Invalid file');
-        const byId = new Map(state.poems.map(p => [p.id, p]));
-        let added = 0;
-        for (const item of arr) {
-          if (item && typeof item === 'object' && item.id) {
-            if (!byId.has(item.id)) added++;
-            byId.set(item.id, item);
-          }
-        }
-        state.poems = Array.from(byId.values()).sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0));
-        savePoems(state.poems);
-        render();
-        toast(`Imported anthology (${added} new)`);
-      } catch {
-        toast('Could not read that JSON file');
+async function importFile(input) {
+  const file = input.files?.[0];
+  if (!file) return;
+  try {
+    const parsed = JSON.parse(await file.text());
+    const arr = Array.isArray(parsed) ? parsed : parsed?.poems;
+    if (!Array.isArray(arr)) throw new Error('Invalid file');
+    const byId = new Map(state.poems.map(p => [p.id, p]));
+    let added = 0;
+    for (const item of arr) {
+      if (item && typeof item === 'object' && item.id) {
+        if (!byId.has(item.id)) added++;
+        byId.set(item.id, item);
       }
-      e.target.value = '';
-    });
-    return;
+    }
+    state.poems = Array.from(byId.values()).sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0));
+    savePoems(state.poems);
+    render();
+    toast(`Imported anthology (${added} new)`);
+  } catch {
+    toast('Could not read that JSON file');
   }
+  input.value = '';
+}
 
-  // Studio events
-  const poem = getActivePoem();
-  if (!poem) return;
-
-  autoSizeTextarea();
-  wireDraggableTextbox(poem);
-
-  document.getElementById('back-gallery-btn')?.addEventListener('click', () => {
-    state.activeId = null;
-    state.mobileSheetOpen = false;
-    state.moreOpen = false;
-    state.editingRich = false;
-    render();
-  });
-
-  document.getElementById('focus-btn')?.addEventListener('click', () => {
-    state.focusMode = !state.focusMode;
-    render();
-  });
-
-  const doShuffle = () => {
-    const pr = PRESETS[Math.floor(Math.random() * PRESETS.length)];
-    state.moreOpen = false;
-    state.editingRich = false;
-    patchActive({
-      bgMode: pr.bgMode,
-      painting: pr.painting,
-      layout: pr.layout,
-      textStyle: pr.textStyle || 'plain',
-      titleStyle: pr.titleStyle || 'classic',
-      texture: pr.texture || 'grain',
-      font: pr.font,
-      frame: pr.frame,
-      align: pr.align,
-      wash: pr.wash,
-      textX: 0,
-      textY: 0
-    });
-    const pt = ARTWORKS.find(a => a.id === pr.painting);
-    if (pt) state.artSub = pt.grp;
-    render();
+function doShuffle() {
+  const pr = PRESETS[Math.floor(Math.random() * PRESETS.length)];
+  state.moreOpen = false;
+  state.editingRich = false;
+  const pt = ARTWORKS.find(a => a.id === pr.painting);
+  render();
+  patchWhenReady(Promise.all([imageReady(pt?.src), fontReady(pr.font, getActivePoem()?.body)]), {
+    bgMode: pr.bgMode,
+    painting: pr.painting,
+    layout: pr.layout,
+    textStyle: pr.textStyle || 'plain',
+    titleStyle: pr.titleStyle || 'classic',
+    texture: pr.texture || 'grain',
+    font: pr.font,
+    frame: pr.frame,
+    align: pr.align,
+    wash: pr.wash,
+    textX: 0,
+    textY: 0
+  }, () => {
+    if (pt && state.artSub !== pt.grp) { state.artSub = pt.grp; render(); revealSubtab(); }
     toast('Tried a fresh pairing');
-  };
-  document.getElementById('shuffle-btn')?.addEventListener('click', doShuffle);
-  document.getElementById('m-shuffle-btn')?.addEventListener('click', doShuffle);
-
-  document.getElementById('mode-single-btn')?.addEventListener('click', () => {
-    if (poem.carousel) patchActive({ carousel: false });
   });
-  document.getElementById('mode-carousel-btn')?.addEventListener('click', () => {
+}
+
+async function doCopy() {
+  const poem = getActivePoem();
+  state.moreOpen = false;
+  const clean = `${poem.title ? poem.title + '\n\n' : ''}${stripEmphasis(String(poem.body || '').replace(/^\s*[-—]{3,}\s*$/gm, '').trim())}${poem.sign ? '\n\n' + poem.sign : ''}`;
+  let msg = 'Copied poem text';
+  try { await navigator.clipboard.writeText(clean); } catch { msg = 'Copy failed. Select the text directly.'; }
+  render();
+  toast(msg);
+}
+
+async function doExport() {
+  const poem = getActivePoem();
+  if (state.exporting || !poem) return;
+  state.exporting = true;
+  state.moreOpen = false;
+  render();
+  try {
+    const st = resolveStyle(poem);
+    if (st.carousel) {
+      const n = await exportCarouselPNGs(poem);
+      toast(`Saved ${n}-slide high-res carousel PNGs`);
+    } else {
+      await exportPoemPNG(poem);
+      toast(st.ratio === 'auto' ? 'Saved full-length Long Page PNG' : 'Saved high-res poster PNG');
+    }
+  } catch (err) {
+    console.error(err);
+    toast('Export failed. Please try again.');
+  } finally {
+    state.exporting = false;
+    render();
+  }
+}
+
+function pickArt(id) {
+  const pt = ARTWORKS.find(a => a.id === id);
+  if (!pt) return;
+  state.editingRich = false;
+  const patch = {
+    bgMode: 'art',
+    painting: pt.id,
+    layout: pt.defLayout || 'overlay',
+    textStyle: pt.defTextStyle || 'plain',
+    textX: 0,
+    textY: 0
+  };
+  if (pt.defLayout === 'below') patch.align = 'center';
+  if (pt.defTexture) patch.texture = pt.defTexture;
+  if (pt.defTitleStyle) patch.titleStyle = pt.defTitleStyle;
+  patchWhenReady(imageReady(pt.src), patch);
+}
+
+function pickPaper(id) {
+  const patch = { bgMode: 'solid', paper: id, layout: 'overlay' };
+  if (id === 'raw-kraft') patch.texture = 'kraft';
+  if (id === 'handmade-cotton') patch.texture = 'cotton';
+  patchActive(patch);
+}
+
+function pickPhoto(input) {
+  const file = input.files?.[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    patchActive({ bgMode: 'photo', photo: String(reader.result || ''), layout: 'overlay' });
+    toast('Background photo applied');
+  };
+  reader.readAsDataURL(file);
+  input.value = '';
+}
+
+function wrapLastLine(mk) {
+  const lines = String(getActivePoem().body || '').split('\n');
+  const idx = lines.length - 1;
+  const last = lines[idx].trim();
+  lines[idx] = last ? `${mk}${last}${mk}` : `${mk}emphasized line${mk}`;
+  state.editingRich = false;
+  patchActive({ body: lines.join('\n') });
+  toast('Styled last line');
+}
+
+function insertWord(wd) {
+  const cur = String(getActivePoem().body || '');
+  const sep = cur && !/[\s\n]$/.test(cur) ? ' ' : '';
+  patchActive({ body: cur + sep + wd }, { fade: false });
+  toast(`Inserted “${wd}”`, 1400);
+}
+
+function doArchive() {
+  const next = !getActivePoem().archived;
+  state.moreOpen = false;
+  patchActive({ archived: next });
+  toast(next ? 'Moved to Archive' : 'Restored to your poems');
+  if (next) closeStudio();
+}
+
+function doDelete() {
+  const poem = getActivePoem();
+  state.moreOpen = false;
+  if (!confirm(`Delete “${poem.title || 'Untitled poem'}”?`)) { render(); return; }
+  state.poems = state.poems.filter(x => x.id !== poem.id);
+  savePoems(state.poems);
+  closeStudio();
+  toast('Poem deleted');
+}
+
+function setTab(tab) { state.railTab = tab; render(); revealSubtab(); }
+function closeSheet() { state.mobileSheetOpen = false; render(); }
+function goToSlide(i) { state.slideIdx = i; render({ fade: true }); }
+
+/* ---------- Events: one set of listeners, delegated from the document ---------- */
+
+const CLICKS = [
+  ['#theme-btn, #m-theme-btn', toggleTheme],
+  ['#more-btn', () => { state.moreOpen = !state.moreOpen; render(); }],
+
+  // Anthology
+  ['#new-poem-btn, #mobile-new-btn, #empty-new-btn', createPoem],
+  ['[data-mood]', el => { if (state.moodFilter !== el.dataset.mood) { state.moodFilter = el.dataset.mood; renderGalleryFlow(); } }],
+  ['[data-open]', el => openPoem(el.dataset.open)],
+  ['#backup-btn, #m-backup-btn', doBackup],
+  ['#import-btn, #m-import-btn', triggerImport],
+
+  // Studio bar
+  ['#back-gallery-btn', closeStudio],
+  ['#focus-btn', () => { state.focusMode = !state.focusMode; render(); }],
+  ['#shuffle-btn, #m-shuffle-btn', doShuffle],
+  ['#mode-single-btn', () => { if (getActivePoem().carousel) patchActive({ carousel: false }); }],
+  ['#mode-carousel-btn', () => {
+    if (getActivePoem().carousel) return;
     state.slideIdx = 0;
     state.mobileSheetOpen = false;
     state.editingRich = false;
     patchActive({ carousel: true });
-  });
-  document.getElementById('edit-full-btn')?.addEventListener('click', () => {
-    patchActive({ carousel: false });
-    setTimeout(() => document.getElementById('poem-body-in')?.focus(), 30);
-  });
+  }],
+  ['#edit-full-btn', () => { patchActive({ carousel: false }); document.getElementById('poem-body-in')?.focus(); }],
+  ['#prev-slide-btn', () => { if (state.slideIdx > 0) goToSlide(state.slideIdx - 1); }],
+  ['#next-slide-btn', () => goToSlide(state.slideIdx + 1)],
+  ['[data-slide]', el => goToSlide(Number(el.dataset.slide))],
+  ['#copy-btn, #m-copy-btn', doCopy],
+  ['#export-btn', doExport],
+  ['#archive-btn, #m-archive-btn', doArchive],
+  ['#delete-btn, #m-delete-btn', doDelete],
 
-  document.getElementById('prev-slide-btn')?.addEventListener('click', () => {
-    if (state.slideIdx > 0) { state.slideIdx--; render(); }
-  });
-  document.getElementById('next-slide-btn')?.addEventListener('click', () => {
-    state.slideIdx++;
-    render();
-  });
-  document.querySelectorAll('[data-slide]').forEach(dot => {
-    dot.addEventListener('click', () => { state.slideIdx = Number(dot.dataset.slide); render(); });
-  });
-
-  const doCopy = async () => {
-    state.moreOpen = false;
-    const clean = `${poem.title ? poem.title + '\n\n' : ''}${stripEmphasis(String(poem.body || '').replace(/^\s*[-—]{3,}\s*$/gm, '').trim())}${poem.sign ? '\n\n' + poem.sign : ''}`;
-    try {
-      await navigator.clipboard.writeText(clean);
-      render();
-      toast('Copied poem text');
-    } catch {
-      render();
-      toast('Copy failed — select text directly');
-    }
-  };
-  document.getElementById('copy-btn')?.addEventListener('click', doCopy);
-  document.getElementById('m-copy-btn')?.addEventListener('click', doCopy);
-
-  document.getElementById('export-btn')?.addEventListener('click', async () => {
-    if (state.exporting) return;
-    state.exporting = true;
-    state.moreOpen = false;
-    render();
-    try {
-      const st = resolveStyle(poem);
-      if (st.carousel) {
-        const n = await exportCarouselPNGs(poem);
-        toast(`Saved ${n}-slide high-res carousel PNGs`);
-      } else {
-        await exportPoemPNG(poem);
-        toast(st.ratio === 'auto' ? 'Saved full-length Long Page PNG' : 'Saved high-res poster PNG');
-      }
-    } catch (err) {
-      console.error(err);
-      toast('Export failed — please try again');
-    } finally {
-      state.exporting = false;
-      render();
-    }
-  });
-
-  // Live direct editing
-  document.getElementById('poem-title-in')?.addEventListener('input', e => {
-    patchActive({ title: e.target.value }, { rerender: false });
-  });
-  document.getElementById('poem-body-in')?.addEventListener('input', e => {
-    patchActive({ body: e.target.value }, { rerender: false });
-    liveUpdateMetricsAndScale(poem);
-  });
-
-  // Tap-to-edit rich views (Word Cut-Out, Line Cut-Out, Drop Cap, Inline Emphasis)
-  document.getElementById('rich-tap-edit')?.addEventListener('click', () => {
+  // Rich views (cut-outs, drop cap, inline emphasis) open for editing on tap
+  ['#rich-tap-edit', () => {
     state.editingRich = true;
     render();
     const ta = document.getElementById('poem-body-in');
     if (ta) { ta.focus(); ta.setSelectionRange(ta.value.length, ta.value.length); }
-  });
-  if (state.editingRich) {
-    const finishRich = () => {
-      setTimeout(() => {
-        const ae = document.activeElement;
-        if (ae && (ae.id === 'poem-title-in' || ae.id === 'poem-body-in')) return;
-        if (state.editingRich) { state.editingRich = false; render(); }
-      }, 130);
-    };
-    document.getElementById('poem-body-in')?.addEventListener('blur', finishRich);
-    document.getElementById('poem-title-in')?.addEventListener('blur', finishRich);
-  }
+  }],
 
-  // Mobile iOS Bottom Dock & Sheet controls
-  document.querySelectorAll('[data-docktab]').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const tb = btn.dataset.docktab;
-      state.moreOpen = false;
-      if (state.mobileSheetOpen && state.railTab === tb) {
-        state.mobileSheetOpen = false;
-      } else {
-        state.railTab = tb;
-        state.mobileSheetOpen = true;
-      }
-      render();
-    });
-  });
-  const closeSheet = () => { state.mobileSheetOpen = false; render(); };
-  document.getElementById('sheet-scrim')?.addEventListener('click', closeSheet);
-  document.getElementById('sheet-done-btn')?.addEventListener('click', closeSheet);
-  document.getElementById('sheet-grabber')?.addEventListener('click', closeSheet);
+  // Inspector navigation
+  ['[data-docktab]', el => {
+    const tab = el.dataset.docktab;
+    state.moreOpen = false;
+    if (state.mobileSheetOpen && state.railTab === tab) { closeSheet(); return; }
+    state.mobileSheetOpen = true;
+    setTab(tab);
+  }],
+  ['#sheet-scrim, #sheet-done-btn, #sheet-grabber', closeSheet],
+  ['[data-railtab]', el => setTab(el.dataset.railtab)],
+  ['[data-artsub]', el => { state.artSub = el.dataset.artsub; render(); revealSubtab(); }],
+  ['[data-fontcat]', el => { state.fontCat = el.dataset.fontcat; render(); revealSubtab(); }],
 
-  // Desktop Rail tabs
-  document.querySelectorAll('[data-railtab]').forEach(btn => {
-    btn.addEventListener('click', () => { state.railTab = btn.dataset.railtab; render(); });
-  });
-  document.querySelectorAll('[data-artsub]').forEach(btn => {
-    btn.addEventListener('click', () => { state.artSub = btn.dataset.artsub; render(); });
-  });
-  document.querySelectorAll('[data-art]').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const pt = ARTWORKS.find(a => a.id === btn.dataset.art);
-      if (!pt) return;
-      state.editingRich = false;
-      const nextPatch = {
-        bgMode: 'art',
-        painting: pt.id,
-        layout: pt.defLayout || 'overlay',
-        textStyle: pt.defTextStyle || 'plain',
-        textX: 0,
-        textY: 0
-      };
-      if (pt.defLayout === 'below') nextPatch.align = 'center';
-      if (pt.defTexture) nextPatch.texture = pt.defTexture;
-      if (pt.defTitleStyle) nextPatch.titleStyle = pt.defTitleStyle;
-      patchActive(nextPatch);
-    });
-  });
-  document.querySelectorAll('[data-paper]').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const id = btn.dataset.paper;
-      const patch = { bgMode: 'solid', paper: id, layout: 'overlay' };
-      if (id === 'raw-kraft') patch.texture = 'kraft';
-      if (id === 'handmade-cotton') patch.texture = 'cotton';
-      patchActive(patch);
-    });
-  });
-  document.querySelectorAll('[data-layout]').forEach(btn => {
-    btn.addEventListener('click', () => patchActive({ layout: btn.dataset.layout, textX: 0, textY: 0 }));
-  });
-  document.getElementById('wash-range')?.addEventListener('input', e => {
-    patchActive({ wash: Number(e.target.value) });
-  });
+  // Artwork
+  ['[data-art]', el => pickArt(el.dataset.art)],
+  ['[data-paper]', el => pickPaper(el.dataset.paper)],
+  ['[data-layout]', el => patchActive({ layout: el.dataset.layout, textX: 0, textY: 0 })],
+  ['#pick-photo-btn', () => document.getElementById('photo-file-in')?.click()],
+  ['[data-photodark]', el => patchActive({ bgMode: 'photo', photoDark: el.dataset.photodark === '1' })],
 
-  const photoIn = document.getElementById('photo-file-in');
-  document.getElementById('pick-photo-btn')?.addEventListener('click', () => photoIn?.click());
-  photoIn?.addEventListener('change', e => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = () => {
-      patchActive({ bgMode: 'photo', photo: String(reader.result || ''), layout: 'overlay' });
-      toast('Background photo applied');
-    };
-    reader.readAsDataURL(file);
-  });
-  document.querySelectorAll('[data-photodark]').forEach(btn => {
-    btn.addEventListener('click', () => patchActive({ bgMode: 'photo', photoDark: btn.dataset.photodark === '1' }));
-  });
+  // Fonts and style
+  ['[data-font]', el => patchWhenReady(fontReady(el.dataset.font, getActivePoem().body), { font: el.dataset.font })],
+  ['[data-titlestyle]', el => { state.editingRich = false; patchActive({ titleStyle: el.dataset.titlestyle }); }],
+  ['[data-textstyle]', el => { state.editingRich = false; patchActive({ textStyle: el.dataset.textstyle }); }],
+  ['#reset-pos-btn', () => { patchActive({ textX: 0, textY: 0 }, { fade: false }); toast('Centered textbox'); }],
+  ['[data-ink]', el => patchActive({ inkColor: el.dataset.ink })],
+  ['[data-texture]', el => patchActive({ texture: el.dataset.texture })],
+  ['[data-rhythm]', el => patchActive({ rhythm: el.dataset.rhythm })],
+  ['[data-textsize]', el => patchActive({ textSize: el.dataset.textsize })],
+  ['[data-ratio]', el => {
+    const r = el.dataset.ratio;
+    patchActive({ ratio: r, carousel: r === 'auto' ? false : getActivePoem().carousel });
+  }],
+  ['[data-frame]', el => patchActive({ frame: el.dataset.frame })],
+  ['[data-align]', el => patchActive({ align: el.dataset.align })],
+  ['[data-setmood]', el => {
+    const md = el.dataset.setmood;
+    patchActive({ mood: getActivePoem().mood === md ? '' : md }, { fade: false });
+  }],
 
-  document.querySelectorAll('[data-fontcat]').forEach(btn => {
-    btn.addEventListener('click', () => { state.fontCat = btn.dataset.fontcat; render(); });
-  });
-  document.querySelectorAll('[data-font]').forEach(btn => {
-    btn.addEventListener('click', () => patchActive({ font: btn.dataset.font }));
-  });
-
-  // Style customisations
-  document.querySelectorAll('[data-titlestyle]').forEach(btn => {
-    btn.addEventListener('click', () => { state.editingRich = false; patchActive({ titleStyle: btn.dataset.titlestyle }); });
-  });
-  document.querySelectorAll('[data-textstyle]').forEach(btn => {
-    btn.addEventListener('click', () => { state.editingRich = false; patchActive({ textStyle: btn.dataset.textstyle }); });
-  });
-  document.getElementById('reset-pos-btn')?.addEventListener('click', () => {
-    patchActive({ textX: 0, textY: 0 });
-    toast('Centered textbox');
-  });
-  document.querySelectorAll('[data-ink]').forEach(btn => {
-    btn.addEventListener('click', () => patchActive({ inkColor: btn.dataset.ink }));
-  });
-  document.querySelectorAll('[data-texture]').forEach(btn => {
-    btn.addEventListener('click', () => patchActive({ texture: btn.dataset.texture }));
-  });
-  document.querySelectorAll('[data-rhythm]').forEach(btn => {
-    btn.addEventListener('click', () => patchActive({ rhythm: btn.dataset.rhythm }));
-  });
-  document.querySelectorAll('[data-textsize]').forEach(btn => {
-    btn.addEventListener('click', () => patchActive({ textSize: btn.dataset.textsize }));
-  });
-  document.querySelectorAll('[data-ratio]').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const r = btn.dataset.ratio;
-      patchActive({ ratio: r, carousel: r === 'auto' ? false : poem.carousel });
-    });
-  });
-  document.querySelectorAll('[data-frame]').forEach(btn => {
-    btn.addEventListener('click', () => patchActive({ frame: btn.dataset.frame }));
-  });
-  document.querySelectorAll('[data-align]').forEach(btn => {
-    btn.addEventListener('click', () => patchActive({ align: btn.dataset.align }));
-  });
-  document.getElementById('sign-in')?.addEventListener('input', e => {
-    patchActive({ sign: e.target.value }, { rerender: false });
-    const sEl = document.querySelector('.poem-sign');
-    if (sEl) sEl.textContent = e.target.value;
-    else render();
-  });
-  document.getElementById('page-in')?.addEventListener('input', e => {
-    patchActive({ pageNo: e.target.value }, { rerender: false });
-    const bEl = document.querySelector('.poem-book-bot');
-    if (bEl && !poem.carousel) bEl.textContent = e.target.value.trim() ? `— ${e.target.value.trim()} —` : '✦';
-  });
-  document.querySelectorAll('[data-setmood]').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const md = btn.dataset.setmood;
-      patchActive({ mood: poem.mood === md ? '' : md });
-    });
-  });
-
-  // Write tab — emphasis wrap helpers + break + rhyme + word banks
-  document.querySelectorAll('[data-wrap]').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const mk = btn.dataset.wrap;
-      const lines = String(poem.body || '').split('\n');
-      const idx = lines.length - 1;
-      const last = lines[idx].trim();
-      lines[idx] = last ? `${mk}${last}${mk}` : `${mk}emphasized line${mk}`;
-      state.editingRich = false;
-      patchActive({ body: lines.join('\n') });
-      toast('Styled last line');
-    });
-  });
-  document.getElementById('insert-break-btn')?.addEventListener('click', () => {
-    const cur = String(poem.body || '').trimEnd();
+  // Write
+  ['[data-wrap]', el => wrapLastLine(el.dataset.wrap)],
+  ['#insert-break-btn', () => {
+    const cur = String(getActivePoem().body || '').trimEnd();
     patchActive({ body: cur ? `${cur}\n\n---\n\n` : '---\n\n', carousel: false });
     toast('Inserted manual slide break (---)');
-  });
-  const rhymeIn = document.getElementById('rhyme-in');
-  rhymeIn?.addEventListener('input', e => {
-    state.rhymeQuery = e.target.value;
-    const pos = e.target.selectionStart;
-    render();
-    const next = document.getElementById('rhyme-in');
-    if (next) { next.focus(); next.setSelectionRange(pos, pos); }
-  });
-  document.querySelectorAll('[data-insert]').forEach(chip => {
-    chip.addEventListener('click', () => {
-      const wd = chip.dataset.insert;
-      const cur = String(poem.body || '');
-      const sep = cur && !/[\s\n]$/.test(cur) ? ' ' : '';
-      patchActive({ body: cur + sep + wd });
-      toast(`Inserted “${wd}”`, 1400);
-    });
-  });
+  }],
+  ['[data-insert]', el => insertWord(el.dataset.insert)]
+];
 
-  const doArchive = () => {
-    state.moreOpen = false;
-    const next = !poem.archived;
-    patchActive({ archived: next });
-    toast(next ? 'Moved to Archive' : 'Restored to Anthology');
-    if (next) { state.activeId = null; state.mobileSheetOpen = false; render(); }
-  };
-  const doDelete = () => {
-    state.moreOpen = false;
-    if (!confirm(`Delete “${poem.title || 'Untitled poem'}”?`)) return;
-    state.poems = state.poems.filter(x => x.id !== poem.id);
-    savePoems(state.poems);
-    state.activeId = null;
-    state.mobileSheetOpen = false;
-    render();
-    toast('Poem deleted');
-  };
-  document.getElementById('archive-btn')?.addEventListener('click', doArchive);
-  document.getElementById('m-archive-btn')?.addEventListener('click', doArchive);
-  document.getElementById('delete-btn')?.addEventListener('click', doDelete);
-  document.getElementById('m-delete-btn')?.addEventListener('click', doDelete);
+const INPUTS = [
+  ['#gallery-search', el => { state.search = el.value; renderGalleryFlow(); }],
+  ['#poem-title-in', el => patchActive({ title: el.value }, { rerender: false })],
+  ['#poem-body-in', el => {
+    patchActive({ body: el.value }, { rerender: false });
+    liveUpdateMetricsAndScale(getActivePoem());
+  }],
+  ['#wash-range', el => patchActive({ wash: Number(el.value) }, { fade: false })],
+  ['#sign-in', el => patchActive({ sign: el.value }, { fade: false })],
+  ['#page-in', el => patchActive({ pageNo: el.value }, { fade: false })],
+  ['#rhyme-in', el => { state.rhymeQuery = el.value; render(); }]
+];
+
+const CHANGES = [
+  ['#import-file', importFile],
+  ['#photo-file-in', pickPhoto]
+];
+
+function delegate(type, table) {
+  document.addEventListener(type, e => {
+    for (const [sel, fn] of table) {
+      const el = e.target.closest?.(sel);
+      if (!el) continue;
+      if (!el.disabled) fn(el, e);
+      return;
+    }
+  });
 }
 
-function render() {
-  const root = document.getElementById('app');
-  if (!root) return;
-  const poem = getActivePoem();
-  root.innerHTML = poem ? renderStudio(poem) : renderGallery();
-  wireEvents();
-}
+delegate('click', CLICKS);
+delegate('input', INPUTS);
+delegate('change', CHANGES);
 
-document.addEventListener('click', () => {
-  if (state.moreOpen) { state.moreOpen = false; render(); }
+document.addEventListener('click', e => {
+  if (state.moreOpen && !e.target.closest?.('.menu-wrap')) { state.moreOpen = false; render(); }
 });
+
+// Leaving a tap-to-edit poem returns it to its styled view
+document.addEventListener('focusout', e => {
+  if (!state.editingRich || !/^poem-(title|body)-in$/.test(e.target.id)) return;
+  setTimeout(() => {
+    if (/^poem-(title|body)-in$/.test(document.activeElement?.id || '')) return;
+    if (state.editingRich) { state.editingRich = false; render(); }
+  }, 130);
+});
+
+// Drag the textbox by its Move handle
+let drag = null;
+document.addEventListener('pointerdown', e => {
+  const handle = e.target.closest?.('#drag-text-handle');
+  const col = document.getElementById('movable-text-col');
+  const sheet = document.getElementById('active-poem-sheet');
+  const poem = getActivePoem();
+  if (!handle || !col || !sheet || !poem) return;
+  e.preventDefault();
+  handle.setPointerCapture(e.pointerId);
+  const baseX = Number.isFinite(poem.textX) ? poem.textX : 0;
+  const baseY = Number.isFinite(poem.textY) ? poem.textY : 0;
+  drag = { col, sheet, startX: e.clientX, startY: e.clientY, baseX, baseY, x: baseX, y: baseY };
+  col.classList.add('is-dragging');
+});
+document.addEventListener('pointermove', e => {
+  if (!drag) return;
+  // Offsets are stored as a percentage of the text column, so divide by its on-screen size.
+  const rect = drag.col.getBoundingClientRect();
+  const clamp = v => Math.max(-44, Math.min(44, Math.round(v)));
+  let nx = clamp(drag.baseX + ((e.clientX - drag.startX) / Math.max(1, rect.width)) * 100);
+  let ny = clamp(drag.baseY + ((e.clientY - drag.startY) / Math.max(1, rect.height)) * 100);
+  // Gentle magnetic snap near center
+  if (Math.abs(nx) <= 2) nx = 0;
+  if (Math.abs(ny) <= 2) ny = 0;
+  drag.x = nx;
+  drag.y = ny;
+  drag.col.style.setProperty('--tx', nx + '%');
+  drag.col.style.setProperty('--ty', ny + '%');
+});
+function endDrag() {
+  if (!drag) return;
+  const { col, x, y } = drag;
+  drag = null;
+  col.classList.remove('is-dragging');
+  patchActive({ textX: x, textY: y }, { fade: false });
+}
+document.addEventListener('pointerup', endDrag);
+document.addEventListener('pointercancel', endDrag);
 
 window.addEventListener('keydown', e => {
   if (e.key === 'Escape') {
     if (state.moreOpen) { state.moreOpen = false; render(); return; }
-    if (state.mobileSheetOpen) { state.mobileSheetOpen = false; render(); return; }
+    if (state.mobileSheetOpen) { closeSheet(); return; }
     if (state.activeId && state.focusMode) { state.focusMode = false; render(); }
   }
   if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k' && !state.activeId) {
@@ -1305,8 +1396,23 @@ window.addEventListener('keydown', e => {
   }
 });
 
+// Browser back and forward move between the anthology and a poem
+history.scrollRestoration = 'manual';
+window.addEventListener('popstate', () => {
+  const id = routeId();
+  if (id === state.activeId) return;
+  if (id) openPoem(id, { push: false });
+  else showGallery();
+});
+
 if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
   navigator.serviceWorker.register('./sw.js').catch(() => {});
 }
 
+state.activeId = routeId();
+if (state.activeId) {
+  const st = resolveStyle(getActivePoem());
+  state.artSub = st.bgMode === 'solid' ? 'solid' : st.bgMode === 'photo' ? 'photo' : (st.painting.grp || 'minimal');
+}
 render();
+setTimeout(() => document.getElementById('app')?.setAttribute('data-ready', ''), 700);

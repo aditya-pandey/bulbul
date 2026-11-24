@@ -204,7 +204,7 @@ export const INK_SWATCHES = [
   { id: 'indigo', label: 'Midnight Indigo', hex: '#1D2B44' },
   { id: 'forest', label: 'Deep Pine', hex: '#1D3326' },
   { id: 'ivory', label: 'Warm Ivory', hex: '#F5EFE4' },
-  { id: 'gold', label: 'Noor Gold', hex: '#DFBE7A' }
+  { id: 'gold', label: 'Gold', hex: '#DFBE7A' }
 ];
 
 export const RHYTHMS = [
@@ -497,7 +497,7 @@ export const STARTER_POEMS = [
     textSize: 'auto',
     carousel: false,
     wash: 0,
-    sign: '— noor',
+    sign: '— bulbul',
     pageNo: '19',
     mood: 'Long',
     archived: false,

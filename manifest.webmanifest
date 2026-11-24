@@ -1,14 +1,14 @@
 {
-  "name": "Noor — Poetry Studio",
-  "short_name": "Noor",
-  "description": "A quiet, tactile poetry writer and editorial studio.",
+  "name": "Bulbul: Poetry studio",
+  "short_name": "Bulbul",
+  "description": "Write poems and set them as pages worth keeping.",
   "start_url": "./",
   "display": "standalone",
-  "background_color": "#F6F6F4",
-  "theme_color": "#181614",
+  "background_color": "#F7F4EE",
+  "theme_color": "#F7F4EE",
   "icons": [
     { "src": "./assets/brand/kit/icon-192.png", "sizes": "192x192", "type": "image/png" },
-    { "src": "./assets/brand/noor-app-icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "./assets/brand/bulbul-app-icon-512.png", "sizes": "512x512", "type": "image/png" },
     { "src": "./assets/brand/kit/maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
   ]
 }

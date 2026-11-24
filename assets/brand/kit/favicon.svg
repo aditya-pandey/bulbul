@@ -1,7 +1,1 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256"><title>Noor logo</title><g transform="translate(-58.09 -53.78) scale(1.437)">
-  <title id="noor-sm-t">Noor small-size logo</title>
-  <g id="symbol">
-    <path fill="#181614" d="M44 64 A20 20 0 0 1 64 44 H98 L168 165.2 V116 H212 V192 A20 20 0 0 1 192 212 H158 L88 90.8 V212 H44 Z"/>
-    <circle fill="#C48B3B" cx="190" cy="66" r="25"/>
-  </g>
-</g></svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256" role="img"><title>Bulbul</title><rect width="256" height="256" rx="52" fill="#B3332A"/><g transform="translate(5.0 18.8) scale(0.86)"><path fill="#FBF6EC" fill-rule="evenodd" d="M106 10 C114 30 130 40 150 42 C176 45 196 60 204 80 C216 80 230 84 244 92 C232 98 220 102 209 103 C216 106 224 112 230 122 C220 122 212 120 206 117 C206 182 140 236 42 244 C84 220 108 192 113 160 C92 146 82 122 84 94 C86 62 94 34 106 10 Z M159 74 A12 12 0 1 1 183 74 A12 12 0 1 1 159 74 Z"/><path fill="#1D1A17" d="M192 98 C196 124 174 144 136 142 C140 116 160 98 192 98 Z"/></g></svg>
