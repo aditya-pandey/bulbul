@@ -39,6 +39,17 @@ export const ARTWORKS = [
   { id: 'night-lanterns', grp: 'night', name: 'Lantern River', src: './assets/art/night-lanterns.webp', bg: '#1B2747', bg2: '#162038', dark: true, ink: '#FBEFD2', sub: '#C3C9DA', acc: '#F0A24A', mat: '#FFFDF8', blend: '', contain: true, defLayout: 'scene', filter: '' },
   { id: 'night-lighthouse', grp: 'night', name: 'Lighthouse', src: './assets/art/night-lighthouse.webp', bg: '#EEF0EE', bg2: '#DFE4E6', dark: false, ink: '#1C2848', sub: '#515B72', acc: '#B3332A', mat: '#FFFDF8', blend: '', contain: true, defLayout: 'corner', filter: '' },
 
+  { id: 'story-saris', grp: 'story', name: 'Drying Saris', src: './assets/art/story-saris.webp', bg: '#FAF5EA', bg2: '#F1E8D6', dark: false, ink: '#2F2A26', sub: '#5F554C', acc: '#C2705F', mat: '#FFFDF8', blend: '', contain: true, defLayout: 'below', filter: '' },
+  { id: 'story-postbox', grp: 'story', name: 'Amaltas Postbox', src: './assets/art/story-postbox.webp', bg: '#FBF4E2', bg2: '#F4E8CC', dark: false, ink: '#33251C', sub: '#655444', acc: '#B9402F', mat: '#FFFDF8', blend: '', contain: true, defLayout: 'below', filter: '' },
+  { id: 'story-stepwell', grp: 'story', name: 'Stepwell', src: './assets/art/story-stepwell.webp', bg: '#FAF1E0', bg2: '#F1E2C6', dark: false, ink: '#35281C', sub: '#6A5844', acc: '#4F7F7A', mat: '#FFFDF8', blend: '', contain: true, defLayout: 'below', filter: '' },
+  { id: 'story-rainsill', grp: 'story', name: 'Rain on the Sill', src: './assets/art/story-rainsill.webp', bg: '#F4F4EE', bg2: '#E8EBE6', dark: false, ink: '#26333A', sub: '#54646A', acc: '#B9604F', mat: '#FFFDF8', blend: '', contain: true, defLayout: 'below', filter: '' },
+  { id: 'run-kite', grp: 'story', name: 'Kite String', src: './assets/art/run-kite.webp', bg: '#F1F4F0', bg2: '#E6ECE7', dark: false, ink: '#26333A', sub: '#54646A', acc: '#C24F42', mat: '#FFFDF8', blend: '', contain: true, defLayout: 'run', filter: '', run: { w: 150, top: 240, mid: 280, end: 250 } },
+  { id: 'run-vine', grp: 'story', name: 'Bougainvillea', src: './assets/art/run-vine.webp', bg: '#FBF3EC', bg2: '#F5E6DB', dark: false, ink: '#33221F', sub: '#6B5148', acc: '#C7456F', mat: '#FFFDF8', blend: '', contain: true, defLayout: 'run', filter: '', run: { w: 150, top: 170, mid: 330, end: 210 } },
+  { id: 'run-rain', grp: 'story', name: 'Rain and a Paper Boat', src: './assets/art/run-rain.webp', bg: '#F0F3F3', bg2: '#E3EAEB', dark: false, ink: '#22323A', sub: '#50636B', acc: '#5E8BA0', mat: '#FFFDF8', blend: '', contain: true, defLayout: 'run', filter: '', run: { w: 150, top: 150, mid: 240, end: 200 } },
+  { id: 'print-pressed', grp: 'print', name: 'Pressed Flowers', src: './assets/art/print-pressed.webp', bg: '#F5EDDD', bg2: '#ECE0CA', dark: false, ink: '#33291F', sub: '#665848', acc: '#C26D5E', mat: '#FFFDF8', blend: '', contain: true, defLayout: 'corner', filter: '' },
+  { id: 'night-jasmine', grp: 'night', name: 'Jasmine Moon', src: './assets/art/night-jasmine.webp', bg: '#1C2740', bg2: '#141C30', dark: true, ink: '#F6EEDC', sub: '#C3C6CE', acc: '#EBC46A', mat: '#FFFDF8', blend: '', contain: true, defLayout: 'below', filter: '' },
+  { id: 'scene-meadow', grp: 'story', name: 'Wildflower Meadow', src: './assets/art/scene-meadow.webp', bg: '#FBF3E6', bg2: '#F6E6CF', dark: false, ink: '#2E3325', sub: '#5E6450', acc: '#C9574A', mat: '#FFFDF8', blend: '', contain: true, defLayout: 'scene', filter: '' },
+  { id: 'scene-mustard', grp: 'story', name: 'Mustard Field', src: './assets/art/scene-mustard.webp', bg: '#F6F3E6', bg2: '#EFE7CE', dark: false, ink: '#2F3322', sub: '#5F6148', acc: '#A8801F', mat: '#FFFDF8', blend: '', contain: true, defLayout: 'scene', filter: '' },
   { id: 'story-ibadat', grp: 'story', name: 'Letters Read Aloud', src: './assets/art/story-ibadat.webp', bg: '#FAF3E6', bg2: '#F3E8D5', dark: false, ink: '#3A2A22', sub: '#6B574A', acc: '#B06B5C', mat: '#FFFDF8', blend: '', contain: true, defLayout: 'below', filter: '' },
   { id: 'story-dehleez', grp: 'story', name: 'At the Threshold', src: './assets/art/story-dehleez.webp', bg: '#F6EADB', bg2: '#EEDCC6', dark: false, ink: '#2B1D22', sub: '#63504A', acc: '#BE3A2E', mat: '#FFFDF8', blend: '', contain: true, defLayout: 'corner', filter: '' },
   { id: 'story-kursi', grp: 'story', name: 'Empty Chair', src: './assets/art/story-kursi.webp', bg: '#F0EBE0', bg2: '#E4DCCD', dark: false, ink: '#1F2E4A', sub: '#50596B', acc: '#274B8E', mat: '#FFFDF8', blend: '', contain: true, defLayout: 'corner', filter: '' },
@@ -245,10 +256,17 @@ export const LAYOUTS = [
   { id: 'side', label: 'Book Editorial' },
   { id: 'overlay', label: 'Full Canvas' },
   { id: 'below', label: 'Art Below' },
+  { id: 'opening', label: 'Art Above' },
   { id: 'corner', label: 'Corner Art' },
   { id: 'scene', label: 'Landscape' },
   { id: 'arch', label: 'Arch Window' },
   { id: 'print', label: 'Taped Print' }
+];
+
+export const FLOWS = [
+  { id: 'one', label: 'One column' },
+  { id: 'two', label: 'Two columns' },
+  { id: 'step', label: 'Stepped' }
 ];
 
 export const FRAMES = [
@@ -417,6 +435,10 @@ export const LOOK_CATS = [
 ];
 
 export const LOOKS = [
+  look('saris', 'Drying Saris', 'story', 'laila', { painting: 'story-saris', layout: 'below', font: 'gilda', align: 'center', texture: 'cotton' }),
+  look('kitestring', 'Kite String', 'story', 'kalam', { painting: 'run-kite', layout: 'run', font: 'editorial', titleStyle: 'italic' }),
+  look('rainsill', 'Rain on the Sill', 'story', 'kurale', { painting: 'story-rainsill', layout: 'below', font: 'poetic-italic', align: 'center' }),
+  look('meadow', 'Wildflower Meadow', 'story', 'tillana', { painting: 'scene-meadow', layout: 'scene', font: 'cedarville', titleStyle: 'none' }),
   look('ibadat', 'Ibadat', 'story', 'kurale', { painting: 'story-ibadat', layout: 'below', font: 'gilda', align: 'center' }),
   look('umbrella', 'One Umbrella', 'story', 'kalam', { painting: 'story-umbrella', font: 'badscript', titleStyle: 'none', texture: 'cotton' }),
   look('twirl', 'The Twirl', 'story', 'tillana', { painting: 'story-dancer', font: 'dancing', titleStyle: 'none', texture: 'cotton' }),
@@ -496,6 +518,13 @@ export const LOOKS = [
   look('library', 'Reading Ladder', 'story', 'sahitya', { painting: 'story-library', font: 'eb-garamond', titleStyle: 'italic', texture: 'cotton' }),
   look('threshold', 'At the Threshold', 'story', 'kalam', { painting: 'story-dehleez', font: 'badscript', titleStyle: 'none', texture: 'cotton' }),
   look('graph', 'Graph Paper', 'paper', 'playpen-deva', onPaper('gallery-white', { font: 'ibm-mono', texture: 'graph', titleStyle: 'none' })),
+  look('bougainvillea', 'Bougainvillea', 'story', 'yatra', { painting: 'run-vine', layout: 'run', font: 'fell', titleStyle: 'italic', texture: 'cotton' }),
+  look('postbox', 'Amaltas Postbox', 'story', 'kalam', { painting: 'story-postbox', layout: 'below', font: 'badscript', align: 'center' }),
+  look('jasmine', 'Jasmine Moon', 'night', 'laila', { painting: 'night-jasmine', layout: 'below', font: 'italiana', align: 'center' }),
+  look('pressed', 'Pressed Flowers', 'print', 'kurale', { painting: 'print-pressed', layout: 'corner', font: 'eb-garamond', titleStyle: 'italic', texture: 'cotton' }),
+  look('mustard', 'Mustard Field', 'story', 'sahitya', { painting: 'scene-mustard', layout: 'scene', font: 'gilda', align: 'center' }),
+  look('stepwell', 'Stepwell', 'story', 'rozha', { painting: 'story-stepwell', layout: 'below', font: 'bodoni', align: 'center', titleStyle: 'smallcaps' }),
+  look('paperboat', 'Paper Boat Rain', 'story', 'dekko', { painting: 'run-rain', layout: 'run', font: 'poetic-italic', titleStyle: 'none' }),
   look('cherry', 'Cherry Meadow', 'story', 'tillana', { painting: 'scene-cherry', layout: 'scene', font: 'editorial', titleStyle: 'italic' }),
   look('collage', 'Keepsake Collage', 'print', 'dekko', { painting: 'print-collage', font: 'typewriter', titleStyle: 'none', texture: 'kraft' }),
   look('chair', 'Empty Chair', 'story', 'dekko', { painting: 'story-kursi', font: 'nothing', titleStyle: 'none', inkColor: 'indigo', texture: 'cotton' }),
@@ -557,7 +586,7 @@ export function computeTypeScale(body, { ratio = '4:5', layout = 'side', textSiz
     else visualLines += Math.max(1, Math.ceil(t.length / charsPerLine));
   }
   const cap = ratio === '1:1' ? 11 : ratio === '9:16' ? 21 : ratio === '2:3' ? 18 : 15;
-  const effCap = layout === 'below' ? cap * 0.78 : ['scene', 'arch', 'print'].includes(layout) ? cap * 0.66 : cap;
+  const effCap = ['below', 'opening'].includes(layout) ? cap * 0.78 : ['scene', 'arch', 'print'].includes(layout) ? cap * 0.66 : cap;
   if (visualLines <= effCap) return { scale: 1.0, lhMult: 1.0, padMult: 1.0 };
   const over = visualLines / effCap;
   // Smooth step-down down to 0.66 so 24-30 line poems fit on a single 4:5 poster just like published Instagram book pages
@@ -688,6 +717,7 @@ export function resolveStyle(poem) {
     font,
     pal,
     layout: poem.layout || painting.defLayout || 'side',
+    flow: ['two', 'step'].includes(poem.flow) ? poem.flow : 'one',
     frame: poem.frame || 'hairline',
     align: poem.align || 'left',
     ratio: poem.ratio || '4:5',

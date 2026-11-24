@@ -103,6 +103,8 @@ async function paintElement(el, { w, h, zoom, families, text, style = '' }) {
   // Frames are border images set inline
   await Promise.all([...el.querySelectorAll('[style*="url("]')].map(async n => {
     const src = n.style.borderImageSource.match(/url\(["']?([^"')]+)/)?.[1];
+    const bg = n.style.backgroundImage.match(/url\(["']?([^"')]+)/)?.[1];
+    if (bg && !bg.startsWith('data:')) n.style.backgroundImage = `url("${await toDataURL(new URL(bg, location.href).href)}")`;
     if (src && !src.startsWith('data:')) n.style.borderImageSource = `url("${await toDataURL(new URL(src, location.href).href)}")`;
   }));
   imgs.forEach(i => { i.removeAttribute('loading'); i.removeAttribute('decoding'); });

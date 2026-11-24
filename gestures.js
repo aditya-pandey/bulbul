@@ -2,7 +2,7 @@
 // A drag may start on a handle, or anywhere in a panel whose content is scrolled to the top.
 
 const SLOP = 8;
-const phone = matchMedia('(max-width: 860px)');
+const phone = matchMedia('(max-width: 600px), (max-width: 860px) and (min-height: 501px)');
 
 const isField = el => Boolean(el.closest('input, textarea, select, [contenteditable]'));
 

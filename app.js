@@ -1,12 +1,13 @@
 import {
-  ARTWORKS, PAPERS, FONTS, FONT_CATS, LAYOUTS, FRAMES, RATIOS, TEXT_SIZES, TEXT_STYLES,
+  ARTWORKS, PAPERS, FONTS, FONT_CATS, LAYOUTS, FLOWS, FRAMES, RATIOS, TEXT_SIZES, TEXT_STYLES,
   TITLE_STYLES, TEXTURES, INK_SWATCHES, RHYTHMS, MOODS, ATMOS, LIGHTS, CHARMS,
   LOOKS, LOOK_CATS, lookPatch, isHindi, finishSrc,
   BLOOMS, PERCHES, SPARKS, changedLayers,
   OLD_SAMPLES,
   poemMetrics, computeTypeScale, paginatePoem, resolveStyle
 } from './data.js';
-import { PLACEMENT, FRAME, TITLE, LINE, ALIGN } from './pictos.js';
+import { mountEditor, onEditor, focusEditor, editorFocused, caretSlide, mark, breakHere } from './editor.js';
+import { PLACEMENT, FLOW, FRAME, TITLE, LINE, ALIGN } from './pictos.js';
 import { inkAdvice } from './contrast.js';
 import { fitMock, MOCK_W, MOCK_H } from './snapshot.js';
 import { initGestures } from './gestures.js';
@@ -21,7 +22,6 @@ const THEME_KEY = 'noor.theme';
 const SHARE_KEY = 'noor.share';
 const MINE_KEY = 'noor.looks.mine';
 const RECENT_KEY = 'noor.looks.recent';
-const MODE_KEY = 'noor.mode';
 const BEGAN_KEY = 'noor.began';
 const HINT_KEY = 'noor.hints';
 const NAME_KEY = 'noor.name';
@@ -159,9 +159,9 @@ const state = {
   artSub: 'minimal',
   fontCat: 'all',
   typeSeg: 'font',
-  mode: 'design',
+  marks: {},
+  full: false,
   formatOpen: false,
-  caret: -1,
   mobileSheetOpen: false,
   sheetTall: false,
   moreOpen: false,
@@ -284,9 +284,12 @@ function openPoem(id, { push = true } = {}) {
     state.looksShown = 16;
     state.applying = '';
     state.lookCat = 'you';
-    state.mode = localStorage.getItem(MODE_KEY) === 'write' ? 'write' : 'design';
+    // A blank page opens ready to write
+    const blank = !p.title && !p.body;
+    if (blank) state.railTab = 'write';
     state.formatOpen = false;
-    state.mobileSheetOpen = false;
+    state.marks = {};
+    state.mobileSheetOpen = blank && !desktopStage.matches;
     state.moreOpen = false;
     state.editingRich = false;
     const st = resolveStyle(p);
@@ -369,14 +372,10 @@ function createPoem({ spark = '', lookId = '' } = {}) {
     updatedAt: Date.now()
   };
   begin();
-  state.railTab = 'looks';
   state.poems.unshift(p);
   savePoems(state.poems);
-  localStorage.setItem(MODE_KEY, 'write');
   openPoem(p.id);
-  setTimeout(() => {
-    (document.getElementById('poem-title-in') || document.getElementById('poem-body-in'))?.focus();
-  }, 40);
+  setTimeout(() => focusEditor(), 40);
 }
 
 /* ---------- Home ---------- */
@@ -436,9 +435,15 @@ function renderHero() {
 }
 
 // A carousel shows its first slide, as it would arrive
+// The opening of a long poem, for small previews: whole, it would be too small to read
+function firstOf(p, ratio) {
+  const pages = paginatePoem(p.body, { ratio, layout: resolveStyle(p).layout });
+  return pages.length > 1 ? { ...p, body: pages[0].text, sign: '' } : p;
+}
 function thumbHTML(p, ratio) {
   const st = resolveStyle(p);
   const pages = st.carousel ? paginatePoem(p.body, { ratio, layout: st.layout }) : null;
+  if (!pages && st.ratio === 'auto') return renderSheetHTML(firstOf(p, ratio), { thumb: true, ratio });
   return renderSheetHTML(p, { thumb: true, ratio, slide: pages && pages.length > 1 ? pages[0] : null });
 }
 const thumbRatio = st => (st.ratio === 'auto' ? (st.carousel ? '4:5' : '2:3') : st.ratio);
@@ -464,13 +469,14 @@ function renderExamples() {
 
 /* ---------- First hints: one at a time, gone once done ---------- */
 
-const HINTS = ['Tap the page and write a line.', 'Open Design and try a look.', 'Share it when it feels done.'];
+const HINTS = ['Write your first line.', 'Tap Looks and try one.', 'Share it when it feels done.'];
 function hintAt() {
   const n = localStorage.getItem(HINT_KEY);
-  return n === null ? (state.poems.length > 1 ? HINTS.length : 0) : Number(n);
+  const at = n === null ? (state.poems.length > 1 ? HINTS.length : 0) : Number(n);
+  return at === 0 && String(getActivePoem()?.body || '').trim().length > 2 ? 1 : at;
 }
 function hintDone(i) {
-  if (hintAt() !== i) return;
+  if (hintAt() !== i && !(i === 0 && !Number(localStorage.getItem(HINT_KEY)) && hintAt() === 1)) return;
   localStorage.setItem(HINT_KEY, String(i + 1));
   if (state.activeId) render();
 }
@@ -523,13 +529,12 @@ function fromExample(keepWords) {
   const now = Date.now();
   const poem = { ...setting, ...words, textStyle: !keepWords && setting.textStyle === 'blackout' ? 'plain' : setting.textStyle, id: 'poem-' + now.toString(36) + Math.random().toString(36).slice(2, 6), archived: false, createdAt: now, updatedAt: now };
   state.viewing = null;
-  localStorage.setItem(MODE_KEY, keepWords ? 'design' : 'write');
   state.railTab = 'looks';
   state.poems.unshift(poem);
   savePoems(state.poems);
   openPoem(poem.id);
   if (keepWords) toast('Added a copy to your poems');
-  else setTimeout(() => (document.getElementById('poem-title-in') || document.getElementById('poem-body-in'))?.focus(), 60);
+  else setTimeout(() => focusEditor(), 60);
 }
 
 /* ---------- Share ---------- */
@@ -788,7 +793,7 @@ function renderShare() {
 
 const SHORTCUTS = [
   ['Undo', '⌘ Z', 'Ctrl Z'], ['Redo', '⇧ ⌘ Z', 'Ctrl Y'], ['Share', 'S', 'S'], ['Previous and next slide', '←  →', '←  →'],
-  ['Looks, Picture, Type, Page, Words', '1 – 5', '1 – 5'], ['Write or design', 'W', 'W'], ['Find a poem', '⌘ K', 'Ctrl K'], ['This list', '?', '?']
+  ['Write, Looks, Picture, Type, Page', '1 – 5', '1 – 5'], ['Write', 'W', 'W'], ['Find a poem', '⌘ K', 'Ctrl K'], ['This list', '?', '?']
 ];
 const onMac = /Mac|iPhone|iPad/.test(navigator.platform);
 function renderHelp() {
@@ -1077,7 +1082,7 @@ function renderGallery() {
 
     ${renderViewer()}
     <div class="mobile-fab-wrap" data-view="gallery-fab">
-      <button type="button" class="mobile-fab" id="mobile-new-btn">${ICONS.plus}<span>Write a poem</span></button>
+      <button type="button" class="mobile-fab" id="mobile-new-btn">${ICONS.write}<span>Write</span></button>
     </div>
   `;
 }
@@ -1107,15 +1112,15 @@ function toggleMine(id) {
 // Reads the poem for its length and a few plain cues, so the first row suits it.
 const CUES = [
   [/god|prayer|faith|worship|temple|mosque|इबादत|ख़ुदा|खुदा|दुआ|सजदा|मंदिर|मस्जिद|बंदगी|ज़ियारत/i, ['ibadat', 'arch-dawn', 'lotus', 'stars', 'golden']],
-  [/rain|monsoon|umbrella|wet|बारिश|बरसात|सावन|भीग/i, ['umbrella', 'rickshaw', 'monsoon', 'moved-on']],
-  [/night|star|moon|dark|lantern|sleep|रात|तारे|चाँद|चांद|नींद/i, ['stars', 'lanterns', 'lighthouse', 'charpai', 'indigo', 'moonlit']],
+  [/rain|monsoon|umbrella|wet|बारिश|बरसात|सावन|भीग/i, ['rainsill', 'umbrella', 'paperboat', 'rickshaw', 'monsoon', 'moved-on']],
+  [/night|star|moon|dark|lantern|sleep|रात|तारे|चाँद|चांद|नींद/i, ['jasmine', 'stars', 'lanterns', 'lighthouse', 'charpai', 'indigo', 'moonlit']],
   [/sea|wave|shore|river|boat|ocean|समंदर|नदी|लहर|नाव|दरिया/i, ['sea', 'wave', 'nauka', 'paper-sea', 'whale', 'lotus']],
-  [/letter|wrote|write|ink|page|pen|ख़त|खत|कलम|कागज़|कागज|लिख/i, ['letter', 'airmail', 'postcard', 'notebook', 'telegram', 'chair']],
+  [/letter|wrote|write|ink|page|pen|ख़त|खत|कलम|कागज़|कागज|लिख/i, ['letter', 'postbox', 'airmail', 'postcard', 'notebook', 'telegram', 'chair']],
   [/window|light|sun|dawn|morning|धूप|खिड़की|सुबह|रोशनी/i, ['window', 'golden', 'palm', 'arch-dawn', 'leaves']],
-  [/flower|rose|bloom|tree|garden|petal|leaf|फूल|गुलाब|पेड़|पत्त/i, ['cherry', 'vase', 'petals', 'vine', 'tulip', 'bulbul', 'fern']],
+  [/flower|rose|bloom|tree|garden|petal|leaf|फूल|गुलाब|पेड़|पत्त/i, ['meadow', 'cherry', 'pressed', 'bougainvillea', 'vase', 'petals', 'vine', 'tulip', 'bulbul', 'fern']],
   [/love|heart|you|kiss|प्यार|इश्क|दिल|मोहब्बत|तुम/i, ['embrace', 'gajra', 'umbrella', 'windows', 'threshold', 'petals']],
-  [/home|house|room|door|mother|घर|कमरा|दरवाज़|माँ|मां/i, ['storeys', 'threshold', 'chair', 'valley', 'train']],
-  [/bird|sky|fly|wing|पंछी|आसमान|उड़/i, ['bulbul', 'kites', 'stars', 'balloon', 'heron']],
+  [/home|house|room|door|mother|घर|कमरा|दरवाज़|माँ|मां/i, ['storeys', 'threshold', 'saris', 'chair', 'valley', 'train']],
+  [/bird|sky|fly|wing|पंछी|आसमान|उड़/i, ['bulbul', 'kitestring', 'kites', 'stars', 'balloon', 'heron']],
   [/city|train|road|street|शहर|रेल|सड़क|गली/i, ['train', 'rickshaw', 'kites', 'filmstrip']],
   [/dance|song|music|sing|गीत|नाच|संगीत|सुर/i, ['twirl', 'music', 'bansuri', 'record', 'warli']]
 ];
@@ -1133,7 +1138,8 @@ function looksFor(poem) {
   }
   for (const l of LOOKS) {
     const p = l.patch;
-    if (lines > 16) add(l.id, p.bgMode === 'solid' || p.layout === 'scene' ? 1.4 : p.layout === 'corner' ? 0.4 : -1.6);
+    if (poem.ratio === 'auto' && !poem.carousel) add(l.id, { run: 2.4, opening: 1.2, below: 0.8, scene: 0.8 }[p.layout] || 0);
+    else if (lines > 16) add(l.id, p.bgMode === 'solid' || p.layout === 'scene' ? 1.4 : p.layout === 'corner' ? 0.4 : -1.6);
     else if (lines && lines <= 5) add(l.id, ['below', 'arch', 'print'].includes(p.layout) ? 1 : p.layout === 'corner' ? 0.8 : 0);
     if (p.textStyle === 'blackout') add(l.id, lines > 12 ? -2 : 0);
     if (isHindi(text) && l.cat === 'folk') add(l.id, 0.6);
@@ -1148,7 +1154,7 @@ function lookCard(l, poem, mine) {
   const on = poem.look === l.id;
   const kept = mine.includes(l.id);
   // Slides show their first page, not the whole poem in miniature
-  const first = poem.carousel ? paginatePoem(poem.body, { ratio: poem.ratio, layout: poem.layout })[0].text : poem.body;
+  const first = poem.carousel || poem.ratio === 'auto' || poemMetrics(poem.body).lines > 18 ? paginatePoem(poem.body, { ratio: '4:5', layout: poem.layout })[0].text : poem.body;
   const sample = { ...poem, ...lookPatch(l, poem), carousel: false, title: poem.title || 'Untitled', body: first || 'Begin with\none honest line,\nand let the page\ndo the rest.' };
   return `
     <div class="look-cell" data-cell="${l.id}">
@@ -1283,10 +1289,13 @@ function renderStudio(poem) {
     }
 
     const canWash = st.bgMode !== 'solid' && st.layout === 'overlay';
-    const placementHTML = st.bgMode !== 'solid' ? `
+    const long = st.ratio === 'auto' && !st.carousel && m.lines > 14;
+    const places = long ? LAYOUTS.filter(l => !['corner', 'side'].includes(l.id)) : LAYOUTS;
+    const placed = long && ['corner', 'side', 'run'].includes(st.layout) ? 'opening' : st.layout === 'run' ? 'corner' : st.layout;
+    const placementHTML = st.bgMode === 'art' && st.painting.run ? '<p class="hint placement">This picture runs down the side, as far as the poem goes.</p>' : st.bgMode !== 'solid' ? `
       <div class="placement">
         <div class="sec-lbl">Placement</div>
-        ${picRow(LAYOUTS, PLACEMENT, st.layout, 'data-layout', 'Placement')}
+        ${picRow(places, PLACEMENT, placed, 'data-layout', 'Placement')}
         ${canWash ? `<label class="range-row">
           <span>Softness</span>
           <input id="wash-range" class="range-in" type="range" min="0" max="65" value="${st.wash}" aria-label="Softness of the picture">
@@ -1314,6 +1323,7 @@ function renderStudio(poem) {
       <div data-grid="setting" class="stack">
         <div><div class="sec-lbl">Title</div>${picRow(TITLE_STYLES, TITLE, st.titleStyle, 'data-titlestyle', 'Title style')}</div>
         <div><div class="sec-lbl">Lines</div>${picRow(TEXT_STYLES, LINE, st.textStyle, 'data-textstyle', 'Line style')}</div>
+        ${inked && m.lines >= 4 ? `<div><div class="sec-lbl">Arrangement</div>${picRow(FLOWS, FLOW, st.flow, 'data-flow', 'Arrangement')}</div>` : ''}
         ${freeAlign ? `<div><div class="sec-lbl">Alignment</div>${picRow([{ id: 'left', label: 'Left' }, { id: 'center', label: 'Centre' }, { id: 'right', label: 'Right' }], ALIGN, st.align, 'data-align', 'Alignment')}</div>` : ''}
         <div>
           <div class="sec-lbl">Size</div>
@@ -1382,31 +1392,27 @@ function renderStudio(poem) {
     `;
   } else {
     railContent = `
-      <div>
-        <div class="sec-lbl">The line you are on</div>
-        <div class="pills">
-          <button type="button" class="choice-pill" data-wrap="**"><strong>Bold</strong></button>
-          <button type="button" class="choice-pill" data-wrap="__"><span class="poem-em-u">Underline</span></button>
-          <button type="button" class="choice-pill" data-wrap="*"><em>Italic</em></button>
-          <button type="button" class="choice-pill" id="insert-break-btn">Start a new slide</button>
+      <div class="ms">
+        <div class="ms-head">
+          <textarea id="ms-title" class="ms-title" rows="1" placeholder="Title, if it has one" aria-label="Title" style="font-family:${st.font.fam};font-weight:${st.font.titleW}">${esc(poem.title)}</textarea>
+          <button type="button" class="ms-peek" id="ms-peek" aria-label="See the page"><span class="look-scale">${desktopStage.matches ? '' : renderSheetHTML(st.carousel ? poem : firstOf(poem, '4:5'), { thumb: true, ratio: '4:5', slide: activeSlide })}</span></button>
         </div>
+        <div class="ms-host" id="ms-host"></div>
       </div>
-      <div>
-        <div class="sec-lbl">Signature</div>
-        <input id="sign-in" class="field-in" type="text" placeholder="Your name or pen name" value="${esc(st.sign)}">
+      <div class="ms-more">
+        <label class="ms-row"><span class="sec-lbl">Signature</span><input id="sign-in" class="field-in" type="text" placeholder="Your name or pen name" value="${esc(st.sign)}"></label>
+        ${st.frame === 'bookpage' ? `<label class="ms-row"><span class="sec-lbl">Page number</span><input id="page-in" class="field-in" type="text" inputmode="numeric" placeholder="143" value="${esc(st.pageNo)}"></label>` : ''}
+        <div class="ms-row"><span class="sec-lbl">Collection</span><div class="pills">${MOODS.map(md => `<button type="button" class="choice-pill${st.mood === md ? ' on' : ''}" aria-pressed="${st.mood === md}" data-setmood="${esc(md)}">${esc(md)}</button>`).join('')}</div></div>
       </div>
-      <div>
-        <div class="sec-lbl">Collection</div>
-        <div class="pills">
-          ${MOODS.map(md => `<button type="button" class="choice-pill${st.mood === md ? ' on' : ''}" data-setmood="${esc(md)}">${esc(md)}</button>`).join('')}
-        </div>
-      </div>
-      ${st.frame === 'bookpage' ? `<div>
-        <div class="sec-lbl">Page number</div>
-        <input id="page-in" class="field-in" type="text" inputmode="numeric" placeholder="143" value="${esc(st.pageNo)}">
-      </div>` : ''}
     `;
   }
+  const writeBar = state.railTab !== 'write' ? '' : `
+    <div class="ms-bar" role="toolbar" aria-label="Emphasis">
+      ${[['bold', '<b>B</b>', 'Bold'], ['italic', '<i>I</i>', 'Italic'], ['underline', '<u>U</u>', 'Underline']].map(([k, face, name]) => `<button type="button" class="ms-tool${state.marks[k] ? ' on' : ''}" data-ms="${k}" aria-label="${name}" aria-pressed="${Boolean(state.marks[k])}">${face}</button>`).join('')}
+      <button type="button" class="ms-tool is-wide" data-ms="break">${ICONS.plus}<span>New slide</span></button>
+      <span class="ms-count" id="ms-count">${m.lines} ${m.lines === 1 ? 'line' : 'lines'}</span>
+      <button type="button" class="btn sm primary ms-done" id="ms-done">Done</button>
+    </div>`;
 
   const carouselNavHTML = st.carousel ? `
     <div class="carousel-nav" aria-label="Slides">
@@ -1427,7 +1433,9 @@ function renderStudio(poem) {
       <button type="button" class="btn sm icon-only" id="redo-btn" aria-label="Redo" title="Redo" ${canStep(false) ? '' : 'disabled'}>${ICONS.redo}</button>
       <div class="menu-wrap">
         <button type="button" class="btn sm" id="format-btn" aria-haspopup="menu" aria-expanded="${state.formatOpen}" title="Page format">${formatIcon(fmt)}<span>${fmt.label}</span></button>
-        ${state.formatOpen ? `<div class="ios-menu format-menu" role="menu" aria-label="Page format">${FORMATS.map(f => `<button type="button" class="ios-menu-item" role="menuitemradio" aria-checked="${f.id === fmt.id}" data-ratio="${f.id}">${formatIcon(f)}<span>${f.label}</span><small>${f.note}</small></button>`).join('')}</div>` : ''}
+        ${state.formatOpen ? `<div class="ios-menu format-menu" role="menu" aria-label="Page format">${FORMATS.map(f => `<button type="button" class="ios-menu-item" role="menuitemradio" aria-checked="${f.id === fmt.id}" data-ratio="${f.id}">${formatIcon(f)}<span>${f.label}</span><small>${f.note}</small></button>`).join('')}
+          <div class="ios-menu-sep seg-in-menu"></div>
+          <div class="seg seg-in-menu" role="group" aria-label="Single page or slides"><button type="button" class="seg-btn${st.carousel ? '' : ' on'}" data-pages="one" aria-pressed="${!st.carousel}">Single</button><button type="button" class="seg-btn${st.carousel ? ' on' : ''}" data-pages="slides" aria-pressed="${st.carousel}">Slides${slides.length > 1 ? ` · ${slides.length}` : ''}</button></div></div>` : ''}
       </div>
       <div class="seg" role="group" aria-label="Single page or slides">
         <button type="button" class="seg-btn${!st.carousel ? ' on' : ''}" id="mode-single-btn" aria-pressed="${!st.carousel}">Single</button>
@@ -1435,18 +1443,21 @@ function renderStudio(poem) {
       </div>
     </div>`;
 
-  const longHint = (!st.carousel && m.lines >= 22 && st.ratio !== 'auto')
-    ? `<span class="stage-tip">A long poem. Try Slides, or the Long page format.</span>`
-    : '<span class="stage-tip"></span>';
+  // A page too full to read: say so, and offer what would fix it
+  const longest = Math.max(0, ...stripEmphasis(poem.body).split('\n').map(l => l.trim().length));
+  const fullTip = state.full && !st.carousel && st.ratio !== 'auto' ? `
+    <div class="full-tip" role="status"><p>Too much to read on one ${esc((FORMATS.find(f => f.id === st.ratio) || FORMATS[0]).label.toLowerCase())}.</p>
+      <div class="full-acts">${longest <= 26 && m.lines <= 24 && st.flow !== 'two' ? '<button type="button" class="note-btn" data-full="two">Two columns</button>' : ''}<button type="button" class="note-btn" data-full="long">Long page</button><button type="button" class="note-btn" data-full="slides">${slides.length} slides</button></div>
+    </div>` : '';
 
   const tabMeta = [
+    { id: 'write', label: 'Write', icon: ICONS.write, note: 'Write here, or straight on the page.' },
     { id: 'looks', label: 'Looks', icon: ICONS.looks, note: 'Sets the whole page: picture, type and paper.' },
     { id: 'artwork', label: 'Picture', icon: ICONS.artwork, layer: 'picture', note: 'Changes only the picture and where it sits.' },
     { id: 'fonts', label: 'Type', icon: ICONS.fonts, layer: 'type', note: 'Changes only how the words look.' },
-    { id: 'style', label: 'Page', icon: ICONS.style, layer: 'page', note: 'Changes only the paper, light and frame.' },
-    { id: 'write', label: 'Words', icon: ICONS.write, note: 'The words themselves, and help writing them.' }
+    { id: 'style', label: 'Page', icon: ICONS.style, layer: 'page', note: 'Changes only the paper, light and frame.' }
   ];
-  const activeTab = tabMeta.find(t => t.id === state.railTab) || tabMeta[0];
+  const activeTab = tabMeta.find(t => t.id === state.railTab) || tabMeta[1];
   const activeTabLabel = activeTab.label;
   const changed = changedLayers(poem);
   const lookName = LOOKS.find(l => l.id === poem.look)?.name;
@@ -1472,15 +1483,11 @@ function renderStudio(poem) {
   ` : '';
 
   return `
-    <div ${state.share || state.help ? 'inert ' : ''}class="studio is-${state.mode}${state.mobileSheetOpen ? ' has-sheet' : ''}" data-view="studio-${esc(poem.id)}">
+    <div ${state.share || state.help ? 'inert ' : ''}class="studio${state.mobileSheetOpen ? ' has-sheet' : ''}${isWriting() ? ' is-writing' : ''}${st.ratio === 'auto' && !st.carousel ? ' is-longpage' : ''}" data-view="studio-${esc(poem.id)}">
       <div class="studio-stage">
         <div class="stage-bar">
           <div class="stage-bar-left">
             <button type="button" class="btn sm ghost" id="back-gallery-btn" aria-label="Back to all poems">${ICONS.back}<span class="desktop-only">Poems</span></button>
-            <div class="seg" role="group" aria-label="Write or design">
-              <button type="button" class="seg-btn${state.mode === 'write' ? ' on' : ''}" data-mode="write" aria-pressed="${state.mode === 'write'}">Write</button>
-              <button type="button" class="seg-btn${state.mode === 'design' ? ' on' : ''}" data-mode="design" aria-pressed="${state.mode === 'design'}">Design</button>
-            </div>
           </div>
           ${toolRow}
           <div class="stage-bar-right">
@@ -1496,28 +1503,29 @@ function renderStudio(poem) {
         </div>
 
         ${renderNotice()}
+        ${fullTip}
         <div class="stage-canvas-wrap">
           ${carouselNavHTML}
-          <div class="sheet-holder" id="sheet-holder">${renderSheetHTML(poem, { editable: !st.carousel, editingRich: state.editingRich, design: state.mode === 'design', slide: activeSlide })}</div>
+          <div class="sheet-holder" id="sheet-holder">${renderSheetHTML(poem, { editable: !st.carousel, editingRich: state.editingRich, design: true, inline: finePointer.matches, slide: activeSlide })}</div>
         </div>
 
         ${renderHint()}
         <div class="stage-footer">
           <span id="metrics-lbl">${m.stanzas} ${m.stanzas === 1 ? 'stanza' : 'stanzas'} · ${m.lines} ${m.lines === 1 ? 'line' : 'lines'} · ${m.words} words</span>
-          <span class="stage-tip">${longHint.replace(/^<span class="stage-tip">|<\/span>$/g, '')}</span>
           <span class="save-chip${saveWarned ? ' is-off' : ''}" title="Poems are kept in this browser, on this device. Save a backup from the home page to keep a copy elsewhere.">${saveWarned ? 'Not saved' : `${ICONS.check} Saved on this device`}</span>
         </div>
       </div>
 
       <div class="sheet-scrim${state.mobileSheetOpen ? ' open' : ''}" id="sheet-scrim"></div>
 
-      <aside class="studio-rail${state.mobileSheetOpen ? ' sheet-open' : ''}${state.sheetTall ? ' is-tall' : ''}" aria-label="Poem design inspector">
+      <aside class="studio-rail${state.mobileSheetOpen ? ' sheet-open' : ''}${state.sheetTall ? ' is-tall' : ''}${state.railTab === 'write' ? ' is-write' : ''}" aria-label="Write and design">
         <button type="button" class="sheet-grabber" id="sheet-grabber" aria-label="${state.sheetTall ? 'Make the panel smaller' : 'Make the panel taller'}"></button>
         <div class="rail-tabs" role="tablist" aria-label="Design" style="--tab:${tabMeta.findIndex(t => t.id === state.railTab)}">
           ${tabMeta.map(tb => `<button type="button" role="tab" id="tab-${tb.id}" aria-controls="panel" tabindex="${state.railTab === tb.id ? 0 : -1}" aria-selected="${state.railTab === tb.id}" class="rail-tab${state.railTab === tb.id ? ' on' : ''}" data-railtab="${tb.id}">${tb.label}${changed?.includes(tb.layer) ? '<i class="tab-dot" title="Changed from the look"></i>' : ''}</button>`).join('')}
         </div>
         <div class="rail-note">${railNote}<button type="button" class="icon-btn sheet-close" id="sheet-done-btn" aria-label="Close panel">${ICONS.down}</button></div>
         <div class="rail-body" id="panel" role="tabpanel" aria-labelledby="tab-${state.railTab}" data-tabpanel="${state.railTab}">${railContent}</div>
+        ${writeBar}
         <div class="rail-foot">
           <button type="button" class="btn sm" id="archive-btn">${ICONS.archive} ${poem.archived ? 'Unarchive' : 'Archive'}</button>
           <button type="button" class="btn sm danger" id="delete-btn">${ICONS.trash} Delete</button>
@@ -1538,12 +1546,21 @@ function renderStudio(poem) {
 
 /* ---------- Stage measurement ---------- */
 
-const desktopStage = matchMedia('(min-width: 861px)');
+// Phones held sideways get the desktop's side-by-side layout
+const desktopStage = matchMedia('(min-width: 861px), (min-width: 601px) and (max-height: 500px)');
+const finePointer = matchMedia('(hover: hover) and (pointer: fine)');
+const isWriting = () => state.railTab === 'write' && (desktopStage.matches || state.mobileSheetOpen);
+for (const q of [desktopStage, finePointer]) q.addEventListener('change', () => { if (desktopStage.matches) state.mobileSheetOpen = false; render(); });
 const autoSizesNatively = CSS.supports('field-sizing', 'content');
 
 function autoSizeTextarea() {
+  if (autoSizesNatively) return;
+  for (const id of ['poem-title-in', 'ms-title']) {
+    const t = document.getElementById(id);
+    if (t) { t.style.height = 'auto'; t.style.height = t.scrollHeight + 'px'; }
+  }
   const ta = document.getElementById('poem-body-in');
-  if (!ta || autoSizesNatively) return;
+  if (!ta) return;
   // Collapsing to measure would clamp the stage's scroll, so put it back afterwards.
   const stage = document.querySelector('.stage-canvas-wrap');
   const top = stage?.scrollTop;
@@ -1569,15 +1586,17 @@ function fitStage() {
   const nav = stage.querySelector('.carousel-nav');
   const room = stage.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom) - (nav ? nav.offsetHeight + 14 : 0);
   // The whole poster is always in view; only a long page scrolls
-  if (SHEET_RATIO[cls]) zoom = Math.max(0.5, Math.min(zoom, room / (baseW / SHEET_RATIO[cls])));
+  if (SHEET_RATIO[cls]) zoom = Math.max(innerHeight <= 500 ? 0.3 : 0.5, Math.min(zoom, room / (baseW / SHEET_RATIO[cls])));
   root.setProperty('--stage-zoom', zoom.toFixed(3));
-  if (!desktopStage.matches && state.mobileSheetOpen) {
+  root.setProperty('--bar', Math.round(document.querySelector('.stage-bar').getBoundingClientRect().bottom) + 'px');
+  // A long page keeps its size and scrolls behind the panel; anything else shrinks to stay whole
+  if (!desktopStage.matches && state.mobileSheetOpen && state.railTab !== 'write' && SHEET_RATIO[cls]) {
     // The panel's resting height (see .studio-rail), not its height mid-drag or when made taller
     const dock = document.querySelector('.ios-dock')?.offsetHeight || 0;
-    const rest = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--sheet-h')) || 260;
+    const rest = Math.min(260, innerHeight * 0.4);
     const bar = nav ? nav.offsetHeight + 14 : 0;
     const free = stage.clientHeight - rest - dock - 20 - bar;
-    const tall = SHEET_RATIO[cls] ? (baseW / SHEET_RATIO[cls]) * zoom : sheet.offsetHeight * zoom;
+    const tall = (baseW / SHEET_RATIO[cls]) * zoom;
     lift = Math.max(0.36, Math.min(1, free / tall));
     const padT = parseFloat(cs.paddingTop);
     // The slide bar stays at the top; the poster rises to just under it
@@ -1615,6 +1634,14 @@ thumbObserver.observe(document.body);
 function fitSheets() {
   document.querySelectorAll('.poem-sheet[data-fit]').forEach(n => fitSheet(n));
   fitOverlay();
+  // Words shrunk below about 10 px at their base size are too small to share
+  const live = document.getElementById('active-poem-sheet');
+  const poem = getActivePoem();
+  if (!live || !poem) return;
+  const st = resolveStyle(poem);
+  const size = (parseFloat(live.style.getPropertyValue('--ps-scale')) || 1) * 14.5 / (st.font.scaleBoost || 1);
+  const full = st.textSize === 'auto' && poemMetrics(poem.body).lines > 12 && size * (458 / SHEET_W[Object.keys(SHEET_W).find(c => live.classList.contains(c))]) < 10.6;
+  if (full !== state.full) { state.full = full; render(); }
 }
 let refit = 0;
 document.fonts?.addEventListener?.('loadingdone', () => {
@@ -1655,10 +1682,8 @@ function captureGhost() {
   const sheet = document.getElementById('active-poem-sheet');
   if (!sheet || document.hidden) return null;
   const ghost = sheet.cloneNode(true);
-  const ta = sheet.querySelector('textarea');
-  if (ta) ghost.querySelector('textarea').value = ta.value;
-  const inp = sheet.querySelector('input');
-  if (inp) ghost.querySelector('input').value = inp.value;
+  const fields = ghost.querySelectorAll('textarea');
+  sheet.querySelectorAll('textarea').forEach((t, i) => { fields[i].value = t.value; });
   ghost.removeAttribute('id');
   ghost.querySelectorAll('[id]').forEach(n => n.removeAttribute('id'));
   ghost.setAttribute('data-morph-ignore', '');
@@ -1711,6 +1736,8 @@ function render({ fade = false, dir = 0 } = {}) {
   }
   if (more) { moreLooks.unobserve(more); moreLooks.observe(more); }
   if (poem) {
+    const fn = resolveStyle(poem).font;
+    mountEditor(document.getElementById('ms-host'), { id: poem.id, body: String(poem.body || ''), placeholder: poem.spark || 'Begin writing…', style: `font-family:${fn.fam};font-weight:${fn.bodyW};` });
     fitStage();
     autoSizeTextarea();
   }
@@ -1904,30 +1931,59 @@ function pickPhoto(input) {
   input.value = '';
 }
 
-// The line the cursor was last on, or the last line
-function caretLine(body) {
-  const at = state.caret >= 0 && state.caret <= body.length ? state.caret : body.length;
-  return body.slice(0, at).split('\n').length - 1;
+/* ---------- Writing ---------- */
+
+let typed = 0;
+const typedRender = () => { clearTimeout(typed); typed = setTimeout(render, 90); };
+onEditor({
+  input(body) {
+    if (!getActivePoem()) return;
+    patchActive({ body }, { rerender: false, keep: false });
+    if (body.trim().length > 2) hintDone(0);
+    typedRender();
+  },
+  marks(next) {
+    const poem = getActivePoem();
+    const at = poem?.carousel && /^\s*[-—]{3,}\s*$/m.test(poem.body) ? caretSlide() : -1;
+    const turned = at >= 0 && at !== state.slideIdx;
+    if (!turned && ['bold', 'italic', 'underline'].every(k => Boolean(state.marks[k]) === Boolean(next[k]))) return;
+    state.marks = next;
+    if (turned) state.slideIdx = at;
+    render();
+  }
+});
+function emphasise(what) {
+  if (what === 'break') {
+    const poem = getActivePoem();
+    if (!breakHere()) { toast('Write a line first'); return; }
+    patchActive({ carousel: true, ratio: poem.ratio === 'auto' ? '4:5' : poem.ratio }, { fade: false });
+    return;
+  }
+  if (!mark(what)) toast('Write a line first');
 }
-function wrapLine(mk) {
-  const body = String(getActivePoem().body || '');
-  const lines = body.split('\n');
-  let i = caretLine(body);
-  while (i > 0 && !lines[i].trim()) i--;
-  const line = lines[i].trim();
-  if (!line) { toast('Write a line first'); return; }
-  const bare = line.replace(/^(\*\*|__|\*)([\s\S]*)\1$/, '$2');
-  lines[i] = line === `${mk}${bare}${mk}` ? bare : `${mk}${bare}${mk}`;
+function goWrite(line = -1) {
+  state.railTab = 'write';
+  state.mobileSheetOpen = !desktopStage.matches;
+  state.sheetTall = false;
   state.editingRich = false;
-  patchActive({ body: lines.join('\n') });
+  state.formatOpen = false;
+  state.moreOpen = false;
+  render();
+  focusEditor(line);
 }
-function startSlide() {
-  const body = String(getActivePoem().body || '');
-  const lines = body.split('\n');
-  const i = caretLine(body);
-  lines.splice(i + 1, 0, '', '---', '');
-  patchActive({ body: lines.join('\n').replace(/\n{3,}/g, '\n\n'), carousel: true, ratio: getActivePoem().ratio === 'auto' ? '4:5' : getActivePoem().ratio });
+function setPages(slides) {
+  const poem = getActivePoem();
+  if (Boolean(poem.carousel) === slides) return;
+  state.slideIdx = 0;
+  state.editingRich = false;
+  if (slides) state.mobileSheetOpen = state.railTab === 'write' && state.mobileSheetOpen;
+  patchActive({ carousel: slides, ...(slides && poem.ratio === 'auto' ? { ratio: '4:5' } : {}) });
 }
+// The bar above the keyboard needs to know where the keyboard is
+const view = window.visualViewport;
+const keyboard = () => document.documentElement.style.setProperty('--kb', Math.max(0, Math.round(innerHeight - view.height - view.offsetTop)) + 'px');
+view?.addEventListener('resize', keyboard);
+view?.addEventListener('scroll', keyboard);
 
 function doArchive() {
   const poem = getActivePoem();
@@ -1964,16 +2020,13 @@ function closeMenus(refocus) {
   if (refocus) document.getElementById(id)?.focus({ preventScroll: true });
   return true;
 }
-function setMode(mode) {
-  if (state.mode === mode) return;
-  state.mode = mode;
-  localStorage.setItem(MODE_KEY, mode);
-  state.mobileSheetOpen = false;
-  state.sheetTall = false;
+function setTab(tab) {
+  const turned = state.railTab !== tab;
+  state.railTab = tab;
   render();
-  if (mode === 'write' && !getActivePoem().carousel) editWords();
+  if (turned) document.querySelector('.rail-body').scrollTop = 0;
+  revealSubtab();
 }
-function setTab(tab) { state.railTab = tab; render(); revealSubtab(); }
 function closeSheet() { state.mobileSheetOpen = false; state.sheetTall = false; render(); }
 function goToSlide(i) { const dir = Math.sign(i - state.slideIdx); state.slideIdx = i; render({ fade: true, dir }); }
 
@@ -1982,7 +2035,7 @@ function goToSlide(i) { const dir = Math.sign(i - state.slideIdx); state.slideId
 const rootStyle = document.documentElement.style;
 let held = null;
 const railDrag = {
-  selector: '.studio-rail.sheet-open',
+  selector: '.studio-rail.sheet-open:not(.is-write)',
   handle: '.sheet-grabber, .rail-note',
   up: true,
   start(rail) {
@@ -2080,20 +2133,20 @@ const CLICKS = [
 
   // Studio bar
   ['#back-gallery-btn', closeStudio],
-  ['[data-mode]', el => setMode(el.dataset.mode)],
   ['#undo-btn', () => stepHistory(true)],
   ['#redo-btn', () => stepHistory(false)],
   ['#format-btn', () => toggleMenu('formatOpen')],
   ['#shuffle-btn, #m-shuffle-btn', doShuffle],
-  ['#mode-single-btn', () => { if (getActivePoem().carousel) patchActive({ carousel: false }); }],
-  ['#mode-carousel-btn', () => {
-    if (getActivePoem().carousel) return;
-    state.slideIdx = 0;
-    state.mobileSheetOpen = false;
-    state.editingRich = false;
-    patchActive({ carousel: true });
+  ['#mode-single-btn', () => setPages(false)],
+  ['[data-pages]', el => { state.formatOpen = false; setPages(el.dataset.pages === 'slides'); render(); }],
+  ['[data-full]', el => {
+    if (el.dataset.full === 'slides') setPages(true);
+    else patchActive(el.dataset.full === 'two' ? { flow: 'two', ...(['corner', 'side', 'arch', 'print'].includes(getActivePoem().layout) ? { layout: 'below', textX: 0, textY: 0 } : {}) } : { ratio: 'auto', carousel: false });
   }],
-  ['#edit-full-btn', () => { patchActive({ carousel: false }); document.getElementById('poem-body-in')?.focus(); }],
+  ['[data-ms]', el => emphasise(el.dataset.ms)],
+  ['#ms-done, #ms-peek', () => { document.activeElement?.blur(); closeSheet(); }],
+  ['#mode-carousel-btn', () => setPages(true)],
+  ['#edit-full-btn', () => goWrite(slideLine(getActivePoem(), state.slideIdx))],
   ['#prev-slide-btn', () => { if (state.slideIdx > 0) goToSlide(state.slideIdx - 1); }],
   ['#next-slide-btn', () => goToSlide(state.slideIdx + 1)],
   ['[data-slide]', el => goToSlide(Number(el.dataset.slide))],
@@ -2130,19 +2183,21 @@ const CLICKS = [
   ['#delete-btn, #m-delete-btn', doDelete],
 
   // Rich views (cut-outs, drop cap, inline emphasis) open for editing on tap
-  ['#rich-tap-edit, [data-grab=text]', tapWords],
+  ['#rich-tap-edit, [data-grab=text]', (el, e) => tapWords(e)],
+  ['#active-poem-sheet .poem-text-col', (el, e) => { if (getActivePoem().carousel) goWrite(lineAt(e)); }],
 
   // Inspector navigation
   ['[data-docktab]', el => {
     const tab = el.dataset.docktab;
     state.moreOpen = false;
     if (state.mobileSheetOpen && state.railTab === tab) { closeSheet(); return; }
+    if (tab === 'write') { goWrite(); return; }
     state.mobileSheetOpen = true;
     setTab(tab);
   }],
   ['#sheet-scrim, #sheet-done-btn', closeSheet],
   ['#sheet-grabber', () => { state.sheetTall = !state.sheetTall; render(); }],
-  ['[data-railtab]', el => setTab(el.dataset.railtab)],
+  ['[data-railtab]', el => (el.dataset.railtab === 'write' ? goWrite() : setTab(el.dataset.railtab))],
   ['[data-artsub]', el => { state.artSub = el.dataset.artsub; render(); revealSubtab(); }],
   ['[data-typeseg]', el => { state.typeSeg = el.dataset.typeseg; render(); revealSubtab(); }],
   ['#ink-fix', el => patchActive({ inkColor: el.dataset.fix })],
@@ -2161,6 +2216,7 @@ const CLICKS = [
   // Artwork
   ['[data-art]', el => pickArt(el.dataset.art)],
   ['[data-paper]', el => pickPaper(el.dataset.paper)],
+  ['[data-flow]', el => patchActive({ flow: el.dataset.flow })],
   ['[data-layout]', el => patchActive({ layout: el.dataset.layout, textX: 0, textY: 0 })],
   ['#pick-photo-btn', () => document.getElementById('photo-file-in')?.click()],
   ['[data-photodark]', el => patchActive({ bgMode: 'photo', photoDark: el.dataset.photodark === '1' })],
@@ -2185,19 +2241,15 @@ const CLICKS = [
   ['[data-setmood]', el => {
     const md = el.dataset.setmood;
     patchActive({ mood: getActivePoem().mood === md ? '' : md }, { fade: false });
-  }],
-
-  // Write
-  ['[data-wrap]', el => wrapLine(el.dataset.wrap)],
-  ['#insert-break-btn', startSlide]
+  }]
 ];
 
 const INPUTS = [
   ['#gallery-search', el => { state.search = el.value; renderGalleryFlow(); }],
-  ['#poem-title-in', el => patchActive({ title: el.value }, { rerender: false, keep: false })],
+  ['#poem-title-in', el => { patchActive({ title: el.value.replace(/\n+/g, ' ') }, { rerender: false, keep: false }); autoSizeTextarea(); }],
+  ['#ms-title', el => { patchActive({ title: el.value.replace(/\n+/g, ' ') }, { rerender: false, keep: false }); typedRender(); }],
   ['#poem-body-in', el => {
     patchActive({ body: el.value }, { rerender: false, keep: false });
-    state.caret = el.selectionStart;
     if (el.value.trim().length > 2) hintDone(0);
     liveUpdateMetricsAndScale(getActivePoem());
   }],
@@ -2286,7 +2338,7 @@ document.addEventListener('pointerdown', e => {
   grabbed = false;
   const el = e.target.closest?.('[data-grab]');
   const poem = getActivePoem();
-  if (!el || !poem || e.button !== 0 || state.mode !== 'design') return;
+  if (!el || !poem || e.button !== 0) return;
   const sheet = document.getElementById('active-poem-sheet');
   grab = {
     kind: el.dataset.grab, el, sheet, poem, id: e.pointerId, mouse: e.pointerType === 'mouse',
@@ -2355,19 +2407,55 @@ document.addEventListener('click', e => { if (grabbed && e.isTrusted) { grabbed 
 
 // A tap edits the words. Once they have been moved, a second tap puts them back.
 let tapWait = 0;
-function editWords() {
-  if (!desktopStage.matches && state.mode === 'design') { state.mode = 'write'; localStorage.setItem(MODE_KEY, 'write'); state.mobileSheetOpen = false; state.sheetTall = false; }
+const written = text => String(text).split('\n').filter(l => l.trim()).length;
+// The line of the poem (counting every line of the text) where a slide begins
+function slideLine(poem, slide) {
+  const st = resolveStyle(poem);
+  const before = paginatePoem(poem.body, { ratio: st.ratio === 'auto' ? '4:5' : st.ratio, layout: st.layout }).slice(0, slide).reduce((n, s) => n + written(s.text), 0);
+  return nthLine(poem.body, before);
+}
+function nthLine(body, n) {
+  const lines = String(body || '').split('\n');
+  for (let i = 0, seen = 0; i < lines.length; i++) {
+    if (!lines[i].trim() || /^\s*[-—]{3,}\s*$/.test(lines[i])) continue;
+    if (seen++ === n) return i;
+  }
+  return -1;
+}
+// Which line of the poem was tapped
+function lineAt(e) {
+  const poem = getActivePoem();
+  const words = document.querySelector('#active-poem-sheet .poem-body-ro');
+  const hit = e && (document.caretPositionFromPoint?.(e.clientX, e.clientY) || document.caretRangeFromPoint?.(e.clientX, e.clientY));
+  const node = hit && (hit.offsetNode || hit.startContainer);
+  if (!words || !node || !words.contains(node)) return -1;
+  const block = (node.nodeType === 1 ? node : node.parentElement).closest('.st');
+  const r = document.createRange();
+  r.setStart(block || words, 0);
+  r.setEnd(node, hit.offset ?? hit.startOffset);
+  let n = written(r.toString().split('\n').slice(0, -1).join('\n'));
+  if (block) for (const b of words.querySelectorAll('.st')) { if (b === block) break; n += written(b.textContent); }
+  if (poem.carousel) {
+    const st = resolveStyle(poem);
+    n += paginatePoem(poem.body, { ratio: st.ratio === 'auto' ? '4:5' : st.ratio, layout: st.layout }).slice(0, state.slideIdx).reduce((k, s) => k + written(s.text), 0);
+  }
+  return nthLine(poem.body, n);
+}
+// With a mouse you type on the page itself; by touch, on the writing surface at the same line.
+function editWords(line = -1) {
+  if (!finePointer.matches) { goWrite(line); return; }
   state.editingRich = true;
   render();
   const ta = document.getElementById('poem-body-in') || document.getElementById('poem-title-in');
   if (ta) { ta.focus(); ta.setSelectionRange(ta.value.length, ta.value.length); }
 }
-function tapWords() {
+function tapWords(e) {
   const poem = getActivePoem();
-  if (state.mode !== 'design' || !(poem.textX || poem.textY)) { editWords(); return; }
+  const line = lineAt(e);
+  if (!(poem.textX || poem.textY)) { editWords(line); return; }
   if (tapWait) { clearTimeout(tapWait); tapWait = 0; patchActive({ textX: 0, textY: 0 }, { fade: false }); return; }
   document.getElementById('movable-text-col')?.classList.add('is-tapped');
-  tapWait = setTimeout(() => { tapWait = 0; editWords(); }, 260);
+  tapWait = setTimeout(() => { tapWait = 0; editWords(line); }, 260);
 }
 document.addEventListener('keydown', e => {
   const el = e.target.closest?.('[data-grab]');
@@ -2396,6 +2484,23 @@ window.addEventListener('keydown', e => {
   const cmd = e.metaKey || e.ctrlKey;
   const key = e.key.toLowerCase();
   const inField = typing(e.target);
+  // Titles are one line: Enter moves on to the poem
+  if (e.key === 'Enter' && !e.isComposing && /^(poem|ms)-title(-in)?$/.test(e.target.id || '')) {
+    e.preventDefault();
+    if (e.target.id === 'ms-title') focusEditor(0); else document.getElementById('poem-body-in')?.focus();
+    return;
+  }
+  // Emphasis while typing straight on the page
+  if (cmd && e.target.id === 'poem-body-in' && 'biu'.includes(key) && key) {
+    e.preventDefault();
+    const ta = e.target;
+    const mk = { b: '**', i: '*', u: '__' }[key];
+    const { selectionStart: a, selectionEnd: z } = ta;
+    if (a === z) return;
+    ta.setRangeText(mk + ta.value.slice(a, z) + mk, a, z, 'select');
+    ta.dispatchEvent(new Event('input', { bubbles: true }));
+    return;
+  }
   const studio = Boolean(state.activeId) && !state.share && !state.help;
 
   if (e.key === 'Escape') {
@@ -2445,10 +2550,9 @@ window.addEventListener('keydown', e => {
   }
   if (!studio) return;
   if (key === 's') { e.preventDefault(); openShare(); return; }
-  if (key === 'w') { e.preventDefault(); setMode(state.mode === 'write' ? 'design' : 'write'); return; }
-  const tab = ['looks', 'artwork', 'fonts', 'style', 'write'][Number(e.key) - 1];
+  if (key === 'w' || e.key === '1') { e.preventDefault(); goWrite(); return; }
+  const tab = ['', 'looks', 'artwork', 'fonts', 'style'][Number(e.key) - 1];
   if (tab) {
-    if (state.mode === 'write') { state.mode = 'design'; localStorage.setItem(MODE_KEY, 'design'); }
     if (!desktopStage.matches) state.mobileSheetOpen = true;
     setTab(tab);
     return;

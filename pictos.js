@@ -9,6 +9,8 @@ export const PLACEMENT = {
   side: sheet(lines(8, 17, [9, 11, 8, 10]) + art(22, 10, 11, 30)),
   overlay: sheet(art(4, 1.5, 32, 47, 2.5) + lines(13, 19, [14, 10, 14])),
   below: sheet(lines(12, 9, [16, 12, 14]) + art(10, 26, 20, 17)),
+  opening: sheet(art(10, 7, 20, 17) + lines(12, 30, [16, 12, 14])),
+  run: sheet('<path d="M10 5c4 5-4 9 0 14s-4 9 0 14-2 7 0 11" stroke-width="1.6" opacity=".55"/>' + art(6, 5, 9, 8) + lines(18, 12, [13, 10, 12, 9, 12, 8])),
   corner: sheet(lines(8, 9, [16, 12, 14]) + art(19, 28, 14, 17)),
   scene: sheet(lines(8, 9, [16, 12]) + '<path d="M4 38c6-8 10-3 14-5s10-8 18-2v15a2.5 2.5 0 0 1-2.5 2.5h-27A2.5 2.5 0 0 1 4 46z" fill="currentColor" stroke="none" opacity=".3"/>'),
   arch: sheet('<path d="M13 27V15a7 7 0 0 1 14 0v12z" fill="currentColor" stroke="none" opacity=".3"/>' + lines(13, 34, [14, 10, 12])),
@@ -32,6 +34,11 @@ export const FRAME = {
 };
 
 const body = lines(9, 25, [20, 15, 18, 12], 5.5);
+export const FLOW = {
+  one: sheet(lines(12, 12, [16, 12, 14, 10, 16, 11], 5)),
+  two: sheet(lines(8, 12, [10, 8, 10, 7, 9, 8], 5) + lines(22, 12, [10, 7, 9, 10, 8], 5)),
+  step: sheet(lines(8, 10, [13, 10, 12], 4.5) + lines(19, 26, [13, 10, 12], 4.5) + ln(8, 42, 10))
+};
 export const TITLE = {
   classic: sheet('<path d="M9 11h15" stroke-width="3.4"/>' + ln(9, 17, 5, .5) + body),
   none: sheet(lines(9, 12, [20, 15, 18, 12, 16, 10], 5.5)),

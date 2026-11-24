@@ -289,7 +289,7 @@ export const EXAMPLES = [
   ex('ibadat', 'Slides', 'इबादत', slides(IBADAT, 'तेरी इजाज़त', 'गर यही', 'न काशी', 'तेरी आँखों', 'तेरे लिखे', 'तू पूछे'), A,
     { painting: 'story-ibadat', layout: 'below', font: 'kurale', align: 'center', carousel: true, look: 'ibadat' }),
   ex('tree', 'Long page', 'The tree and you', TREE, '',
-    { painting: 'scene-cherry', layout: 'scene', font: 'editorial', titleStyle: 'italic', ratio: 'auto' }),
+    { painting: 'run-vine', layout: 'run', font: 'editorial', titleStyle: 'italic', ratio: 'auto', look: 'bougainvillea' }),
   ex('dhoop', 'Window light', 'नाराज़ हिस्से, नाराज़ किस्से', part(NAARAAZ, 'खिड़की'), A,
     paper('ivory-press', { font: 'devanagari', light: 'light-panes', titleStyle: 'none', rhythm: 'airy' })),
   ex('antarman', 'Slides', 'अंतर्मन', slides(ANTARMAN, 'तो मैने', 'तुम्हारा अंतर्मन', 'पहली', 'दूसरी', 'तीसरी', 'चौथी', 'कमरे'), A,

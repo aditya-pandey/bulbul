@@ -49,8 +49,12 @@ Nothing animates because the page re-rendered. Two settings, following the syste
 ### Patterns
 - **Choice:** selected states use ink. Red is the one primary action, the caret of attention on a hint, and the kept heart.
 - **Pictures over words:** placement, frame, title, line and alignment are pictograms in `pictos.js` (40 x 50, interface ink), with a label below and an `aria-label`.
-- **Studio:** Write hides the tools; Design shows them. Format, Slides, Undo and Redo live in the bar. Each change stores only the keys it touched (`recordChange`), so undo never disturbs the words.
-- **Phone panel:** `--sheet-h` 260 px, never over 42 percent. Pickers are single rows at rest and spread into grids when pulled up. The poster stays whole above it.
+- **Studio:** one set of five tools, Write first: Write, Looks, Picture, Type, Page. Format, Slides, Undo and Redo live in the bar. Each change stores only the keys it touched (`recordChange`), so undo never disturbs the words.
+- **Writing (`editor.js`):** a contenteditable surface that owns its nodes (`data-morph-ignore`), so renders never touch the caret or Hindi composition. It reads and writes the poem's marked-up text. Never below 18 px, so iPhones do not zoom. `--kb` lifts its bar above the keyboard. With a mouse you can also type on the page; by touch, a tap on a line opens Write at that line.
+- **Breakpoints:** the phone layout is `(max-width: 600px), (max-width: 860px) and (min-height: 501px)`. A phone held sideways uses the side-by-side layout.
+- **Long pages:** `isLong` (Long page, over 14 lines) turns corner and side art into `opening`. `flow` is `one`, `two` or `step`. `fitLong` sizes text to the longest line. Run art (`run: { w, top, mid, end }`) is a top, a tile and an end; the tile uses `background-repeat: round` so it always meets both ends.
+- **Readable size:** words under about 10.6 px at 458 px wide raise `.full-tip` with fixes.
+- **Phone panel:** `--sheet-h` 260 px, never over 40 percent. A long page keeps its size and scrolls behind it. Pickers are single rows at rest and spread into grids when pulled up. Any other poster stays whole above it.
 - **Picking up:** hold the words or a keepsake and move. Guides show at the page centre. Enter edits, arrows nudge, 0 resets.
 - **States:** `currentNotice()` shows one line and one action. Empty, search, failed and offline each say what happened, then what to do.
 - **Keys:** `?` lists them. Tabs and menus move with arrows and return focus when they close.
@@ -69,6 +73,6 @@ Other families keep one rule each: **folk** uses its own pattern language; **pri
 ---
 
 ## 3. Studio Craft & Capabilities
-- **121 artworks** (52 original), 24 papers, 8 textures, 12 frames and custom photos; **92 Looks**; watercolour, light and keepsake layers.
+- **132 artworks** (63 original), 24 papers, 8 textures, 12 frames and custom photos; **103 Looks**; watercolour, light and keepsake layers.
 - **50 fonts:** Classic (12), Handwriting (14), Typewriter (4), Modern (4), हिन्दी (16).
 - **Editorial Customisations:** Draggable poem textbox with magnetic center snap, 7 Title styles (`Classic · No Title · Drop Cap · Small Caps · Lyrical Italic · Highlight · Side Margin`), 7 text styles (`Plain · Torn Paper · Line Cut-Out · Word Cut-Out · Underlined · Highlighter · Blackout`), 7 artwork placements (`Book Editorial · Full Canvas · Art Below · Corner Art · Landscape · Arch Window · Taped Print`), 4 Paper Textures (`Fine Grain · Kraft Fiber · Cotton Rag · Smooth`), 8 Ink Colour Swatches, Line Rhythm (`Tight · Balanced · Airy`), and inline poetic emphasis (`**bold**`, `__underline__`, `*italic*`).
