@@ -248,19 +248,19 @@ const A = '— आदित्य';
 const E = '— Aditya';
 
 export const EXAMPLES = [
-  ex('anjaan', 'Carousel', 'अंजान बन जाओ', slides(ANJAAN, 'पहली बार', 'ग़मों', 'मैं फिर', 'तुम्हारी आँखों', 'मेरे कंप'), A,
+  ex('anjaan', 'Slides', 'अंजान बन जाओ', slides(ANJAAN, 'पहली बार', 'ग़मों', 'मैं फिर', 'तुम्हारी आँखों', 'मेरे कंप'), A,
     { painting: 'story-dehleez', font: 'kalam', carousel: true, texture: 'cotton' }),
   ex('tree', 'Long page', 'The tree and you', TREE, '',
     { painting: 'scene-cherry', layout: 'scene', font: 'editorial', titleStyle: 'italic', ratio: 'auto' }),
   ex('dhoop', 'Window light', 'नाराज़ हिस्से, नाराज़ किस्से', part(NAARAAZ, 'खिड़की'), A,
     paper('ivory-press', { font: 'devanagari', light: 'light-panes', titleStyle: 'none', rhythm: 'airy' })),
-  ex('antarman', 'Carousel', 'अंतर्मन', slides(ANTARMAN, 'तो मैने', 'तुम्हारा अंतर्मन', 'पहली', 'दूसरी', 'तीसरी', 'चौथी', 'कमरे'), A,
+  ex('antarman', 'Slides', 'अंतर्मन', slides(ANTARMAN, 'तो मैने', 'तुम्हारा अंतर्मन', 'पहली', 'दूसरी', 'तीसरी', 'चौथी', 'कमरे'), A,
     { painting: 'story-antarman', font: 'laila', carousel: true, texture: 'cotton', ratio: '4:5' }),
   ex('number-two', 'Blackout', 'Place of You', 'A *place,*\nwhere *you* aren\'t,\nSomeone\'s Number two,\nIt\'s *just you,*\n*Being you.*', '',
     paper('gallery-white', { font: 'courier-prime', textStyle: 'blackout', titleStyle: 'none', rhythm: 'airy', ratio: '1:1' })),
   ex('neela-khoon', 'Letter', 'नाराज़ हिस्से, नाराज़ किस्से', part(NAARAAZ, 'मेरी कलम'), A,
     { painting: 'story-kursi', font: 'dekko', titleStyle: 'none', inkColor: 'indigo', texture: 'cotton' }),
-  ex('place', 'Carousel', 'Place of You', PLACE, E,
+  ex('place', 'Slides', 'Place of You', PLACE, E,
     { painting: 'scene-valley', layout: 'scene', font: 'gilda', carousel: true }),
   ex('aasaan', 'Underlined', 'अंजान बन जाओ', part(ANJAAN, 'मैं फिर', 'तुम फिर'), A,
     paper('blush-vellum', { font: 'kalam-light', textStyle: 'ruled', atmos: 'wash-teal', titleStyle: 'none', texture: 'cotton' })),

@@ -514,52 +514,6 @@ export function lookPatch(lk, poem) {
   return { ...lk.patch, font: isHindi(`${poem.title} ${poem.body}`) ? lk.hi : lk.patch.font };
 }
 
-export const RHYME_GROUPS = [
-  ['night', 'light', 'bright', 'sight', 'flight', 'quiet', 'midnight', 'starlight', 'twilight', 'white', 'might', 'write', 'ignite'],
-  ['rain', 'pain', 'pane', 'again', 'remain', 'stain', 'vein', 'train', 'lane', 'windowpane', 'refrain', 'plain', 'grain'],
-  ['sky', 'high', 'sigh', 'fly', 'by', 'dry', 'cry', 'why', 'goodbye', 'lullaby', 'firefly', 'passerby'],
-  ['heart', 'apart', 'start', 'part', 'art', 'chart', 'dark', 'spark', 'mark', 'embark'],
-  ['time', 'rhyme', 'chime', 'climb', 'sublime', 'prime', 'line', 'mine', 'shine', 'divine', 'pine', 'wine'],
-  ['sea', 'free', 'be', 'me', 'tree', 'breeze', 'leaves', 'breathe', 'beneath', 'dream', 'stream', 'gleam'],
-  ['moon', 'soon', 'tune', 'june', 'noon', 'bloom', 'room', 'gloom', 'perfume', 'plume', 'monsoon'],
-  ['sun', 'run', 'done', 'one', 'spun', 'begun', 'undone', 'gold', 'hold', 'fold', 'told', 'cold', 'old'],
-  ['hand', 'sand', 'land', 'stand', 'understand', 'wind', 'behind', 'kind', 'mind', 'find', 'blind'],
-  ['home', 'alone', 'stone', 'bone', 'known', 'grown', 'roam', 'foam', 'poem', 'tone'],
-  ['glow', 'slow', 'snow', 'know', 'grow', 'below', 'shadow', 'window', 'meadow', 'echo'],
-  ['still', 'sill', 'fill', 'hill', 'until', 'spill', 'chill', 'will', 'thrill']
-];
-
-export const WORD_BANKS = [
-  { label: 'Light & Dawn', words: ['sunbeams', 'amber', 'goldleaf', 'motes', 'daybreak', 'glow', 'horizon', 'radiance', 'windowpane', 'warmth'] },
-  { label: 'Night & Sky', words: ['silhouettes', 'starlight', 'constellation', 'velvet', 'dusk', 'luminous', 'crescent', 'solstice', 'drift', 'stillness'] },
-  { label: 'Rain & Water', words: ['petrichor', 'ripple', 'mist', 'monsoon', 'shoreline', 'puddle', 'deluge', 'tide', 'drenched', 'quietude'] },
-  { label: 'Love & Longing', words: ['tender', 'linger', 'whisper', 'ache', 'unspoken', 'pulse', 'echo', 'solace', 'devotion', 'bloom'] },
-  { label: 'हिन्दी / उर्दू शब्द', words: ['ख़ामोशी', 'चाँदनी', 'ख़्वाब', 'रूबरू', 'आरज़ू', 'बारिश', 'साया', 'लम्हा', 'अधूरा', 'मुस्कान', 'तन्हाई', 'सुकून', 'रौशनी', 'सहर'] }
-];
-
-export function findRhymes(word) {
-  const w = String(word || '').toLowerCase().replace(/[^a-z]/g, '');
-  if (!w || w.length < 2) return [];
-  const exact = [];
-  for (const grp of RHYME_GROUPS) {
-    if (grp.includes(w)) {
-      for (const item of grp) if (item !== w && !exact.includes(item)) exact.push(item);
-    }
-  }
-  if (exact.length) return exact.slice(0, 12);
-  const suf3 = w.slice(-3);
-  const suf2 = w.slice(-2);
-  const pool = RHYME_GROUPS.flat();
-  const fuzzy = [];
-  for (const item of pool) {
-    if (item === w) continue;
-    if ((suf3.length === 3 && item.endsWith(suf3)) || item.endsWith(suf2)) {
-      if (!fuzzy.includes(item)) fuzzy.push(item);
-    }
-  }
-  return fuzzy.slice(0, 10);
-}
-
 export function poemMetrics(body) {
   const clean = String(body || '').replace(/^\s*[-—]{3,}\s*$/gm, '').trim();
   if (!clean) return { stanzas: 0, lines: 0, words: 0, syllables: 0 };
@@ -612,7 +566,7 @@ export function computeTypeScale(body, { ratio = '4:5', layout = 'side', textSiz
 }
 
 /**
- * Smart Multi-Slide Carousel Paginator
+ * Splits a poem into slides
  * Respects manual `---` page breaks first; otherwise balances stanzas cleanly per slide.
  */
 export function paginatePoem(body, { ratio = '4:5', layout = 'side' } = {}) {
