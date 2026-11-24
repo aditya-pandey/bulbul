@@ -40,9 +40,11 @@ A page is a stack: picture, type, page (paper, light, frame) and words. A look s
 ### Illustration
 Gouache shapes with a wobbling edge and dry-brush texture over a watercolour bloom. Figures are seen from behind or without features. Madder, vermilion, turmeric, indigo, teal and sage on warm paper. Transparent WebP, square for Stories, 2:1 for landscapes.
 
+Other families keep one rule each: **folk** uses its own pattern language; **print** is flat colour with gouged or grainy edges; **line** is one weight with a single red accent; **night** is drawn for dark pages. Woven and printed frames are 300 px tiles (100 px slices) used as border images, so they fit any format.
+
 ---
 
 ## 3. Studio Craft & Capabilities
-- **90 artworks** (21 original illustrations and landscapes), 14 papers and custom photos; **40 Looks**; watercolour, light and keepsake layers.
+- **120 artworks** (51 original), 24 papers, 8 textures, 12 frames and custom photos; **91 Looks**; watercolour, light and keepsake layers.
 - **50 fonts:** Classic (12), Handwriting (14), Typewriter (4), Modern (4), हिन्दी (16).
 - **Editorial Customisations:** Draggable poem textbox with magnetic center snap, 7 Title styles (`Classic · No Title · Drop Cap · Small Caps · Lyrical Italic · Highlight · Side Margin`), 7 text styles (`Plain · Torn Paper · Line Cut-Out · Word Cut-Out · Underlined · Highlighter · Blackout`), 7 artwork placements (`Book Editorial · Full Canvas · Art Below · Corner Art · Landscape · Arch Window · Taped Print`), 4 Paper Textures (`Fine Grain · Kraft Fiber · Cotton Rag · Smooth`), 8 Ink Colour Swatches, Line Rhythm (`Tight · Balanced · Airy`), and inline poetic emphasis (`**bold**`, `__underline__`, `*italic*`).

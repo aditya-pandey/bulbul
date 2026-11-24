@@ -34,7 +34,7 @@ function linedHTML(body, style) {
     const marked = /\*\*[^*]+\*\*|__[^_]+__|\*[^*]+\*/;
     const parts = marked.test(line)
       ? line.split(/(\*\*[^*]+\*\*|__[^_]+__|\*[^*]+\*)/)
-      : [line.replace(/\S+\s*$/, ''), `*${(line.match(/(\S+)\s*$/) || ['', ''])[1]}*`];
+      : (m => [line.slice(0, m.index), `*${m[0].trim()}*`])(line.match(/\S*[\p{L}\p{N}]\S*[^\p{L}\p{N}]*$/u) || { index: line.length, 0: '' });
     return parts.filter(p => p.trim()).map(p => marked.test(p)
       ? `<span class="kept">${esc(stripEmphasis(p))}</span>`
       : p.trim().split(/\s+/).map(w => `<span class="bar">${esc(w)}</span>`).join(' ')).join(' ');
@@ -59,13 +59,15 @@ function overflows(sheet, growing = false) {
   const col = sheet.querySelector('.poem-text-col');
   const box = col?.parentElement;
   if (!inner || !col) return false;
-  if (box === inner) return col.offsetHeight > inner.clientHeight + 1;
+  const ics = getComputedStyle(inner);
+  const innerH = inner.clientHeight - parseFloat(ics.paddingTop) - parseFloat(ics.paddingBottom);
+  if (box === inner) return col.offsetHeight > innerH + 1;
   const cs = getComputedStyle(box);
   const room = box.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom);
   const corner = box.querySelector(':scope > .poem-corner-art');
   if (corner) return col.offsetTop + col.offsetHeight > corner.offsetTop + corner.offsetHeight * (growing ? 0.12 : 0.34);
-  if (box.matches('.poem-split')) return col.offsetHeight > room + 1 || box.offsetHeight > inner.clientHeight + 1;
-  return box.scrollHeight > inner.clientHeight + 1 || box.offsetHeight > inner.clientHeight + 1;
+  if (box.matches('.poem-split')) return col.offsetHeight > room + 1 || box.offsetHeight > innerH + 1;
+  return box.scrollHeight > innerH + 1 || box.offsetHeight > innerH + 1;
 }
 
 function bodyLines(sheet) {
@@ -269,7 +271,11 @@ export function renderSheetHTML(poem, { editable = false, editingRich = false, s
     ? `<div class="poem-frame-hairline" style="color:${pal.acc || pal.ink}"></div>`
     : st.frame === 'arch'
       ? `<div class="poem-frame-arch" style="color:${pal.acc || pal.ink}"></div>`
-      : st.frame === 'bookpage'
+      : st.frame === 'film'
+          ? '<div class="poem-frame-film"></div><div class="poem-frame-film is-bottom"></div>'
+        : ['airmail', 'stamp', 'deco', 'ajrakh', 'kantha', 'vine'].includes(st.frame)
+          ? `<div class="poem-frame-img fi-${st.frame}" style="border-image-source:url('${finishSrc('frame-' + st.frame)}')"></div>`
+        : st.frame === 'bookpage'
         ? `<div class="poem-book-top" style="color:${pal.acc || pal.ink}"></div><div class="poem-book-bot" style="color:${pal.sub || pal.ink};font-family:${fn.fam}">${slide && slide.total > 1 ? `— ${slide.index + 1} / ${slide.total} —` : (st.pageNo.trim() ? `— ${esc(st.pageNo.trim())} —` : '✦')}</div>`
         : '';
 
@@ -308,7 +314,7 @@ export function renderSheetHTML(poem, { editable = false, editingRich = false, s
       <div class="poem-sheet-inner" style="${innerStyle}">
         ${bgOverlayHTML}
         ${atmosHTML}
-        <div class="poem-grain tex-${st.texture}"></div>
+        <div class="poem-grain tex-${st.texture}${pal.dark ? ' on-dark' : ''}"></div>
         ${frameHTML}
         ${verticalTitleHTML}
         ${contentHTML}

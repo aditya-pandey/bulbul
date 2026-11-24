@@ -1,5 +1,44 @@
 export const ARTWORKS = [
   // Stories: original gouache illustrations for Bulbul
+  { id: 'story-dancer', grp: 'story', name: 'The Twirl', src: './assets/art/story-dancer.webp', bg: '#F8EDDC', bg2: '#F0DFC6', dark: false, ink: '#2B1A1D', sub: '#664C46', acc: '#C2372E', mat: '#FFFDF8', blend: '', contain: true, defLayout: 'corner', filter: '' },
+  { id: 'story-cat', grp: 'story', name: 'Window Cat', src: './assets/art/story-cat.webp', bg: '#F2ECEF', bg2: '#E6DDE4', dark: false, ink: '#28233A', sub: '#5A5369', acc: '#D9745F', mat: '#FFFDF8', blend: '', contain: true, defLayout: 'corner', filter: '' },
+  { id: 'story-charpai', grp: 'story', name: 'Rooftop Night', src: './assets/art/story-charpai.webp', bg: '#F2EBDD', bg2: '#E6DAC4', dark: false, ink: '#1F2A4A', sub: '#535A70', acc: '#BE3A2E', mat: '#FFFDF8', blend: '', contain: true, defLayout: 'below', filter: '' },
+  { id: 'story-rickshaw', grp: 'story', name: 'Monsoon Ride', src: './assets/art/story-rickshaw.webp', bg: '#EEF1EC', bg2: '#DFE6E0', dark: false, ink: '#1E2F2B', sub: '#4F615C', acc: '#C9902E', mat: '#FFFDF8', blend: '', contain: true, defLayout: 'below', filter: '' },
+  { id: 'story-shore', grp: 'story', name: 'By the Sea', src: './assets/art/story-shore.webp', bg: '#F7ECDC', bg2: '#EFDDC4', dark: false, ink: '#24343A', sub: '#54666B', acc: '#E2603C', mat: '#FFFDF8', blend: '', contain: true, defLayout: 'below', filter: '' },
+  { id: 'story-library', grp: 'story', name: 'Reading Ladder', src: './assets/art/story-library.webp', bg: '#F3EADB', bg2: '#E8DAC3', dark: false, ink: '#2F1D14', sub: '#63503F', acc: '#B3332A', mat: '#FFFDF8', blend: '', contain: true, defLayout: 'corner', filter: '' },
+  { id: 'story-balloon', grp: 'story', name: 'Carried Away', src: './assets/art/story-balloon.webp', bg: '#EFF2EE', bg2: '#E2E8E2', dark: false, ink: '#24343A', sub: '#54666B', acc: '#BE3A2E', mat: '#FFFDF8', blend: '', contain: true, defLayout: 'corner', filter: '' },
+
+  // Folk and craft
+  { id: 'folk-warli', grp: 'folk', name: 'Warli Dance', src: './assets/art/folk-warli.webp', bg: '#8A3F2B', bg2: '#7A3524', dark: true, ink: '#FBF1E0', sub: '#EBD3BD', acc: '#F0C08A', mat: '#FFFDF8', blend: '', contain: true, defLayout: 'below', filter: '' },
+  { id: 'folk-fish', grp: 'folk', name: 'Two Fish', src: './assets/art/folk-fish.webp', bg: '#F7EBD3', bg2: '#F0DFBF', dark: false, ink: '#1C1714', sub: '#57463A', acc: '#B3332A', mat: '#FFFDF8', blend: '', contain: true, defLayout: 'below', filter: '' },
+  { id: 'folk-deer', grp: 'folk', name: 'Forest Deer', src: './assets/art/folk-deer.webp', bg: '#F4EEDC', bg2: '#E9E0C6', dark: false, ink: '#14342F', sub: '#48584F', acc: '#D9542F', mat: '#FFFDF8', blend: '', contain: true, defLayout: 'corner', filter: '' },
+  { id: 'folk-peacock', grp: 'folk', name: 'Peacock', src: './assets/art/folk-peacock.webp', bg: '#F6F0DE', bg2: '#EBE2C6', dark: false, ink: '#16304A', sub: '#4D5A66', acc: '#2C4F9E', mat: '#FFFDF8', blend: '', contain: true, defLayout: 'below', filter: '' },
+  { id: 'craft-glass', grp: 'folk', name: 'Stained Glass', src: './assets/art/craft-glass.webp', bg: '#F3EDE0', bg2: '#E6DDCB', dark: false, ink: '#1C1714', sub: '#57504A', acc: '#8A4A8F', mat: '#FFFDF8', blend: '', contain: true, defLayout: 'below', filter: '' },
+  { id: 'craft-deco', grp: 'folk', name: 'Deco Sunrise', src: './assets/art/craft-deco.webp', bg: '#153F3A', bg2: '#0F322E', dark: true, ink: '#F3E3B8', sub: '#CDBD92', acc: '#D9B25A', mat: '#FFFDF8', blend: '', contain: true, defLayout: 'below', filter: '' },
+
+  // Print and paper
+  { id: 'lino-moth', grp: 'print', name: 'Moth Print', src: './assets/art/lino-moth.webp', bg: '#F6EFE2', bg2: '#EBE1CF', dark: false, ink: '#1F1B1A', sub: '#57504A', acc: '#B3332A', mat: '#FFFDF8', blend: '', contain: true, defLayout: 'corner', filter: '' },
+  { id: 'lino-whale', grp: 'print', name: 'Whale Print', src: './assets/art/lino-whale.webp', bg: '#F1F0E8', bg2: '#E2E4DC', dark: false, ink: '#16293A', sub: '#4B5A66', acc: '#C8912E', mat: '#FFFDF8', blend: '', contain: true, defLayout: 'below', filter: '' },
+  { id: 'lino-vase', grp: 'print', name: 'Flower Print', src: './assets/art/lino-vase.webp', bg: '#F6EFE2', bg2: '#EBE1CF', dark: false, ink: '#1F1B1A', sub: '#57504A', acc: '#B3332A', mat: '#FFFDF8', blend: '', contain: true, defLayout: 'corner', filter: '' },
+  { id: 'print-riso', grp: 'print', name: 'Two Circles', src: './assets/art/print-riso.webp', bg: '#F8F3E8', bg2: '#F0E8D8', dark: false, ink: '#22304F', sub: '#555E74', acc: '#E8573F', mat: '#FFFDF8', blend: '', contain: true, defLayout: 'corner', filter: '' },
+  { id: 'print-cutouts', grp: 'print', name: 'Cut-out Leaves', src: './assets/art/print-cutouts.webp', bg: '#FAF4E8', bg2: '#F2E8D6', dark: false, ink: '#1F2E5A', sub: '#555C74', acc: '#C9576B', mat: '#FFFDF8', blend: '', contain: true, defLayout: 'below', filter: '' },
+  { id: 'print-collage', grp: 'print', name: 'Keepsake Collage', src: './assets/art/print-collage.webp', bg: '#F1EADC', bg2: '#E5DAC6', dark: false, ink: '#2B221C', sub: '#5E5147', acc: '#B3332A', mat: '#FFFDF8', blend: '', contain: true, defLayout: 'corner', filter: '' },
+  { id: 'cyan-meadow', grp: 'print', name: 'Blueprint Meadow', src: './assets/art/cyan-meadow.webp', bg: '#1B4B73', bg2: '#16405F', dark: true, ink: '#EAF3F6', sub: '#B9D3E0', acc: '#BFDCE8', mat: '#FFFDF8', blend: '', contain: true, defLayout: 'scene', filter: '' },
+  { id: 'cut-hills', grp: 'print', name: 'Paper Hills', src: './assets/art/cut-hills.webp', bg: '#F8EBDC', bg2: '#F6E2CF', dark: false, ink: '#4A2230', sub: '#7A5552', acc: '#B4553F', mat: '#FFFDF8', blend: '', contain: true, defLayout: 'scene', filter: '' },
+  { id: 'cut-sea', grp: 'print', name: 'Paper Sea', src: './assets/art/cut-sea.webp', bg: '#F3F1E6', bg2: '#EAF0EA', dark: false, ink: '#1F3D4F', sub: '#54707C', acc: '#B3332A', mat: '#FFFDF8', blend: '', contain: true, defLayout: 'scene', filter: '' },
+
+  // Line and ink
+  { id: 'line-profile', grp: 'line', name: 'Flower in Her Hair', src: './assets/art/line-profile.webp', bg: '#FBF8F1', bg2: '#F5F0E6', dark: false, ink: '#231B1A', sub: '#5E5650', acc: '#B3332A', mat: '#FFFDF8', blend: '', contain: true, defLayout: 'corner', filter: '' },
+  { id: 'line-embrace', grp: 'line', name: 'Embrace', src: './assets/art/line-embrace.webp', bg: '#FAF5EE', bg2: '#F4ECE1', dark: false, ink: '#231B1A', sub: '#5E5650', acc: '#B3332A', mat: '#FFFDF8', blend: '', contain: true, defLayout: 'below', filter: '' },
+  { id: 'line-tulip', grp: 'line', name: 'One Tulip', src: './assets/art/line-tulip.webp', bg: '#FBF8F1', bg2: '#F4EFE5', dark: false, ink: '#231B1A', sub: '#5E5650', acc: '#7C6A4A', mat: '#FFFDF8', blend: '', contain: true, defLayout: 'side', filter: '' },
+  { id: 'line-wave', grp: 'line', name: 'Slow Wave', src: './assets/art/line-wave.webp', bg: '#FAF6EE', bg2: '#F3EEE3', dark: false, ink: '#231B1A', sub: '#5E5650', acc: '#B3332A', mat: '#FFFDF8', blend: '', contain: true, defLayout: 'scene', filter: '' },
+  { id: 'ink-peaks', grp: 'line', name: 'Ink Mountains', src: './assets/art/ink-peaks.webp', bg: '#F3F0E8', bg2: '#EAE6DB', dark: false, ink: '#1E2629', sub: '#566066', acc: '#C2372E', mat: '#FFFDF8', blend: '', contain: true, defLayout: 'scene', filter: '' },
+
+  // Night
+  { id: 'night-stars', grp: 'night', name: 'Bird of Stars', src: './assets/art/night-stars.webp', bg: '#131B33', bg2: '#0D1326', dark: true, ink: '#F6EFD9', sub: '#B9C0D6', acc: '#F3D48A', mat: '#FFFDF8', blend: '', contain: true, defLayout: 'overlay', filter: '' },
+  { id: 'night-lanterns', grp: 'night', name: 'Lantern River', src: './assets/art/night-lanterns.webp', bg: '#1B2747', bg2: '#162038', dark: true, ink: '#FBEFD2', sub: '#C3C9DA', acc: '#F0A24A', mat: '#FFFDF8', blend: '', contain: true, defLayout: 'scene', filter: '' },
+  { id: 'night-lighthouse', grp: 'night', name: 'Lighthouse', src: './assets/art/night-lighthouse.webp', bg: '#EEF0EE', bg2: '#DFE4E6', dark: false, ink: '#1C2848', sub: '#515B72', acc: '#B3332A', mat: '#FFFDF8', blend: '', contain: true, defLayout: 'corner', filter: '' },
+
   { id: 'story-dehleez', grp: 'story', name: 'At the Threshold', src: './assets/art/story-dehleez.webp', bg: '#F6EADB', bg2: '#EEDCC6', dark: false, ink: '#2B1D22', sub: '#63504A', acc: '#BE3A2E', mat: '#FFFDF8', blend: '', contain: true, defLayout: 'corner', filter: '' },
   { id: 'story-kursi', grp: 'story', name: 'Empty Chair', src: './assets/art/story-kursi.webp', bg: '#F0EBE0', bg2: '#E4DCCD', dark: false, ink: '#1F2E4A', sub: '#50596B', acc: '#274B8E', mat: '#FFFDF8', blend: '', contain: true, defLayout: 'corner', filter: '' },
   { id: 'story-antarman', grp: 'story', name: 'Four Storeys', src: './assets/art/story-antarman.webp', bg: '#EFEBE2', bg2: '#E3DDD0', dark: false, ink: '#2A2230', sub: '#5C5260', acc: '#8F2B2B', mat: '#FFFDF8', blend: '', contain: true, defLayout: 'corner', filter: '' },
@@ -116,7 +155,17 @@ export const PAPERS = [
   { id: 'forest-dusk', name: 'Forest Dusk', bg: '#17231E', bg2: '#203029', dark: true, ink: '#F0F2EC', sub: '#B6C4BC', acc: '#C9B886', mat: '#F4F7F5' },
   { id: 'raw-kraft', name: 'Raw Kraft', bg: '#CCB99F', bg2: '#C0AB8F', dark: false, ink: '#332418', sub: '#584130', acc: '#A34A32', mat: '#F6EFE4' },
   { id: 'handmade-cotton', name: 'Cotton Rag', bg: '#F5EFE4', bg2: '#ECE4D5', dark: false, ink: '#1E1A16', sub: '#544B41', acc: '#8C4A32', mat: '#FAF7F0' },
-  { id: 'espresso', name: 'Dark Espresso', bg: '#211814', bg2: '#2D211C', dark: true, ink: '#F6EDE4', sub: '#CBB9AA', acc: '#DDA975', mat: '#FBF5EE' }
+  { id: 'espresso', name: 'Dark Espresso', bg: '#211814', bg2: '#2D211C', dark: true, ink: '#F6EDE4', sub: '#CBB9AA', acc: '#DDA975', mat: '#FBF5EE' },
+  { id: 'newsprint', name: 'Newsprint', bg: '#E9E5DB', bg2: '#DFDACE', dark: false, ink: '#1C1A18', sub: '#55504A', acc: '#7A7268', mat: '#FBF6EE' },
+  { id: 'telegram', name: 'Telegram', bg: '#F1DFA6', bg2: '#E8D290', dark: false, ink: '#2B2213', sub: '#5F5232', acc: '#A34A32', mat: '#FBF6EE' },
+  { id: 'mustard', name: 'Mustard', bg: '#E5B443', bg2: '#DBA531', dark: false, ink: '#2B1D0E', sub: '#5C4420', acc: '#7D2A24', mat: '#FBF6EE' },
+  { id: 'sky', name: 'Open Sky', bg: '#CFE2EA', bg2: '#BDD6E2', dark: false, ink: '#17303C', sub: '#446070', acc: '#2F6B88', mat: '#FBF6EE' },
+  { id: 'rani', name: 'Rani Pink', bg: '#B8305F', bg2: '#A52552', dark: true, ink: '#FFF3EC', sub: '#F7CFD8', acc: '#F6C95F', mat: '#FBF6EE' },
+  { id: 'terracotta', name: 'Terracotta', bg: '#8A3F2B', bg2: '#7A3524', dark: true, ink: '#FBF1E0', sub: '#EBD3BD', acc: '#F0C08A', mat: '#FBF6EE' },
+  { id: 'emerald', name: 'Emerald', bg: '#17443D', bg2: '#103731', dark: true, ink: '#F4EAD0', sub: '#C4CDBB', acc: '#D9B25A', mat: '#FBF6EE' },
+  { id: 'indigo-dye', name: 'Indigo Dye', bg: '#1F2C54', bg2: '#18234A', dark: true, ink: '#F3EBDD', sub: '#BEC5DA', acc: '#E0A33A', mat: '#FBF6EE' },
+  { id: 'chalkboard', name: 'Chalkboard', bg: '#2C3A36', bg2: '#25322E', dark: true, ink: '#F1F1EA', sub: '#BFCBC4', acc: '#F0D98A', mat: '#FBF6EE' },
+  { id: 'blueprint', name: 'Blueprint', bg: '#1B4B73', bg2: '#164062', dark: true, ink: '#EAF3F6', sub: '#B4D0DE', acc: '#BFDCE8', mat: '#FBF6EE' }
 ];
 
 export const FONTS = [
@@ -206,7 +255,14 @@ export const FRAMES = [
   { id: 'hairline', label: 'Editorial' },
   { id: 'bookpage', label: 'Book Page' },
   { id: 'polaroid', label: 'Gallery Mat' },
-  { id: 'arch', label: 'Arch Print' }
+  { id: 'arch', label: 'Arch Print' },
+  { id: 'airmail', label: 'Airmail' },
+  { id: 'stamp', label: 'Postage' },
+  { id: 'film', label: 'Film strip' },
+  { id: 'deco', label: 'Art Deco' },
+  { id: 'ajrakh', label: 'Ajrakh' },
+  { id: 'kantha', label: 'Kantha stitch' },
+  { id: 'vine', label: 'Flower vine' }
 ];
 
 export const RATIOS = [
@@ -241,7 +297,11 @@ export const TEXTURES = [
   { id: 'grain', label: 'Fine Grain' },
   { id: 'kraft', label: 'Kraft Fiber' },
   { id: 'cotton', label: 'Cotton Rag' },
-  { id: 'none', label: 'Smooth' }
+  { id: 'none', label: 'Smooth' },
+  { id: 'ruled', label: 'Notebook' },
+  { id: 'graph', label: 'Graph' },
+  { id: 'dots', label: 'Dot grid' },
+  { id: 'music', label: 'Music sheet' }
 ];
 
 export const INK_SWATCHES = [
@@ -346,6 +406,10 @@ const onPaper = (paper, patch) => ({ bgMode: 'solid', paper, layout: 'overlay', 
 export const LOOK_CATS = [
   { id: 'all', label: 'All' },
   { id: 'story', label: 'Illustrated' },
+  { id: 'folk', label: 'Folk' },
+  { id: 'print', label: 'Print' },
+  { id: 'line', label: 'Line' },
+  { id: 'night', label: 'Night' },
   { id: 'light', label: 'Light' },
   { id: 'paper', label: 'Paper' },
   { id: 'paint', label: 'Painted' }
@@ -353,45 +417,96 @@ export const LOOK_CATS = [
 
 export const LOOKS = [
   look('umbrella', 'One Umbrella', 'story', 'kalam', { painting: 'story-umbrella', font: 'badscript', titleStyle: 'none', texture: 'cotton' }),
+  look('twirl', 'The Twirl', 'story', 'tillana', { painting: 'story-dancer', font: 'dancing', titleStyle: 'none', texture: 'cotton' }),
+  look('warli', 'Warli Dance', 'folk', 'kalam', { painting: 'folk-warli', layout: 'below', font: 'shadows', align: 'center', titleStyle: 'none' }),
   look('lotus', 'Lotus Pond', 'story', 'tillana', { painting: 'scene-lotus', layout: 'scene', font: 'editorial', titleStyle: 'italic' }),
+  look('moth', 'Moth Print', 'print', 'rozha', { painting: 'lino-moth', font: 'baskerville', titleStyle: 'smallcaps' }),
   look('window', 'Window Light', 'light', 'devanagari', onPaper('ivory-press', { font: 'cutive', light: 'light-panes', rhythm: 'airy' })),
+  look('profile', 'Flower in Her Hair', 'line', 'gotu', { painting: 'line-profile', font: 'italiana', titleStyle: 'none' }),
   look('moved-on', 'Moved On', 'paint', 'kalam-light', onPaper('blush-vellum', { font: 'nothing', textStyle: 'ruled', atmos: 'wash-teal', titleStyle: 'none', texture: 'cotton' })),
+  look('stars', 'Bird of Stars', 'night', 'laila', { painting: 'night-stars', layout: 'overlay', font: 'editorial', align: 'center', titleStyle: 'italic', wash: 42 }),
+  look('notebook', 'School Notebook', 'paper', 'dekko', onPaper('gallery-white', { font: 'nothing', texture: 'ruled', titleStyle: 'none', inkColor: 'indigo' })),
   look('letter', 'Unsent Letter', 'story', 'dekko', { painting: 'story-letter', font: 'cedarville', titleStyle: 'none', inkColor: 'indigo', texture: 'cotton' }),
+  look('paper-sea', 'Paper Sea', 'print', 'playpen-deva', { painting: 'cut-sea', layout: 'scene', font: 'jost' }),
   look('arch-dawn', 'Arch at Dawn', 'paint', 'laila', { painting: 'light-turner-dawn', layout: 'arch', font: 'italiana', align: 'center' }),
+  look('ajrakh', 'Ajrakh', 'folk', 'eczar', onPaper('ivory-press', { font: 'crimson', frame: 'ajrakh', align: 'center' })),
   look('kites', 'Rooftop Kites', 'story', 'yatra', { painting: 'scene-kites', layout: 'scene', font: 'fraunces' }),
+  look('cat', 'Window Cat', 'story', 'dekko', { painting: 'story-cat', font: 'badscript', titleStyle: 'none', texture: 'cotton' }),
   look('taped', 'Taped Memory', 'paper', 'playpen-deva', { painting: 'light-monet-train', layout: 'print', font: 'typewriter', titleStyle: 'none' }),
+  look('wave', 'Slow Wave', 'line', 'gotu', { painting: 'line-wave', layout: 'scene', font: 'jost', titleStyle: 'smallcaps', rhythm: 'airy' }),
+  look('rani', 'Rani Pink', 'paper', 'rozha', onPaper('rani', { font: 'bodoni', align: 'center', titleStyle: 'italic' })),
   look('gajra', 'Gajra', 'story', 'amita', { painting: 'story-gajra', font: 'dancing', titleStyle: 'none', texture: 'cotton' }),
+  look('lanterns', 'Lantern River', 'night', 'tillana', { painting: 'night-lanterns', layout: 'scene', font: 'poetic-italic', titleStyle: 'italic' }),
   look('palm', 'Palm Noon', 'light', 'gotu', onPaper('handmade-cotton', { font: 'gilda', light: 'light-palm', titleStyle: 'smallcaps', texture: 'cotton' })),
+  look('riso', 'Two Circles', 'print', 'yatra', { painting: 'print-riso', font: 'syne', titleStyle: 'classic' }),
   look('nauka', 'Boat at Sundown', 'story', 'jaini', { painting: 'scene-nauka', layout: 'scene', font: 'fell' }),
+  look('airmail', 'Airmail', 'paper', 'dekko', onPaper('ivory-press', { font: 'homemade', frame: 'airmail', titleStyle: 'none', inkColor: 'indigo', charm: 'charm-stamp', charmPos: 'tr', texture: 'cotton' })),
+  look('deer', 'Forest Deer', 'folk', 'kurale', { painting: 'folk-deer', font: 'gilda', titleStyle: 'none', texture: 'cotton' }),
   look('blackout', 'Blackout', 'paper', 'sahitya', onPaper('gallery-white', { font: 'courier-prime', textStyle: 'blackout', titleStyle: 'none', rhythm: 'airy' })),
+  look('peaks', 'Ink Mountains', 'line', 'sahitya', { painting: 'ink-peaks', layout: 'scene', font: 'editorial', rhythm: 'airy' }),
   look('bulbul', 'Bulbul & Gulmohar', 'story', 'kurale', { painting: 'story-bulbul', font: 'poetic-italic', titleStyle: 'italic', texture: 'cotton' }),
+  look('blueprint', 'Blueprint Meadow', 'print', 'gotu', { painting: 'cyan-meadow', layout: 'scene', font: 'cutive', titleStyle: 'smallcaps' }),
   look('golden', 'Golden Hour', 'light', 'tillana', onPaper('parchment', { font: 'editorial', light: 'light-golden', align: 'center', titleStyle: 'italic' })),
+  look('sea', 'By the Sea', 'story', 'laila', { painting: 'story-shore', layout: 'below', font: 'lora', align: 'center' }),
   look('marigold', 'Marigold', 'paint', 'ranga', onPaper('ivory-press', { font: 'instrument', atmos: 'wash-turmeric', charm: 'charm-marigold', charmPos: 'tr' })),
+  look('chalk', 'Chalkboard', 'paper', 'kalam', onPaper('chalkboard', { font: 'reenie', titleStyle: 'none', texture: 'grain', align: 'center' })),
+  look('peacock', 'Peacock', 'folk', 'jaini', { painting: 'folk-peacock', layout: 'below', font: 'fell', align: 'center', titleStyle: 'none' }),
   look('chai', 'Two Cups', 'story', 'laila', { painting: 'story-chai', layout: 'below', font: 'fell', align: 'center' }),
+  look('embrace', 'Embrace', 'line', 'kalam-light', { painting: 'line-embrace', layout: 'below', font: 'cedarville', align: 'center', titleStyle: 'none' }),
   look('moonlit', 'Moonlit Arch', 'paint', 'rozha', { painting: 'hasui-moon-magome', layout: 'arch', font: 'bodoni', align: 'center', titleStyle: 'smallcaps' }),
+  look('deco', 'Deco Sunrise', 'folk', 'rozha', { painting: 'craft-deco', layout: 'below', font: 'italiana', align: 'center', titleStyle: 'smallcaps', frame: 'deco' }),
   look('turned', 'Turned Page', 'paper', 'sahitya', onPaper('parchment', { font: 'fell', frame: 'bookpage', charm: 'charm-coffee', charmPos: 'br', titleStyle: 'dropcap' })),
+  look('filmstrip', 'Film Strip', 'paper', 'playpen-deva', onPaper('obsidian-gold', { font: 'typewriter', frame: 'film', titleStyle: 'none', align: 'center', light: 'light-film' })),
   look('jhoola', 'The Swing', 'story', 'dekko', { painting: 'story-jhoola', font: 'zeyada', titleStyle: 'none', texture: 'cotton' }),
+  look('charpai', 'Rooftop Night', 'story', 'tillana', { painting: 'story-charpai', layout: 'below', font: 'poetic-italic', align: 'center', titleStyle: 'italic' }),
+  look('cutleaves', 'Cut-out Leaves', 'print', 'yatra', { painting: 'print-cutouts', layout: 'below', font: 'jost', titleStyle: 'none', align: 'center' }),
   look('leaves', 'Leaf Shadow', 'light', 'playpen-deva', onPaper('sage-linen', { font: 'italiana', light: 'light-leaves', align: 'center' })),
+  look('kantha', 'Kantha Stitch', 'folk', 'amita', onPaper('handmade-cotton', { font: 'belle', frame: 'kantha', align: 'center', titleStyle: 'none', texture: 'cotton' })),
   look('monsoon', 'Monsoon', 'paint', 'ranga', onPaper('mist-blue', { font: 'zeyada', atmos: 'wash-monsoon', titleStyle: 'none', inkColor: 'indigo', textStyle: 'plain' })),
+  look('lighthouse', 'Lighthouse', 'night', 'laila', { painting: 'night-lighthouse', font: 'lora', titleStyle: 'none', texture: 'cotton' }),
   look('kaash', 'Kaash Field', 'story', 'kalam-light', { painting: 'scene-kaash', layout: 'scene', font: 'editorial', titleStyle: 'none' }),
+  look('telegram', 'Telegram', 'paper', 'sahitya', onPaper('telegram', { font: 'courier-prime', titleStyle: 'smallcaps', charm: 'charm-stamp', charmPos: 'br', texture: 'cotton' })),
+  look('whale', 'Whale Print', 'print', 'eczar', { painting: 'lino-whale', layout: 'below', font: 'crimson', align: 'center' }),
   look('sealed', 'Sealed', 'paper', 'amita', onPaper('obsidian-gold', { font: 'pinyon', frame: 'hairline', charm: 'charm-seal', charmPos: 'br', align: 'center', titleStyle: 'none' })),
+  look('music', 'Music Sheet', 'paper', 'amita', onPaper('ivory-press', { font: 'pinyon', texture: 'music', align: 'center', titleStyle: 'none', rhythm: 'airy' })),
   look('marked', 'Marked Lines', 'paper', 'eczar', onPaper('gallery-white', { font: 'baskerville', textStyle: 'marker', titleStyle: 'none' })),
+  look('fish', 'Two Fish', 'folk', 'yatra', { painting: 'folk-fish', layout: 'below', font: 'eb-garamond', align: 'center', titleStyle: 'none' }),
   look('train', 'Train Window', 'story', 'laila', { painting: 'story-train', layout: 'below', font: 'gilda', align: 'center' }),
+  look('rickshaw', 'Monsoon Ride', 'story', 'kalam', { painting: 'story-rickshaw', layout: 'below', font: 'badscript', align: 'center', titleStyle: 'none' }),
   look('petals', 'Falling Petals', 'paint', 'tillana', onPaper('blush-vellum', { font: 'belle', charm: 'charm-petals', charmPos: 'br', titleStyle: 'none' })),
+  look('tulip', 'One Tulip', 'line', 'gotu', { painting: 'line-tulip', layout: 'side', font: 'gilda', titleStyle: 'none' }),
+  look('mustard', 'Mustard', 'paper', 'ranga', onPaper('mustard', { font: 'instrument', titleStyle: 'italic', align: 'left', rhythm: 'tight' })),
   look('fern', 'Pressed Fern', 'paper', 'kurale', onPaper('handmade-cotton', { font: 'cedarville', charm: 'charm-fern', charmPos: 'br', frame: 'none', texture: 'cotton', titleStyle: 'none' })),
+  look('hills', 'Paper Hills', 'print', 'laila', { painting: 'cut-hills', layout: 'scene', font: 'fraunces' }),
   look('film', 'Old Film', 'light', 'gotu', { painting: 'light-window', layout: 'overlay', font: 'typewriter', light: 'light-film', wash: 42 }),
+  look('postage', 'Postage', 'paper', 'kurale', { painting: 'scene-valley', layout: 'scene', font: 'fell', frame: 'stamp', titleStyle: 'none' }),
   look('windows', 'Two Windows', 'story', 'yatra', { painting: 'story-windows', layout: 'below', font: 'fraunces', align: 'center' }),
+  look('balloon', 'Carried Away', 'story', 'playpen-deva', { painting: 'story-balloon', font: 'nothing', titleStyle: 'none', texture: 'cotton' }),
   look('postcard', 'Postcard', 'paper', 'dekko', onPaper('sandstone', { font: 'homemade', charm: 'charm-stamp', charmPos: 'tr', titleStyle: 'none', inkColor: 'indigo', texture: 'cotton' })),
+  look('vine', 'Flower Vine', 'folk', 'tillana', onPaper('blush-vellum', { font: 'dancing', frame: 'vine', align: 'center', titleStyle: 'none' })),
+  look('indigo', 'Indigo Dye', 'night', 'jaini', onPaper('indigo-dye', { font: 'editorial', frame: 'kantha', align: 'center', titleStyle: 'italic' })),
   look('melting', 'Melting Sky', 'paint', 'gotu', { painting: 'pastel-clouds', layout: 'scene', font: 'italiana', align: 'center' }),
+  look('newsprint', 'Front Page', 'paper', 'sahitya', onPaper('newsprint', { font: 'fell', frame: 'hairline', titleStyle: 'classic', align: 'center', texture: 'cotton' })),
   look('thread', 'Red Thread', 'paper', 'kalam', onPaper('gallery-white', { font: 'nothing', charm: 'charm-thread', charmPos: 'br', titleStyle: 'none' })),
+  look('vase', 'Flower Print', 'print', 'eczar', { painting: 'lino-vase', font: 'baskerville', titleStyle: 'none' }),
   look('bansuri', 'Bansuri', 'story', 'jaini', { painting: 'story-bansuri', font: 'crimson', titleStyle: 'italic', texture: 'cotton' }),
+  look('glass', 'Stained Glass', 'folk', 'rozha', { painting: 'craft-glass', layout: 'below', font: 'bodoni', align: 'center', titleStyle: 'smallcaps' }),
+  look('library', 'Reading Ladder', 'story', 'sahitya', { painting: 'story-library', font: 'eb-garamond', titleStyle: 'italic', texture: 'cotton' }),
   look('threshold', 'At the Threshold', 'story', 'kalam', { painting: 'story-dehleez', font: 'badscript', titleStyle: 'none', texture: 'cotton' }),
+  look('graph', 'Graph Paper', 'paper', 'playpen-deva', onPaper('gallery-white', { font: 'ibm-mono', texture: 'graph', titleStyle: 'none' })),
   look('cherry', 'Cherry Meadow', 'story', 'tillana', { painting: 'scene-cherry', layout: 'scene', font: 'editorial', titleStyle: 'italic' }),
+  look('collage', 'Keepsake Collage', 'print', 'dekko', { painting: 'print-collage', font: 'typewriter', titleStyle: 'none', texture: 'kraft' }),
   look('chair', 'Empty Chair', 'story', 'dekko', { painting: 'story-kursi', font: 'nothing', titleStyle: 'none', inkColor: 'indigo', texture: 'cotton' }),
+  look('emerald', 'Emerald Deco', 'night', 'rozha', onPaper('emerald', { font: 'italiana', frame: 'deco', align: 'center', titleStyle: 'smallcaps' })),
   look('storeys', 'Four Storeys', 'story', 'laila', { painting: 'story-antarman', font: 'fell', titleStyle: 'italic', texture: 'cotton' }),
+  look('almond', 'Almond Branch', 'paint', 'gotu', { painting: 'bot-almond', layout: 'scene', font: 'italiana', align: 'center', inkColor: 'ivory' }),
+  look('redon', 'Redon Bouquet', 'paint', 'kurale', { painting: 'ed-redon-flowers', layout: 'print', font: 'cedarville', titleStyle: 'none' }),
   look('shape', 'Shape of You', 'story', 'kurale', { painting: 'story-place', font: 'poetic-italic', titleStyle: 'none', texture: 'cotton' }),
+  look('heron', 'Heron in Rain', 'paint', 'sahitya', { painting: 'koson-heron-rain', layout: 'side', font: 'fell', titleStyle: 'none' }),
   look('valley', 'Little Valley', 'story', 'yatra', { painting: 'scene-valley', layout: 'scene', font: 'gilda' }),
-  look('record', 'Old Record', 'story', 'rozha', { painting: 'story-gramophone', font: 'bodoni', titleStyle: 'smallcaps' })
+  look('snowfall', 'Snowfall', 'paint', 'laila', { painting: 'ed-hasui-snow', layout: 'arch', font: 'poetic-italic', align: 'center', titleStyle: 'italic' }),
+  look('record', 'Old Record', 'story', 'rozha', { painting: 'story-gramophone', font: 'bodoni', titleStyle: 'smallcaps' }),
+  look('dots', 'Dot Journal', 'paper', 'dekko', onPaper('handmade-cotton', { font: 'zeyada', texture: 'dots', titleStyle: 'none', charm: 'charm-tape', charmPos: 'tc' }))
 ];
 
 export const isHindi = text => /[\u0900-\u097F]/.test(String(text || ''));

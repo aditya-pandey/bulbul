@@ -100,6 +100,11 @@ async function paintElement(el, { w, h, zoom, families, text, style = '' }) {
     fontCSS(families, text),
     ...imgs.map(async i => i.setAttribute('src', await toDataURL(i.src)))
   ]);
+  // Frames are border images set inline
+  await Promise.all([...el.querySelectorAll('[style*="url("]')].map(async n => {
+    const src = n.style.borderImageSource.match(/url\(["']?([^"')]+)/)?.[1];
+    if (src && !src.startsWith('data:')) n.style.borderImageSource = `url("${await toDataURL(new URL(src, location.href).href)}")`;
+  }));
   imgs.forEach(i => { i.removeAttribute('loading'); i.removeAttribute('decoding'); });
   const xml = new XMLSerializer().serializeToString(el);
   const clean = css.replace(/]]>/g, '');

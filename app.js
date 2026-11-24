@@ -94,6 +94,7 @@ const state = {
   moodFilter: 'All',
   railTab: 'looks',
   lookCat: 'all',
+  looksShown: 16,
   artSub: 'minimal',
   fontCat: 'all',
   focusMode: false,
@@ -107,7 +108,6 @@ const state = {
   share: null,
   galleryScroll: 0,
   sparkShift: 0,
-  firstLine: '',
   perch: 2,
   facing: 1,
   song: null
@@ -186,6 +186,7 @@ function openPoem(id, { push = true } = {}) {
     state.share = null;
     state.viewing = null;
     state.slideIdx = 0;
+    state.looksShown = 16;
     state.focusMode = false;
     state.mobileSheetOpen = false;
     state.moreOpen = false;
@@ -249,15 +250,15 @@ async function patchWhenReady(ready, patch, after) {
   after?.();
 }
 
-function createPoem({ body = '', spark = '', lookId = '' } = {}) {
-  const start = LOOKS.find(l => l.id === lookId) || LOOKS[Math.floor(Math.random() * 8)];
-  const setting = lookPatch(start, { title: '', body: body || spark });
+function createPoem({ spark = '', lookId = '' } = {}) {
+  const start = LOOKS.find(l => l.id === lookId) || LOOKS[Math.floor(Math.random() * 24)];
+  const setting = lookPatch(start, { title: '', body: spark });
   const p = {
     ...setting,
     look: start.id,
     id: 'poem-' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
     title: '',
-    body,
+    body: '',
     spark,
     paper: setting.paper || 'ivory-press',
     ratio: '4:5',
@@ -274,9 +275,7 @@ function createPoem({ body = '', spark = '', lookId = '' } = {}) {
   savePoems(state.poems);
   openPoem(p.id);
   setTimeout(() => {
-    const el = body ? document.getElementById('poem-body-in') : (document.getElementById('poem-title-in') || document.getElementById('poem-body-in'));
-    el?.focus();
-    if (el?.id === 'poem-body-in') el.setSelectionRange(el.value.length, el.value.length);
+    (document.getElementById('poem-title-in') || document.getElementById('poem-body-in'))?.focus();
   }, 40);
 }
 
@@ -317,10 +316,6 @@ function renderHero() {
       <img class="hero-wash" src="${finishSrc(part.wash)}" alt="">
       <div class="hero-copy">
         <h2 class="hero-greet">${part.greet}</h2>
-        <form class="first-line" id="first-line-form">
-          <input id="first-line-in" type="text" autocomplete="off" placeholder="Begin with one line…" aria-label="First line of a new poem" value="${esc(state.firstLine)}">
-          <button type="submit" class="first-line-go" aria-label="Start this poem">${ICONS.next}</button>
-        </form>
         <div class="spark">
           <button type="button" class="spark-text" id="spark-use" title="Write from this">${esc(todaysSpark())}</button>
           <button type="button" class="spark-next" id="spark-next" aria-label="Another idea" title="Another idea">${ICONS.sparkles}</button>
@@ -727,7 +722,7 @@ document.addEventListener('pointerover', e => {
 });
 // Left alone, the bird moves about and sings something of yours.
 setInterval(() => {
-  if (state.activeId || state.viewing || document.hidden || calm() || hoverBloom || state.search || document.activeElement?.id === 'first-line-in') return;
+  if (state.activeId || state.viewing || document.hidden || calm() || hoverBloom || state.search) return;
   const hero = document.querySelector('.hero');
   if (!hero || hero.getBoundingClientRect().bottom < 80) return;
   hopTo(Math.floor(Math.random() * PERCHES.length), pickSong());
@@ -847,6 +842,10 @@ function renderStudio(poem) {
 
   const grps = {
     story: ARTWORKS.filter(a => a.grp === 'story'),
+    folk: ARTWORKS.filter(a => a.grp === 'folk'),
+    print: ARTWORKS.filter(a => a.grp === 'print'),
+    line: ARTWORKS.filter(a => a.grp === 'line'),
+    night: ARTWORKS.filter(a => a.grp === 'night'),
     minimal: ARTWORKS.filter(a => a.grp === 'minimal'),
     sketch: ARTWORKS.filter(a => a.grp === 'sketch'),
     light: ARTWORKS.filter(a => a.grp === 'light'),
@@ -856,7 +855,8 @@ function renderStudio(poem) {
 
   let railContent = '';
   if (state.railTab === 'looks') {
-    const shown = LOOKS.filter(l => state.lookCat === 'all' || l.cat === state.lookCat);
+    const inCat = LOOKS.filter(l => state.lookCat === 'all' || l.cat === state.lookCat);
+    const shown = inCat.slice(0, state.looksShown);
     railContent = `
       <div class="subtabs" role="group" aria-label="Categories">${LOOK_CATS.map(c => `<button type="button" class="subtab${state.lookCat === c.id ? ' on' : ''}" data-lookcat="${c.id}">${esc(c.label)}</button>`).join('')}</div>
       <div class="look-grid" data-grid="looks-${state.lookCat}">
@@ -870,11 +870,16 @@ function renderStudio(poem) {
             <span class="look-nm">${esc(l.name)}</span>
           </button>`;
         }).join('')}
+        ${shown.length < inCat.length ? '<div class="look-more" data-more="looks"></div>' : ''}
       </div>
     `;
   } else if (state.railTab === 'artwork') {
     const subTabs = [
       { id: 'story', label: `Illustrations (${grps.story.length})` },
+      { id: 'folk', label: `Folk & Craft (${grps.folk.length})` },
+      { id: 'print', label: `Print & Paper (${grps.print.length})` },
+      { id: 'line', label: `Line & Ink (${grps.line.length})` },
+      { id: 'night', label: `Night (${grps.night.length})` },
       { id: 'minimal', label: `Minimal (${grps.minimal.length})` },
       { id: 'sketch', label: `Sketches (${grps.sketch.length})` },
       { id: 'light', label: `Light (${grps.light.length})` },
@@ -1347,6 +1352,14 @@ function playGhost(cap, dir = 0) {
   setTimeout(done, 480); // never leave the copy behind if frames stall
 }
 
+// Looks are real posters, so paint them as they come into reach rather than all at once
+const moreLooks = new IntersectionObserver(seen => {
+  if (!seen.some(s => s.isIntersecting)) return;
+  state.looksShown += 12;
+  render();
+}, { rootMargin: '500px 0px' });
+let watchedMore = null;
+
 let observedStage = null;
 function render({ fade = false, dir = 0 } = {}) {
   const root = document.getElementById('app');
@@ -1362,6 +1375,12 @@ function render({ fade = false, dir = 0 } = {}) {
     if (stage) stageObserver.observe(stage);
     observedStage = stage;
   }
+  const more = document.querySelector('.look-more');
+  if (more !== watchedMore) {
+    if (watchedMore) moreLooks.unobserve(watchedMore);
+    watchedMore = more;
+  }
+  if (more) { moreLooks.unobserve(more); moreLooks.observe(more); }
   if (poem) {
     fitStage();
     autoSizeTextarea();
@@ -1754,7 +1773,7 @@ const CLICKS = [
   ['[data-look]', el => pickLook(el.dataset.look)],
   ['#look-reset-btn', () => pickLook(getActivePoem().look)],
   ['#no-picture-btn', removePicture],
-  ['[data-lookcat]', el => { state.lookCat = el.dataset.lookcat; render(); revealSubtab(); }],
+  ['[data-lookcat]', el => { state.lookCat = el.dataset.lookcat; state.looksShown = 16; render(); revealSubtab(); }],
   ['[data-atmos]', el => pickFinish('atmos', el.dataset.atmos)],
   ['[data-light]', el => pickFinish('light', el.dataset.light)],
   ['[data-charmpos]', el => patchActive({ charmPos: el.dataset.charmpos })],
@@ -1798,7 +1817,6 @@ const CLICKS = [
 ];
 
 const INPUTS = [
-  ['#first-line-in', el => { state.firstLine = el.value; }],
   ['#gallery-search', el => { state.search = el.value; renderGalleryFlow(); }],
   ['#poem-title-in', el => patchActive({ title: el.value }, { rerender: false })],
   ['#poem-body-in', el => {
@@ -1832,14 +1850,6 @@ function delegate(type, table) {
 delegate('click', CLICKS);
 delegate('input', INPUTS);
 delegate('change', CHANGES);
-
-document.addEventListener('submit', e => {
-  if (e.target.id !== 'first-line-form') return;
-  e.preventDefault();
-  const line = document.getElementById('first-line-in').value.trim();
-  state.firstLine = '';
-  createPoem(line ? { body: line + '\n' } : {});
-});
 
 document.addEventListener('click', e => {
   if (state.moreOpen && !e.target.closest?.('.menu-wrap')) { state.moreOpen = false; render(); }

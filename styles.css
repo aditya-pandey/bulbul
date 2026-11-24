@@ -331,16 +331,9 @@ button:focus-visible, input:focus-visible, textarea:focus-visible { outline: 2px
 [data-theme="dark"] .hero-wash { opacity: .2; }
 [data-theme="dark"] .bird img { filter: drop-shadow(0 0 1.5px rgba(243, 235, 221, .75)); }
 .hero-copy { position: relative; padding: 26px 0; max-width: 430px; }
-.hero-greet { font-family: var(--font-brand); font-weight: 500; font-size: 46px; line-height: 1.05; letter-spacing: -.015em; margin: 0 0 20px; }
-.first-line { display: flex; align-items: center; border-bottom: 1.5px solid var(--line-strong); transition: border-color .25s ease; }
-.first-line:focus-within { border-color: var(--accent); }
-.first-line input { flex: 1; min-width: 0; height: 46px; border: 0; background: transparent; outline: none; font-family: var(--font-brand); font-size: 23px; font-weight: 500; }
-.first-line input::placeholder { color: var(--ink-3); opacity: .85; }
-.first-line-go { width: 36px; height: 36px; flex-shrink: 0; border: 0; border-radius: 50%; background: transparent; color: var(--ink-2); display: grid; place-items: center; transition: background-color .25s ease, color .25s ease, transform .35s cubic-bezier(.2, .8, .2, 1); }
-.first-line:focus-within .first-line-go, .first-line-go:hover { background: var(--btn-bg); color: var(--btn-ink); }
-[data-motion="full"] .first-line-go:hover { transform: translateX(3px); }
-.spark { display: flex; align-items: center; gap: 4px; margin-top: 14px; }
-.spark-text { border: 0; background: transparent; padding: 4px 0; text-align: left; font-size: 14px; line-height: 1.45; color: var(--ink-2); text-decoration: underline; text-decoration-color: var(--line-strong); text-underline-offset: 4px; transition: color .2s ease, text-decoration-color .2s ease; }
+.hero-greet { font-family: var(--font-brand); font-weight: 500; font-size: 52px; line-height: 1.05; letter-spacing: -.015em; margin: 0 0 16px; }
+[data-motion="full"] .spark { display: flex; align-items: center; gap: 6px; }
+.spark-text { border: 0; background: transparent; padding: 4px 0; text-align: left; font-family: var(--font-brand); font-size: 23px; font-weight: 500; line-height: 1.3; color: var(--ink-2); text-decoration: underline; text-decoration-color: var(--line-strong); text-underline-offset: 4px; transition: color .2s ease, text-decoration-color .2s ease; }
 .spark-text:hover { color: var(--ink); text-decoration-color: var(--accent); }
 .spark-next { width: 34px; height: 34px; flex-shrink: 0; border: 0; border-radius: 50%; background: transparent; color: var(--ink-3); display: grid; place-items: center; }
 .spark-next:hover { color: var(--accent); }
@@ -1308,3 +1301,26 @@ button:focus-visible, input:focus-visible, textarea:focus-visible { outline: 2px
 /* Stories keep clear of the app's own header */
 .poem-sheet.rat-9-16 .poem-corner-wrap, .poem-sheet.rat-9-16 .poem-scene, .poem-sheet.rat-9-16 .poem-stack, .poem-sheet.rat-9-16 .poem-arch, .poem-sheet.rat-9-16 .poem-print { padding-top: 84px; }
 .poem-sheet.rat-auto .poem-corner-wrap { padding-bottom: 300px; }
+
+/* ================= NOTEBOOK PAPERS AND MADE FRAMES ================= */
+.poem-grain.tex-ruled, .poem-grain.tex-graph, .poem-grain.tex-dots, .poem-grain.tex-music { --rule: rgba(52, 82, 140, .34); --rule-2: rgba(190, 58, 46, .42); opacity: 1; }
+.poem-grain.on-dark { --rule: rgba(255, 255, 255, .17) !important; --rule-2: rgba(255, 190, 170, .4) !important; }
+.poem-grain.tex-ruled { background-image: linear-gradient(90deg, transparent 27px, var(--rule-2) 27px 28px, transparent 28px), repeating-linear-gradient(transparent 0 25px, var(--rule) 25px 26px); background-size: auto; background-position: 0 14px; }
+.poem-grain.tex-graph { background-image: linear-gradient(var(--rule) 1px, transparent 1px), linear-gradient(90deg, var(--rule) 1px, transparent 1px); background-size: 19px 19px; opacity: .8; }
+.poem-grain.tex-dots { background-image: radial-gradient(var(--rule) 1.5px, transparent 1.8px); background-size: 18px 18px; }
+.poem-grain.tex-music { background-image: repeating-linear-gradient(transparent 0 9px, rgba(60, 46, 34, .15) 9px 10px, transparent 10px 18px, rgba(60, 46, 34, .15) 18px 19px, transparent 19px 27px, rgba(60, 46, 34, .15) 27px 28px, transparent 28px 36px, rgba(60, 46, 34, .15) 36px 37px, transparent 37px 45px, rgba(60, 46, 34, .15) 45px 46px, transparent 46px 84px); background-size: auto; }
+.poem-grain.tex-music.on-dark { filter: invert(1); }
+.poem-frame-img { position: absolute; inset: 0; z-index: 4; pointer-events: none; border: 34px solid transparent; border-image-slice: 100; border-image-repeat: round; }
+.poem-frame-img.fi-airmail { border-width: 15px; }
+.poem-frame-img.fi-stamp { border-width: 26px; border-image-slice: 70; }
+.poem-frame-img.fi-deco { inset: 10px; border-width: 40px; border-image-repeat: stretch; }
+.poem-frame-img.fi-kantha { inset: 8px; border-width: 36px; }
+.poem-frame-img.fi-vine { inset: 4px; border-width: 38px; }
+.poem-frame-film { position: absolute; left: 0; right: 0; top: 0; height: 32px; z-index: 4; pointer-events: none; background: repeating-linear-gradient(90deg, transparent 0 9px, #EFE7D8 9px 23px, transparent 23px 32px) 0 50% / auto 13px repeat-x, #171412; }
+.poem-frame-film.is-bottom { top: auto; bottom: 0; }
+.fr-airmail .poem-sheet-inner { padding: 13px; }
+.fr-stamp .poem-sheet-inner { padding: 26px; }
+.fr-film .poem-sheet-inner { padding: 32px 0; }
+.fr-deco .poem-sheet-inner, .fr-kantha .poem-sheet-inner, .fr-vine .poem-sheet-inner { padding: 30px; }
+.fr-ajrakh .poem-sheet-inner { padding: 34px; }
+.look-more { grid-column: 1 / -1; height: 40px; }
