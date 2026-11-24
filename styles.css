@@ -88,7 +88,7 @@ button:focus-visible, input:focus-visible, textarea:focus-visible { outline: 2px
   height: 36px; padding: 0 var(--s-4); border-radius: var(--r-full);
   border: 1px solid var(--line-strong); background: var(--surface); color: var(--ink);
   font-size: var(--t-2); font-weight: 500; white-space: nowrap;
-  transition: background .16s ease, border-color .16s ease, transform .14s var(--ease-ios), opacity .16s ease;
+  transition: background .16s ease, border-color .16s ease, transform .16s var(--ease-ios), opacity .16s ease;
 }
 .btn:hover { background: var(--surface-2); }
 .btn:active { transform: scale(0.96); }
@@ -158,7 +158,7 @@ button:focus-visible, input:focus-visible, textarea:focus-visible { outline: 2px
   height: 32px; padding: 0 var(--s-3); border-radius: var(--r-full); flex-shrink: 0;
   border: 1px solid var(--line); background: var(--surface); color: var(--ink-2);
   font-size: var(--t-1); font-weight: 500;
-  transition: background-color .16s ease, color .16s ease, border-color .16s ease, transform .14s var(--ease-ios);
+  transition: background-color .16s ease, color .16s ease, border-color .16s ease, transform .16s var(--ease-ios);
 }
 .pill:hover { border-color: var(--line-strong); color: var(--ink); }
 .pill:active { transform: scale(0.95); }
@@ -176,7 +176,7 @@ button:focus-visible, input:focus-visible, textarea:focus-visible { outline: 2px
 .poem-card-frame {
   display: block; position: relative; width: 100%; border-radius: var(--r-lg); overflow: hidden; background: var(--surface-2);
   box-shadow: 0 1px 2px rgba(52, 30, 16, .10), 0 10px 26px -18px rgba(52, 30, 16, .45);
-  transition: transform .5s cubic-bezier(.2, .8, .2, 1), box-shadow .5s cubic-bezier(.2, .8, .2, 1);
+  transition: transform .46s cubic-bezier(.2, .8, .2, 1), box-shadow .46s cubic-bezier(.2, .8, .2, 1);
 }
 .thumb-scale { position: absolute; left: 0; top: 0; width: max-content; transform: scale(var(--thumb, 1)); transform-origin: 0 0; }
 .thumb-scale .poem-sheet { border-radius: 0; box-shadow: none; }
@@ -184,9 +184,9 @@ button:focus-visible, input:focus-visible, textarea:focus-visible { outline: 2px
   display: flex; align-items: baseline; justify-content: space-between; gap: var(--s-2); padding: var(--s-3) 2px 0; height: 44px;
 }
 .poem-card-title { font-size: var(--t-3); font-weight: 600; color: var(--ink); margin: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; line-height: 1.5; }
-.poem-card-title span { background: linear-gradient(var(--brand-red), var(--brand-red)) 0 100% / 0 1.5px no-repeat; transition: background-size .5s cubic-bezier(.2, .8, .2, 1); padding-bottom: 1px; }
+.poem-card-title span { background: linear-gradient(var(--brand-red), var(--brand-red)) 0 100% / 0 1.5px no-repeat; transition: background-size .46s cubic-bezier(.2, .8, .2, 1); padding-bottom: 1px; }
 .poem-card-sub { font-size: var(--t-1); color: var(--ink-2); white-space: nowrap; flex-shrink: 0; font-variant-numeric: tabular-nums; }
-.poem-card .poem-side-img, .poem-card .poem-bg-img { transition: transform .9s cubic-bezier(.2, .8, .2, 1); }
+.poem-card .poem-side-img, .poem-card .poem-bg-img { transition: transform .46s cubic-bezier(.2, .8, .2, 1); }
 @media (hover: hover) {
   .poem-card:hover .poem-card-frame { box-shadow: 0 2px 4px rgba(52, 30, 16, .10), 0 26px 44px -22px rgba(52, 30, 16, .55); }
   .poem-card:hover .poem-card-title span { background-size: 100% 1.5px; }
@@ -197,7 +197,7 @@ button:focus-visible, input:focus-visible, textarea:focus-visible { outline: 2px
 
 /* A carousel reads as a small stack of pages */
 .poem-card-frame.is-stack { overflow: visible; }
-.poem-card-frame.is-stack::before, .poem-card-frame.is-stack::after { content: ""; position: absolute; z-index: -1; inset: 0; border-radius: inherit; background: var(--surface); box-shadow: 0 1px 3px rgba(52, 30, 16, .22); transition: transform .5s cubic-bezier(.2, .8, .2, 1); }
+.poem-card-frame.is-stack::before, .poem-card-frame.is-stack::after { content: ""; position: absolute; z-index: -1; inset: 0; border-radius: inherit; background: var(--surface); box-shadow: 0 1px 3px rgba(52, 30, 16, .22); transition: transform .46s cubic-bezier(.2, .8, .2, 1); }
 .poem-card-frame.is-stack::before { transform: translate(5px, 4px) rotate(1deg); }
 .poem-card-frame.is-stack::after { transform: translate(9px, 8px) rotate(2deg); z-index: -2; opacity: .8; }
 .poem-card-frame.is-stack .thumb-scale { border-radius: var(--r-lg); overflow: hidden; }
@@ -363,7 +363,7 @@ button:focus-visible, input:focus-visible, textarea:focus-visible { outline: 2px
 .new-card .poem-card-frame {
   aspect-ratio: 4 / 5; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: var(--s-2);
   background: transparent; box-shadow: inset 0 0 0 1.5px var(--line-strong); color: var(--ink-2); font-size: var(--t-2); font-weight: 500;
-  transition: transform .5s cubic-bezier(.2, .8, .2, 1), box-shadow .25s ease, color .25s ease, background-color .25s ease;
+  transition: transform .46s cubic-bezier(.2, .8, .2, 1), box-shadow .25s ease, color .25s ease, background-color .25s ease;
 }
 .new-card:hover .poem-card-frame { box-shadow: inset 0 0 0 1.5px var(--accent) !important; color: var(--accent); background: color-mix(in srgb, var(--accent) 5%, transparent); }
 
@@ -384,14 +384,14 @@ button:focus-visible, input:focus-visible, textarea:focus-visible { outline: 2px
 .spark-text:hover { color: var(--ink); text-decoration-color: var(--accent); }
 .spark-next { width: 36px; height: 36px; flex-shrink: 0; border: 0; border-radius: 50%; background: transparent; color: var(--ink-3); display: grid; place-items: center; }
 .spark-next:hover { color: var(--accent); }
-.spark-next svg { transition: transform .5s cubic-bezier(.2, .8, .2, 1); }
+.spark-next svg { transition: transform .46s cubic-bezier(.2, .8, .2, 1); }
 [data-motion="full"] .spark-next:active svg { transform: rotate(90deg); }
 
 .hero-branch { position: absolute; right: -10px; top: 50%; transform: translateY(-50%); width: min(53vw, 780px); aspect-ratio: 1300 / 590; }
 .branch-sway { position: absolute; inset: 0; transform-origin: 100% 18%; }
 .branch-img { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
 .bloom { position: absolute; width: 9.6%; aspect-ratio: 1; margin: -4.8% 0 0 -4.8%; padding: 0; border: 0; background: none; border-radius: 50%; }
-.bloom img { width: 100%; height: 100%; display: block; transition: transform .5s cubic-bezier(.2, .9, .2, 1.1); }
+.bloom img { width: 100%; height: 100%; display: block; transition: transform .46s cubic-bezier(.2, .9, .2, 1.1); }
 .bloom:hover { z-index: 3; }
 .bloom::after {
   content: attr(data-label); position: absolute; left: 50%; top: calc(100% - 2px); transform: translate(-50%, -4px); opacity: 0; pointer-events: none;
@@ -419,7 +419,7 @@ button:focus-visible, input:focus-visible, textarea:focus-visible { outline: 2px
 [data-motion="full"] .branch-sway { animation: sway 8s ease-in-out infinite alternate; }
 [data-motion="full"] .bird img { animation: perch 5.2s ease-in-out infinite; }
 [data-motion="full"] .petal { animation: fall 11s linear infinite; }
-[data-motion="full"] .bloom img, [data-motion="full"] .bud { animation: bloomOpen .7s cubic-bezier(.2, .9, .2, 1.15) backwards; animation-delay: calc(var(--i, 6) * 45ms); }
+[data-motion="full"] .bloom img, [data-motion="full"] .bud { animation: bloomOpen .46s cubic-bezier(.2, .9, .2, 1.15) backwards; animation-delay: calc(var(--i, 6) * 45ms); }
 .petal.p1 { left: 36%; top: 48%; } .petal.p2 { left: 66%; top: 40%; animation-delay: 4.2s !important; } .petal.p3 { left: 20%; top: 36%; animation-delay: 7.6s !important; }
 @keyframes sway { from { transform: rotate(-.55deg); } to { transform: rotate(.6deg); } }
 @keyframes perch { 0%, 62%, 100% { transform: none; } 68% { transform: rotate(-4deg); } 74% { transform: rotate(3deg) translateY(-1px); } 80% { transform: none; } 90% { transform: translateY(1.5px) scaleY(.985); } }
@@ -715,7 +715,7 @@ button:focus-visible, input:focus-visible, textarea:focus-visible { outline: 2px
 .rail-tab {
   height: 46px; border: 0; background: transparent;
   font-size: var(--t-2); font-weight: 500; color: var(--ink-2);
-  transition: color .14s ease;
+  transition: color .16s ease;
 }
 .rail-tab:hover { color: var(--ink); }
 .rail-tab.on { color: var(--ink); }
@@ -744,7 +744,7 @@ button:focus-visible, input:focus-visible, textarea:focus-visible { outline: 2px
   height: var(--hit); padding: 0 var(--s-3); flex-shrink: 0; border-radius: var(--r-full);
   border: 1px solid var(--line); background: transparent; color: var(--ink-2);
   font-size: var(--t-1); font-weight: 500; white-space: nowrap;
-  transition: background-color .14s ease, color .14s ease, border-color .14s ease, transform .14s var(--ease-ios);
+  transition: background-color .16s ease, color .16s ease, border-color .16s ease, transform .16s var(--ease-ios);
 }
 .subtab:hover { border-color: var(--line-strong); color: var(--ink); }
 .subtab:active { transform: scale(0.95); }
@@ -755,7 +755,7 @@ button:focus-visible, input:focus-visible, textarea:focus-visible { outline: 2px
   display: flex; flex-direction: column; align-items: stretch; gap: var(--s-1);
   padding: var(--s-1); border-radius: var(--r-md);
   border: 1px solid var(--line); background: transparent; text-align: center;
-  transition: border-color .14s ease, transform .14s var(--ease-ios);
+  transition: border-color .16s ease, transform .16s var(--ease-ios);
 }
 .paint-btn:hover { border-color: var(--line-strong); }
 .paint-btn:active { transform: scale(0.96); }
@@ -779,7 +779,7 @@ button:focus-visible, input:focus-visible, textarea:focus-visible { outline: 2px
 .paper-btn {
   display: flex; flex-direction: column; gap: var(--s-1); padding: var(--s-2); border-radius: var(--r-md);
   border: 1px solid var(--line); background: transparent; text-align: left;
-  transition: transform .14s var(--ease-ios);
+  transition: transform .16s var(--ease-ios);
 }
 .paper-btn:hover { border-color: var(--line-strong); }
 .paper-btn:active { transform: scale(0.97); }
@@ -794,7 +794,7 @@ button:focus-visible, input:focus-visible, textarea:focus-visible { outline: 2px
 .choice-pill {
   height: 32px; padding: 0 var(--s-3); border-radius: var(--r-md);
   border: 1px solid var(--line); background: transparent; color: var(--ink-2);
-  font-size: var(--t-1); font-weight: 500; transition: background-color .14s ease, color .14s ease, border-color .14s ease, transform .14s var(--ease-ios);
+  font-size: var(--t-1); font-weight: 500; transition: background-color .16s ease, color .16s ease, border-color .16s ease, transform .16s var(--ease-ios);
 }
 .choice-pill:hover { border-color: var(--line-strong); color: var(--ink); }
 .choice-pill:active { transform: scale(0.96); }
@@ -804,7 +804,7 @@ button:focus-visible, input:focus-visible, textarea:focus-visible { outline: 2px
 .font-btn {
   display: flex; align-items: baseline; justify-content: space-between; gap: var(--s-3);
   padding: var(--s-3) var(--s-3); border-radius: var(--r-md); border: 1px solid var(--line);
-  background: transparent; text-align: left; transition: background-color .14s ease, color .14s ease, border-color .14s ease, transform .14s var(--ease-ios);
+  background: transparent; text-align: left; transition: background-color .16s ease, color .16s ease, border-color .16s ease, transform .16s var(--ease-ios);
 }
 .font-btn:hover { border-color: var(--line-strong); }
 .font-btn:active { transform: scale(0.98); }
@@ -833,7 +833,7 @@ button:focus-visible, input:focus-visible, textarea:focus-visible { outline: 2px
 .word-chip {
   padding: var(--s-1) var(--s-3); border-radius: var(--r-full); border: 1px solid var(--line);
   background: var(--bg); font-size: var(--t-1); color: var(--ink);
-  transition: transform .12s ease, background .14s ease;
+  transition: transform .16s ease, background .16s ease;
 }
 .word-chip:hover { border-color: var(--ink-3); background: var(--surface-2); }
 .word-chip:active { transform: scale(0.94); }
@@ -900,7 +900,7 @@ button:focus-visible, input:focus-visible, textarea:focus-visible { outline: 2px
     display: flex; flex-direction: column; align-items: center; justify-content: center; gap: var(--s-1);
     height: 46px; border: 0; background: transparent; color: var(--ink-2);
     font-size: var(--t-1); font-weight: 500; border-radius: var(--r-md);
-    transition: color .14s ease, transform .14s var(--ease-ios);
+    transition: color .16s ease, transform .16s var(--ease-ios);
   }
   .dock-btn:active { transform: scale(0.92); }
   .dock-btn.on { color: var(--ink); font-weight: 600; }
@@ -1209,7 +1209,7 @@ button:focus-visible, input:focus-visible, textarea:focus-visible { outline: 2px
   border: 1.5px solid var(--line-strong); padding: 0;
   display: inline-flex; align-items: center; justify-content: center;
   font-size: var(--t-1); font-weight: 600;
-  transition: transform .14s var(--ease-ios), box-shadow .14s ease;
+  transition: transform .16s var(--ease-ios), box-shadow .16s ease;
 }
 .ink-dot:hover { transform: scale(1.08); }
 .ink-dot.on { box-shadow: 0 0 0 2px var(--surface), 0 0 0 4px var(--ink); }

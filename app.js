@@ -634,7 +634,8 @@ async function shareDownload({ all = true } = {}) {
       downloadPoster(await now.make(i));
       if (which.length > 1) await new Promise(r => setTimeout(r, 260));
     }
-    shareNote(which.length > 1 ? `Downloaded ${which.length} images` : 'Downloaded');
+    hum(12);
+  shareNote(which.length > 1 ? `Downloaded ${which.length} images` : 'Downloaded');
   } catch (err) {
     console.error(err);
     if (state.share) { state.share.failed = true; render(); }
@@ -904,7 +905,7 @@ function hopTo(i, song) {
         { transform: `translate(${dx * 0.5}px, ${dy * 0.5 - far}px) rotate(${-8 * state.facing}deg)`, easing: 'cubic-bezier(.4,0,.5,1)', offset: 0.52 },
         { transform: 'translate(0, 3px)', offset: 0.9 },
         { transform: 'none' }
-      ], { duration: 420 + Math.abs(dx) * 0.7, composite: 'add' });
+      ], { duration: Math.min(460, 300 + Math.abs(dx) * 0.4), composite: 'add' });
     }
   }
   sing(song);
@@ -1068,6 +1069,7 @@ function keepLook(key, id, max = 60) {
 }
 function toggleMine(id) {
   const mine = savedLooks(MINE_KEY);
+  hum(8);
   localStorage.setItem(MINE_KEY, JSON.stringify(mine.includes(id) ? mine.filter(x => x !== id) : [id, ...mine]));
   render();
 }
@@ -1768,6 +1770,7 @@ function doBackup() {
   setTimeout(() => URL.revokeObjectURL(a.href), 500);
   state.moreOpen = false;
   render();
+  hum(12);
   toast('Backup saved to your downloads');
 }
 

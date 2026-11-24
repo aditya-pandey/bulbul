@@ -49,6 +49,8 @@ Nothing animates because the page re-rendered. Two settings, following the syste
 ### Editing model
 A page is a stack: picture, type, page (paper, light, frame) and words. A look sets the first three together. Every other control changes one layer and leaves the rest alone: choosing a picture keeps its placement, choosing a paper keeps the picture. Layer keys live in `LAYERS` in `data.js`.
 
+Every transition runs between 160 and 460 ms. Only ambient loops on the home page (the swaying branch, falling petals, the bird's breathing) and the shimmer and ring while something is being made last longer, and they stop in Calm. On Android, in Full, a light vibration marks a centre snap, a keepsake landing, a look kept, and an image or backup saved.
+
 ### Illustration
 Gouache shapes with a wobbling edge and dry-brush texture over a watercolour bloom. Figures are seen from behind or without features. Madder, vermilion, turmeric, indigo, teal and sage on warm paper. Transparent WebP, square for Stories, 2:1 for landscapes.
 
