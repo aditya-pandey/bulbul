@@ -168,6 +168,7 @@ const state = {
   slideIdx: 0,
   editingRich: false,
   viewing: null,
+  help: false,
   examplesOpen: false,
   heard: '',
   share: null,
@@ -508,6 +509,7 @@ function renderViewer() {
     </div>`;
 }
 function viewExample(id) {
+  rememberFocus();
   state.viewing = { id, slide: 0 };
   clearTimeout(songTimer);
   render();
@@ -548,12 +550,24 @@ function openShare() {
   prepareShare();
   document.querySelector('.share [data-close]')?.focus({ preventScroll: true });
 }
+let overlayFrom = null; // what opened the overlay, so focus can go back
+function rememberFocus() {
+  const el = document.activeElement;
+  overlayFrom = el?.id ? '#' + el.id : el?.dataset?.example ? `[data-example="${el.dataset.example}"]` : el?.dataset?.bloom ? `[data-bloom="${el.dataset.bloom}"]` : null;
+}
 function closeOverlay() {
-  const wasShare = Boolean(state.share);
+  const back = state.share ? '#share-btn' : overlayFrom;
   state.share = null;
   state.viewing = null;
+  state.help = false;
   render();
-  if (wasShare) document.getElementById('share-btn')?.focus();
+  if (back) document.querySelector(back)?.focus({ preventScroll: true });
+}
+function openHelp() {
+  rememberFocus();
+  state.help = true;
+  render();
+  document.querySelector('.help [data-close]')?.focus();
 }
 function shareNow() {
   const poem = getActivePoem();
@@ -770,6 +784,22 @@ function renderShare() {
         </div>
       </div>
     </div>`;
+}
+
+const SHORTCUTS = [
+  ['Undo', '⌘ Z', 'Ctrl Z'], ['Redo', '⇧ ⌘ Z', 'Ctrl Y'], ['Share', 'S', 'S'], ['Previous and next slide', '←  →', '←  →'],
+  ['Looks, Picture, Type, Page, Words', '1 – 5', '1 – 5'], ['Write or design', 'W', 'W'], ['Find a poem', '⌘ K', 'Ctrl K'], ['This list', '?', '?']
+];
+const onMac = /Mac|iPhone|iPad/.test(navigator.platform);
+function renderHelp() {
+  return state.help ? `
+    <div class="overlay" data-overlay="help">
+      <div class="overlay-scrim" data-close></div>
+      <div class="panel help" role="dialog" aria-modal="true" aria-label="Keyboard shortcuts">
+        <div class="panel-top"><h2 class="panel-title">Shortcuts</h2><button type="button" class="icon-btn" data-close aria-label="Close">${ICONS.close}</button></div>
+        <dl>${SHORTCUTS.map(([what, mac, pc]) => `<div><dt>${what}</dt><dd><kbd>${onMac ? mac : pc}</kbd></dd></div>`).join('')}</dl>
+      </div>
+    </div>` : '';
 }
 
 function fitOverlay() {
@@ -995,14 +1025,14 @@ function renderGallery() {
       </div>`;
 
   const filterBar = none ? '' : `<div class="filter-bar">
-          <div class="mood-pills" role="tablist" aria-label="Filter poems by collection">
-            ${pills.map(md => `<button type="button" role="tab" aria-selected="${state.moodFilter === md}" class="pill${state.moodFilter === md ? ' on' : ''}" data-mood="${esc(md)}">${esc(md)}${md === 'Archived' ? ` (${archivedCount})` : ''}</button>`).join('')}
+          <div class="mood-pills" role="group" aria-label="Collections">
+            ${pills.map(md => `<button type="button" aria-pressed="${state.moodFilter === md}" class="pill${state.moodFilter === md ? ' on' : ''}" data-mood="${esc(md)}">${esc(md)}${md === 'Archived' ? ` (${archivedCount})` : ''}</button>`).join('')}
           </div>
           <span class="gallery-stat">${filtered.length === activeCount || isArchTab ? `${filtered.length} ${filtered.length === 1 ? 'poem' : 'poems'}` : `${filtered.length} of ${activeCount}`}</span>
         </div>`;
 
   const galleryMenu = state.moreOpen ? `
-    <div class="ios-menu" role="menu">
+    <div class="ios-menu" role="menu" aria-label="More">
       <button type="button" class="ios-menu-item" id="m-backup-btn" role="menuitem"><span>Save a backup</span>${ICONS.download}</button>
       <button type="button" class="ios-menu-item" id="m-import-btn" role="menuitem"><span>Restore a backup</span>${ICONS.upload}</button>
       <button type="button" class="ios-menu-item" id="m-motion-btn" role="menuitem"><span>${calm() ? 'Turn motion on' : 'Turn motion off'}</span>${ICONS.motion}</button>
@@ -1010,7 +1040,7 @@ function renderGallery() {
   ` : '';
 
   return `
-    <div class="shell" data-view="gallery" ${state.viewing ? 'inert' : ''}>
+    <div class="shell" data-view="gallery" ${state.viewing || state.help ? 'inert' : ''}>
       <div class="gallery-head">
       <header class="topbar">
         <div class="brand">
@@ -1423,20 +1453,20 @@ function renderStudio(poem) {
     : `<span>${activeTab.note}</span>`;
 
   const mobileMoreMenu = state.moreOpen ? `
-    <div class="ios-menu" role="menu">
-      <button type="button" class="ios-menu-item" id="m-shuffle-btn" role="menuitem"><span>Shuffle pairing</span>${ICONS.sparkles}</button>
+    <div class="ios-menu" role="menu" aria-label="More">
+      <button type="button" class="ios-menu-item" id="m-shuffle-btn" role="menuitem"><span>Try a look at random</span>${ICONS.sparkles}</button>
       <button type="button" class="ios-menu-item" id="m-copy-image-btn" role="menuitem"><span>Copy image</span>${ICONS.copy}</button>
       <button type="button" class="ios-menu-item" id="m-copy-btn" role="menuitem"><span>Copy the words</span>${ICONS.write}</button>
-      <button type="button" class="ios-menu-item" id="m-theme-btn" role="menuitem"><span>${state.theme === 'dark' ? 'Light studio' : 'Night studio'}</span>${state.theme === 'dark' ? ICONS.sun : ICONS.moon}</button>
+      <button type="button" class="ios-menu-item" id="m-theme-btn" role="menuitem"><span>${state.theme === 'dark' ? 'Light' : 'Dark'}</span>${state.theme === 'dark' ? ICONS.sun : ICONS.moon}</button>
       <button type="button" class="ios-menu-item" id="m-motion-btn" role="menuitem"><span>${calm() ? 'Turn motion on' : 'Turn motion off'}</span>${ICONS.motion}</button>
       <div class="ios-menu-sep"></div>
-      <button type="button" class="ios-menu-item" id="m-archive-btn" role="menuitem"><span>${poem.archived ? 'Unarchive poem' : 'Archive poem'}</span>${ICONS.archive}</button>
+      <button type="button" class="ios-menu-item" id="m-archive-btn" role="menuitem"><span>${poem.archived ? 'Bring back from Archive' : 'Put away in Archive'}</span>${ICONS.archive}</button>
       <button type="button" class="ios-menu-item danger" id="m-delete-btn" role="menuitem"><span>Delete poem</span>${ICONS.trash}</button>
     </div>
   ` : '';
 
   return `
-    <div ${state.share ? 'inert ' : ''}class="studio is-${state.mode}${state.mobileSheetOpen ? ' has-sheet' : ''}" data-view="studio-${esc(poem.id)}">
+    <div ${state.share || state.help ? 'inert ' : ''}class="studio is-${state.mode}${state.mobileSheetOpen ? ' has-sheet' : ''}" data-view="studio-${esc(poem.id)}">
       <div class="studio-stage">
         <div class="stage-bar">
           <div class="stage-bar-left">
@@ -1477,11 +1507,11 @@ function renderStudio(poem) {
 
       <aside class="studio-rail${state.mobileSheetOpen ? ' sheet-open' : ''}${state.sheetTall ? ' is-tall' : ''}" aria-label="Poem design inspector">
         <button type="button" class="sheet-grabber" id="sheet-grabber" aria-label="${state.sheetTall ? 'Make the panel smaller' : 'Make the panel taller'}"></button>
-        <div class="rail-tabs" role="tablist" style="--tab:${tabMeta.findIndex(t => t.id === state.railTab)}">
-          ${tabMeta.map(tb => `<button type="button" role="tab" aria-selected="${state.railTab === tb.id}" class="rail-tab${state.railTab === tb.id ? ' on' : ''}" data-railtab="${tb.id}">${tb.label}${changed?.includes(tb.layer) ? '<i class="tab-dot" title="Changed from the look"></i>' : ''}</button>`).join('')}
+        <div class="rail-tabs" role="tablist" aria-label="Design" style="--tab:${tabMeta.findIndex(t => t.id === state.railTab)}">
+          ${tabMeta.map(tb => `<button type="button" role="tab" id="tab-${tb.id}" aria-controls="panel" tabindex="${state.railTab === tb.id ? 0 : -1}" aria-selected="${state.railTab === tb.id}" class="rail-tab${state.railTab === tb.id ? ' on' : ''}" data-railtab="${tb.id}">${tb.label}${changed?.includes(tb.layer) ? '<i class="tab-dot" title="Changed from the look"></i>' : ''}</button>`).join('')}
         </div>
         <div class="rail-note">${railNote}<button type="button" class="icon-btn sheet-close" id="sheet-done-btn" aria-label="Close panel">${ICONS.down}</button></div>
-        <div class="rail-body" data-tabpanel="${state.railTab}">${railContent}</div>
+        <div class="rail-body" id="panel" role="tabpanel" aria-labelledby="tab-${state.railTab}" data-tabpanel="${state.railTab}">${railContent}</div>
         <div class="rail-foot">
           <button type="button" class="btn sm" id="archive-btn">${ICONS.archive} ${poem.archived ? 'Unarchive' : 'Archive'}</button>
           <button type="button" class="btn sm danger" id="delete-btn">${ICONS.trash} Delete</button>
@@ -1490,7 +1520,7 @@ function renderStudio(poem) {
 
       <nav class="ios-dock" aria-label="Studio tools">
         ${tabMeta.map(tb => `
-          <button type="button" class="dock-btn${state.mobileSheetOpen && state.railTab === tb.id ? ' on' : ''}" data-docktab="${tb.id}">
+          <button type="button" class="dock-btn${state.mobileSheetOpen && state.railTab === tb.id ? ' on' : ''}" data-docktab="${tb.id}" aria-expanded="${state.mobileSheetOpen && state.railTab === tb.id}" aria-controls="panel">
             ${tb.icon}
             <span>${tb.label}${changed?.includes(tb.layer) ? '<i class="tab-dot"></i>' : ''}</span>
           </button>
@@ -1538,7 +1568,7 @@ function fitStage() {
   if (!desktopStage.matches && state.mobileSheetOpen) {
     // The panel's resting height (see .studio-rail), not its height mid-drag or when made taller
     const dock = document.querySelector('.ios-dock')?.offsetHeight || 0;
-    const rest = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--sheet-h')) || 268;
+    const rest = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--sheet-h')) || 260;
     const free = stage.clientHeight - rest - dock - 20;
     const tall = SHEET_RATIO[cls] ? (baseW / SHEET_RATIO[cls]) * zoom : sheet.offsetHeight * zoom;
     lift = Math.max(0.36, Math.min(1, free / tall));
@@ -1550,13 +1580,13 @@ function fitStage() {
   root.setProperty('--stage-rise', Math.round(rise) + 'px');
 }
 
-const stageObserver = new ResizeObserver(() => fitStage());
+const stageObserver = new ResizeObserver(() => { fitStage(); fitThumbs(); });
 
 // Thumbnails are the real sheet, scaled to their frame
 function fitThumbs() {
   for (const grid of document.querySelectorAll('.anthology-grid')) {
     const gap = innerWidth <= 600 ? 12 : 22;
-    const meta = innerWidth <= 600 ? 32 : 44;
+    const meta = Math.max(innerWidth <= 600 ? 32 : 44, grid.querySelector('.poem-card-meta')?.offsetHeight || 0);
     for (const card of grid.children) {
       const frame = card.querySelector('.poem-card-frame');
       const sheet = card.querySelector('.poem-sheet');
@@ -1657,7 +1687,7 @@ function render({ fade = false, dir = 0 } = {}) {
   if (!root) return;
   const poem = getActivePoem();
   const cap = fade && poem ? captureGhost() : null;
-  morph(root, poem ? renderStudio(poem) + renderShare() : renderGallery());
+  morph(root, (poem ? renderStudio(poem) + renderShare() : renderGallery()) + renderHelp());
   document.title = poem ? `${poem.title || 'Untitled poem'} · Bulbul` : 'Bulbul · For words that sing';
 
   const stage = document.querySelector('.stage-canvas-wrap');
@@ -1911,6 +1941,21 @@ function doDelete() {
   toast(`Deleted “${poem.title || 'Untitled poem'}”`, 7000, { label: 'Undo', run: () => { state.poems.splice(Math.max(0, at), 0, poem); savePoems(state.poems); render(); } });
 }
 
+function toggleMenu(key) {
+  state[key] = !state[key];
+  if (state[key]) state[key === 'moreOpen' ? 'formatOpen' : 'moreOpen'] = false;
+  render();
+  if (state[key]) (document.querySelector('.ios-menu [aria-checked="true"]') || document.querySelector('.ios-menu .ios-menu-item'))?.focus({ preventScroll: true });
+}
+function closeMenus(refocus) {
+  if (!state.moreOpen && !state.formatOpen) return false;
+  const id = state.moreOpen ? 'more-btn' : 'format-btn';
+  state.moreOpen = false;
+  state.formatOpen = false;
+  render();
+  if (refocus) document.getElementById(id)?.focus({ preventScroll: true });
+  return true;
+}
 function setMode(mode) {
   if (state.mode === mode) return;
   state.mode = mode;
@@ -2005,7 +2050,7 @@ initGestures({
 const CLICKS = [
   ['#theme-btn, #m-theme-btn', toggleTheme],
   ['#motion-btn, #m-motion-btn', toggleMotion],
-  ['#more-btn', () => { state.moreOpen = !state.moreOpen; render(); }],
+  ['#more-btn', () => toggleMenu('moreOpen')],
 
   // Anthology
   ['#new-poem-btn, #mobile-new-btn, #empty-new-btn, #new-card-btn', () => createPoem()],
@@ -2030,7 +2075,7 @@ const CLICKS = [
   ['[data-mode]', el => setMode(el.dataset.mode)],
   ['#undo-btn', () => stepHistory(true)],
   ['#redo-btn', () => stepHistory(false)],
-  ['#format-btn', () => { state.formatOpen = !state.formatOpen; render(); }],
+  ['#format-btn', () => toggleMenu('formatOpen')],
   ['#shuffle-btn, #m-shuffle-btn', doShuffle],
   ['#mode-single-btn', () => { if (getActivePoem().carousel) patchActive({ carousel: false }); }],
   ['#mode-carousel-btn', () => {
@@ -2122,8 +2167,10 @@ const CLICKS = [
   ['[data-textsize]', el => patchActive({ textSize: el.dataset.textsize })],
   ['[data-ratio]', el => {
     const r = el.dataset.ratio;
+    const fromMenu = state.formatOpen;
     state.formatOpen = false;
     patchActive({ ratio: r, carousel: r === 'auto' ? false : Boolean(getActivePoem().carousel) });
+    if (fromMenu) document.getElementById('format-btn')?.focus({ preventScroll: true });
   }],
   ['[data-frame]', el => patchActive({ frame: el.dataset.frame })],
   ['[data-align]', el => patchActive({ align: el.dataset.align })],
@@ -2335,20 +2382,72 @@ document.addEventListener('keydown', e => {
   patchActive({ textX: hold((poem.textX || 0) + step[0] * by), textY: hold((poem.textY || 0) + step[1] * by) }, { fade: false });
 });
 
+const typing = el => Boolean(el?.closest?.('input:not([type=range]), textarea, [contenteditable]'));
+
 window.addEventListener('keydown', e => {
-  if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 's' && state.activeId) {
-    e.preventDefault();
-    toast('Saved on this device already');
-  }
+  const cmd = e.metaKey || e.ctrlKey;
+  const key = e.key.toLowerCase();
+  const inField = typing(e.target);
+  const studio = Boolean(state.activeId) && !state.share && !state.help;
+
   if (e.key === 'Escape') {
-    if (state.share || state.viewing) { closeOverlay(); return; }
-    if (state.moreOpen) { state.moreOpen = false; render(); return; }
+    if (state.share || state.viewing || state.help) { closeOverlay(); return; }
+    if (closeMenus(true)) return;
     if (state.mobileSheetOpen) { closeSheet(); return; }
-    if (state.formatOpen) { state.formatOpen = false; render(); document.getElementById('format-btn')?.focus(); return; }
+    if (inField && state.activeId) e.target.blur();
+    return;
   }
-  if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k' && !state.activeId) {
+
+  // Menus
+  const menu = document.querySelector('.ios-menu');
+  if (menu && menu.contains(document.activeElement)) {
+    const items = [...menu.querySelectorAll('.ios-menu-item')];
+    const at = items.indexOf(document.activeElement);
+    const to = { ArrowDown: at + 1, ArrowUp: at - 1, Home: 0, End: items.length - 1 }[e.key];
+    if (to !== undefined) { e.preventDefault(); items[(to + items.length) % items.length].focus(); return; }
+    if (e.key === 'Tab') { closeMenus(true); e.preventDefault(); return; }
+  }
+  // Tabs
+  if (e.target.matches?.('.rail-tab')) {
+    const tabs = [...document.querySelectorAll('.rail-tab')];
+    const at = tabs.indexOf(e.target);
+    const to = { ArrowRight: at + 1, ArrowLeft: at - 1, Home: 0, End: tabs.length - 1 }[e.key];
+    if (to !== undefined) {
+      e.preventDefault();
+      const next = tabs[(to + tabs.length) % tabs.length].dataset.railtab;
+      setTab(next);
+      document.getElementById('tab-' + next)?.focus();
+      return;
+    }
+  }
+
+  if (cmd && key === 's' && state.activeId) { e.preventDefault(); toast('Saved on this device already'); return; }
+  if (cmd && key === 'k' && !state.activeId) { e.preventDefault(); document.getElementById('gallery-search')?.focus(); return; }
+  // Inside a field, undo belongs to the field
+  if (cmd && studio && !inField && (key === 'z' || key === 'y')) { e.preventDefault(); stepHistory(key === 'z' && !e.shiftKey); return; }
+  if (cmd || e.altKey || inField) return;
+  if (e.key === '?') { e.preventDefault(); state.help ? closeOverlay() : openHelp(); return; }
+  if (state.viewing && (e.key === 'ArrowLeft' || e.key === 'ArrowRight')) {
+    document.querySelector(`.viewer [data-vslide]:${e.key === 'ArrowRight' ? 'last' : 'first'}-of-type:not([disabled])`)?.click();
+    return;
+  }
+  if (state.share && (e.key === 'ArrowLeft' || e.key === 'ArrowRight') && !e.target.matches('button, [type=range]')) {
+    document.querySelector(`.share-view [data-spage]:${e.key === 'ArrowRight' ? 'last' : 'first'}-of-type:not([disabled])`)?.click();
+    return;
+  }
+  if (!studio) return;
+  if (key === 's') { e.preventDefault(); openShare(); return; }
+  if (key === 'w') { e.preventDefault(); setMode(state.mode === 'write' ? 'design' : 'write'); return; }
+  const tab = ['looks', 'artwork', 'fonts', 'style', 'write'][Number(e.key) - 1];
+  if (tab) {
+    if (state.mode === 'write') { state.mode = 'design'; localStorage.setItem(MODE_KEY, 'design'); }
+    if (!desktopStage.matches) state.mobileSheetOpen = true;
+    setTab(tab);
+    return;
+  }
+  if (getActivePoem()?.carousel && !e.target.closest('[data-grab], [type=range]') && (e.key === 'ArrowLeft' || e.key === 'ArrowRight')) {
     e.preventDefault();
-    document.getElementById('gallery-search')?.focus();
+    document.getElementById(e.key === 'ArrowRight' ? 'next-slide-btn' : 'prev-slide-btn')?.click();
   }
 });
 

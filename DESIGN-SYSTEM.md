@@ -46,6 +46,16 @@ Nothing animates because the page re-rendered. Two settings, following the syste
 - **Full:** cards lift on hover (the frame moves, never the hit area), filtered cards glide, the poster cross-fades, carousel slides travel, a poem carries from its card to the studio.
 - **Calm:** everything fades, nothing travels.
 
+### Patterns
+- **Choice:** selected states use ink. Red is the one primary action, the caret of attention on a hint, and the kept heart.
+- **Pictures over words:** placement, frame, title, line and alignment are pictograms in `pictos.js` (40 x 50, interface ink), with a label below and an `aria-label`.
+- **Studio:** Write hides the tools; Design shows them. Format, Slides, Undo and Redo live in the bar. Each change stores only the keys it touched (`recordChange`), so undo never disturbs the words.
+- **Phone panel:** `--sheet-h` 260 px, never over 42 percent. Pickers are single rows at rest and spread into grids when pulled up. The poster stays whole above it.
+- **Picking up:** hold the words or a keepsake and move. Guides show at the page centre. Enter edits, arrows nudge, 0 resets.
+- **States:** `currentNotice()` shows one line and one action. Empty, search, failed and offline each say what happened, then what to do.
+- **Keys:** `?` lists them. Tabs and menus move with arrows and return focus when they close.
+- **Voice:** quiet, warm, plain. No exclamation marks, no technical words.
+
 ### Editing model
 A page is a stack: picture, type, page (paper, light, frame) and words. A look sets the first three together. Every other control changes one layer and leaves the rest alone: choosing a picture keeps its placement, choosing a paper keeps the picture. Layer keys live in `LAYERS` in `data.js`.
 

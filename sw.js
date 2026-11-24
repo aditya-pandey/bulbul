@@ -1,4 +1,4 @@
-const CACHE = 'bulbul-v8';
+const CACHE = 'bulbul-v9';
 const SHELL = [
   './',
   './index.html',
