@@ -213,6 +213,45 @@ button:focus-visible, input:focus-visible, textarea:focus-visible { outline: 2px
 [data-theme="dark"] .save-chip svg { color: #8FBF8F; }
 .save-chip.is-off { color: var(--danger); font-weight: 600; }
 
+/* Continue writing */
+.continue {
+  display: flex; align-items: center; gap: var(--s-4); width: 100%; margin: var(--s-4) 0; padding: var(--s-3) var(--s-4) var(--s-3) var(--s-3);
+  border: 0; border-radius: var(--r-lg); background: var(--surface); color: var(--ink); text-align: left; box-shadow: 0 1px 2px rgba(52, 30, 16, .08), 0 10px 26px -20px rgba(52, 30, 16, .4);
+  transition: box-shadow .3s ease;
+}
+.continue:hover { box-shadow: 0 1px 3px rgba(52, 30, 16, .12), 0 18px 34px -20px rgba(52, 30, 16, .5); }
+.continue-art { flex: 0 0 84px; height: 104px; display: grid; place-items: center; overflow: hidden; border-radius: var(--r-sm); background: var(--surface-2); }
+.continue-frame { position: relative; display: block; width: 84px; overflow: hidden; }
+.continue-words { flex: 1; min-width: 0; display: grid; gap: 2px; }
+.continue-lbl { font-size: var(--t-2); font-weight: 600; color: var(--accent); }
+.continue-title { font-family: var(--font-brand), 'Tiro Devanagari Hindi', serif; font-size: var(--t-6); font-weight: 500; line-height: 1.25; }
+.continue-line { font-size: var(--t-3); color: var(--ink-2); }
+.continue-when { font-size: var(--t-1); color: var(--ink-3); }
+.continue-title, .continue-line { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.continue-go { color: var(--ink-3); transition: transform .3s cubic-bezier(.2, .8, .2, 1); }
+[data-motion="full"] .continue:hover .continue-go { transform: translateX(4px); }
+
+.example-row { display: grid; grid-auto-flow: column; grid-auto-columns: 176px; gap: var(--s-5); align-items: start; overflow-x: auto; scrollbar-width: none; margin: 0 -24px; padding: 4px 24px 10px; scroll-snap-type: x proximity; scroll-padding-left: 24px; }
+.example-row::-webkit-scrollbar { display: none; }
+.example-row .poem-card { scroll-snap-align: start; }
+
+/* First visit: one thing to do */
+.first { position: relative; min-height: 100dvh; display: grid; grid-template-columns: minmax(0, 1fr); align-items: center; padding: var(--s-6) max(24px, calc(50vw - 660px)); overflow: clip; }
+.first-brand { position: absolute; left: max(24px, calc(50vw - 660px)); top: calc(20px + env(safe-area-inset-top, 0px)); display: flex; align-items: center; gap: 10px; }
+.first .brand-lockup-svg { height: 40px; }
+.first-branch { top: 46%; width: min(58vw, 860px); }
+.first-words { position: relative; max-width: 440px; display: grid; justify-items: start; gap: var(--s-5); }
+.first-spark { margin: 0 0 var(--s-2); font-family: var(--font-brand); font-size: 2.75rem; font-weight: 500; line-height: 1.12; letter-spacing: -.012em; text-wrap: balance; }
+.btn.big { height: 52px; padding: 0 var(--s-8); font-size: var(--t-4); font-weight: 600; }
+.quiet-link { min-height: var(--hit); padding: 0; border: 0; background: transparent; color: var(--ink-2); font-size: var(--t-3); text-decoration: underline; text-decoration-color: var(--line-strong); text-underline-offset: 4px; }
+.quiet-link:hover { color: var(--ink); text-decoration-color: var(--accent); }
+.bloom-still { position: absolute; width: 9.6%; margin: -4.8% 0 0 -4.8%; }
+[data-motion="full"] .bloom-still { animation: bloomOpen .46s cubic-bezier(.2, .9, .2, 1.15) backwards; animation-delay: calc(var(--i) * 60ms); }
+
+/* One hint at a time, under the page */
+.studio-stage { position: relative; }
+.hint-line { position: absolute; left: 50%; bottom: 52px; z-index: 8; transform: translateX(-50%); margin: 0; padding: var(--s-2) var(--s-4); border-radius: var(--r-full); background: var(--on-bg); color: var(--on-ink); font-size: var(--t-2); font-weight: 500; white-space: nowrap; pointer-events: none; animation: softFade .3s ease both; }
+
 /* ================= OVERLAYS: share and example viewer ================= */
 .overlay { position: fixed; inset: 0; z-index: 70; display: grid; place-items: center; padding: var(--s-6); }
 .overlay-scrim { position: absolute; inset: 0; background: rgba(28, 20, 14, .5); animation: softFade .24s ease both; }
@@ -1339,6 +1378,19 @@ button:focus-visible, input:focus-visible, textarea:focus-visible { outline: 2px
 .fr-ajrakh .poem-sheet-inner { padding: 34px; }
 .look-more { grid-column: 1 / -1; height: 40px; }
 
+@media (max-width: 860px) {
+  .first { display: flex; flex-direction: column; justify-content: flex-end; align-items: stretch; min-height: 100dvh; padding: 96px 24px calc(40px + env(safe-area-inset-bottom, 0px)); }
+  .first-branch { position: relative; top: auto; right: auto; transform: none; width: calc(100% + 72px); margin: 0 -48px auto 0; }
+  .first-spark { font-size: 2.25rem; }
+  .first-words { max-width: none; }
+  .first .btn.big { width: 100%; }
+  .quiet-link { align-self: center; justify-self: center; }
+  .example-row { grid-auto-columns: 148px; gap: var(--s-3); margin: 0 -16px; padding: 4px 16px 10px; scroll-padding-left: 16px; }
+  .continue-art { flex-basis: 72px; height: 90px; } .continue-frame { width: 72px; }
+  .hint-line { bottom: calc(78px + env(safe-area-inset-bottom, 0px)); }
+  .has-sheet .hint-line { display: none; }
+}
+
 /* ================= TOUCH TARGETS ================= */
 @media (max-width: 860px), (pointer: coarse) {
   :root { --hit: 44px; }
@@ -1352,3 +1404,6 @@ button:focus-visible, input:focus-visible, textarea:focus-visible { outline: 2px
   .rail-note > * { position: relative; }
   .seg-btn { min-width: 48px; }
 }
+
+.song.is-low.to-left { transform: translate(calc(-100% - 8px), 16px); border-radius: var(--r-lg) var(--r-xs) var(--r-lg) var(--r-lg); transform-origin: 100% 0; }
+.song.is-low.to-right { transform: translate(8px, 16px); border-radius: var(--r-xs) var(--r-lg) var(--r-lg) var(--r-lg); transform-origin: 0 0; }

@@ -16,6 +16,8 @@ import { renderSheetHTML, fitSheet, clearFits, esc, stripEmphasis, SHEET_W, SHEE
 // Storage keys predate the current name. Keep them: renaming would orphan saved poems.
 const STORAGE_KEY = 'noor.poems.v1';
 const THEME_KEY = 'noor.theme';
+const BEGAN_KEY = 'noor.began';
+const HINT_KEY = 'noor.hints';
 const NAME_KEY = 'noor.name';
 const MOTION_KEY = 'noor.motion';
 const LEGACY_KEYS = ['folio.poems.v1'];
@@ -115,6 +117,8 @@ const state = {
   rhymeQuery: '',
   editingRich: false,
   viewing: null,
+  examplesOpen: false,
+  heard: '',
   share: null,
   galleryScroll: 0,
   sparkShift: 0,
@@ -280,6 +284,7 @@ function createPoem({ spark = '', lookId = '' } = {}) {
     createdAt: Date.now(),
     updatedAt: Date.now()
   };
+  begin();
   state.railTab = 'looks';
   state.poems.unshift(p);
   savePoems(state.poems);
@@ -338,7 +343,7 @@ function renderHero() {
           ${inBloom.map((p, i) => `<button type="button" class="bloom" data-bloom="${esc(p.id)}" data-label="${esc(p.title || 'Untitled poem')}" aria-label="Open ${esc(p.title || 'Untitled poem')}" style="left:${BLOOMS[i][0]}%;top:${BLOOMS[i][1]}%;--i:${i}"><img src="./assets/home/bloom-${i % 3 + 1}.webp" alt=""></button>`).join('')}
         </div>
         <button type="button" class="bird" id="bird" aria-label="Hear a line from your poems" style="left:${px}%;top:${py}%"><span class="bird-turn" style="--face:${state.facing}"><img src="./assets/home/bulbul.webp" alt=""></span></button>
-        ${state.song ? `<button type="button" class="song ${px < 46 ? 'to-right' : 'to-left'}" data-song="${esc(state.song.id)}" style="left:${px}%;top:${py}%">${esc(state.song.line)}</button>` : ''}
+        ${state.song ? `<button type="button" class="song ${px < 46 ? 'to-right' : 'to-left'}${py < 46 ? ' is-low' : ''}" data-song="${esc(state.song.id)}" style="left:${px}%;top:${py}%">${esc(state.song.line)}</button>` : ''}
         <span class="petal p1"></span><span class="petal p2"></span><span class="petal p3"></span>
         <p class="branch-note">${kept.length ? 'A blossom for every poem' : 'Examples, until yours bloom'}</p>
       </div>
@@ -354,20 +359,37 @@ function thumbHTML(p, ratio) {
 const thumbRatio = st => (st.ratio === 'auto' ? (st.carousel ? '4:5' : '2:3') : st.ratio);
 
 function renderExamples() {
+  // Once there is a body of work, the examples step back to one row
+  const tuck = state.poems.filter(p => !p.archived).length >= 3;
+  const row = tuck && !state.examplesOpen;
   return `
     <section class="home-examples">
-      <div class="home-top"><h2 class="home-h">Made in Bulbul</h2><span class="gallery-stat">Poems by Aditya</span></div>
-      <div class="anthology-grid">${EXAMPLES.map(p => {
+      <div class="home-top"><h2 class="home-h">Made in Bulbul</h2>${tuck ? `<button type="button" class="note-btn" id="examples-all" aria-expanded="${state.examplesOpen}">${state.examplesOpen ? 'Show fewer' : 'See all'}</button>` : '<span class="gallery-stat">Poems by Aditya</span>'}</div>
+      <div class="${row ? 'example-row' : 'anthology-grid'}" data-grid="examples-${row ? 'row' : 'all'}">${EXAMPLES.map(p => {
         const st = resolveStyle(p);
         const r = thumbRatio(st);
         return `
           <button type="button" class="poem-card" data-example="${p.id}" aria-label="${esc(p.title)}, ${esc(p.kind)}">
-            <span class="poem-card-frame${st.carousel ? ' is-stack' : ''}" style="aspect-ratio:${r.replace(':', ' / ')}"><span class="thumb-scale">${thumbHTML(p, r)}</span></span>
+            <span class="poem-card-frame${st.carousel ? ' is-stack' : ''}" data-thumb-cls="rat-${r.replace(':', '-')}" style="aspect-ratio:${r.replace(':', ' / ')}"><span class="thumb-scale">${thumbHTML(p, r)}</span></span>
             <span class="poem-card-meta"><span class="poem-card-title"><span>${esc(p.title)}</span></span><span class="poem-card-sub">${esc(p.kind)}</span></span>
           </button>`;
       }).join('')}</div>
     </section>`;
 }
+
+/* ---------- First hints: one at a time, gone once done ---------- */
+
+const HINTS = ['Tap the page and write a line.', 'Try a look. Your words stay the same.', 'Share it when it feels done.'];
+function hintAt() {
+  const n = localStorage.getItem(HINT_KEY);
+  return n === null ? (state.poems.length > 1 ? HINTS.length : 0) : Number(n);
+}
+function hintDone(i) {
+  if (hintAt() !== i) return;
+  localStorage.setItem(HINT_KEY, String(i + 1));
+  if (state.activeId) render();
+}
+const renderHint = () => (HINTS[hintAt()] ? `<p class="hint-line" data-hint="${hintAt()}" role="status">${HINTS[hintAt()]}</p>` : '');
 
 /* ---------- Example viewer ---------- */
 
@@ -433,6 +455,7 @@ function openShare() {
   state.mobileSheetOpen = false;
   state.editingRich = false;
   document.querySelectorAll('.toast').forEach(n => n.remove());
+  hintDone(2);
   state.share = { platform: 'image', split: st.carousel, page: state.slideIdx, caption: captionFor(poem), who: (poem.sign || '').replace(/^[\s—–~-]+/, '').trim() || localStorage.getItem(NAME_KEY) || '', as: 'page', backdrop: 'poem', ready: false, note: '' };
   render();
   prepareShare();
@@ -666,6 +689,58 @@ function fitOverlay() {
   });
 }
 
+function agoText(t) {
+  const m = Math.max(0, Math.round((Date.now() - (t || 0)) / 60000));
+  if (m < 2) return 'just now';
+  if (m < 60) return `${m} minutes ago`;
+  if (m < 120) return 'an hour ago';
+  if (m < 1440) return `${Math.round(m / 60)} hours ago`;
+  if (m < 2880) return 'yesterday';
+  return `on ${new Date(t).toLocaleDateString(undefined, { day: 'numeric', month: 'long' })}`;
+}
+
+function renderContinue() {
+  const last = state.poems.filter(p => !p.archived).sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0))[0];
+  if (!last) return '';
+  const lines = poemLines(last);
+  const r = thumbRatio(resolveStyle(last));
+  return `
+    <button type="button" class="continue" data-open="${esc(last.id)}">
+      <span class="continue-art"><span class="continue-frame" data-thumb-cls="rat-${r.replace(':', '-')}" style="aspect-ratio:${r.replace(':', ' / ')}"><span class="thumb-scale">${thumbHTML(last, r)}</span></span></span>
+      <span class="continue-words">
+        <span class="continue-lbl">Continue writing</span>
+        <span class="continue-title">${esc(last.title || 'Untitled poem')}</span>
+        <span class="continue-line">${esc(lines[lines.length - 1] || 'An open page')}</span>
+        <span class="continue-when">Edited ${agoText(last.updatedAt)}</span>
+      </span>
+      <span class="continue-go">${ICONS.next}</span>
+    </button>`;
+}
+
+// Someone who has never begun sees one thing to do
+const isFirstRun = () => !state.poems.length && !localStorage.getItem(BEGAN_KEY);
+function begin() { localStorage.setItem(BEGAN_KEY, '1'); }
+function renderFirstRun() {
+  const part = dayPart();
+  const [px, py] = PERCHES[state.perch];
+  return `
+    <div class="first" data-view="first">
+      <img class="hero-wash" src="${finishSrc(part.wash)}" alt="">
+      <div class="first-brand">${LOCKUP_SVG}<p class="brand-sub">For words that sing</p></div>
+      <div class="hero-branch first-branch">
+        <div class="branch-sway"><img class="branch-img" src="./assets/home/branch.webp" alt="" width="1300" height="590">
+          ${BLOOMS.slice(0, 7).map(([x, y], i) => `<img class="bloom-still" src="./assets/home/bloom-${i % 3 + 1}.webp" alt="" style="left:${x}%;top:${y}%;--i:${i}">`).join('')}
+        </div>
+        <button type="button" class="bird" id="bird" aria-label="Hear a line" style="left:${px}%;top:${py}%"><span class="bird-turn" style="--face:${state.facing}"><img src="./assets/home/bulbul.webp" alt=""></span></button>
+      </div>
+      <div class="first-words">
+        <p class="first-spark">${esc(todaysSpark())}</p>
+        <button type="button" class="btn primary big" id="first-write">Write a poem</button>
+        <button type="button" class="quiet-link" id="first-look">Look around first</button>
+      </div>
+    </div>`;
+}
+
 function renderLookStrip() {
   const shown = LOOKS.map((l, i) => LOOKS[(i + DAY * 5) % LOOKS.length]).slice(0, 14);
   return `
@@ -722,6 +797,17 @@ function nearestPerch(x, y) {
   PERCHES.forEach(([a, b], i) => { if (Math.hypot(a - x, (b - y) * 0.45) < Math.hypot(PERCHES[best][0] - x, (PERCHES[best][1] - y) * 0.45)) best = i; });
   return best;
 }
+// On touch, the first tap on a blossom is for listening; the second opens the poem.
+let lastPointer = 'mouse';
+document.addEventListener('pointerdown', e => { lastPointer = e.pointerType; }, true);
+function touchBloom(el) {
+  const id = el.dataset.bloom;
+  const open = () => (id.startsWith('ex-') ? viewExample(id) : openPoem(id));
+  if (lastPointer !== 'touch' || state.heard === id) { state.heard = ''; open(); return; }
+  state.heard = id;
+  hopTo(nearestPerch(parseFloat(el.style.left), parseFloat(el.style.top)), pickSong(id));
+}
+
 let hoverBloom = '';
 document.addEventListener('pointerover', e => {
   const bloom = e.target.closest?.('.bloom');
@@ -739,6 +825,7 @@ setInterval(() => {
 }, 9000);
 
 function renderGallery() {
+  if (isFirstRun()) return renderFirstRun();
   const q = state.search.trim().toLowerCase();
   const isArchTab = state.moodFilter === 'Archived';
   const filtered = state.poems.filter(p => {
@@ -759,7 +846,8 @@ function renderGallery() {
 
   const activeCount = state.poems.filter(p => !p.archived).length;
   const archivedCount = state.poems.filter(p => p.archived).length;
-  const pills = ['All', ...MOODS, ...(archivedCount ? ['Archived'] : [])];
+  const inMood = md => state.poems.some(p => !p.archived && (md === 'Long' ? poemMetrics(p.body).lines >= 14 || p.mood === 'Long' : p.mood === md));
+  const pills = ['All', ...MOODS.filter(md => inMood(md) || state.moodFilter === md), ...(archivedCount ? ['Archived'] : [])];
 
   const none = !state.poems.length;
   const cardsHTML = none ? '' : filtered.length
@@ -795,8 +883,8 @@ function renderGallery() {
 
   const galleryMenu = state.moreOpen ? `
     <div class="ios-menu" role="menu">
-      <button type="button" class="ios-menu-item" id="m-backup-btn" role="menuitem"><span>Backup JSON</span>${ICONS.download}</button>
-      <button type="button" class="ios-menu-item" id="m-import-btn" role="menuitem"><span>Import JSON</span>${ICONS.upload}</button>
+      <button type="button" class="ios-menu-item" id="m-backup-btn" role="menuitem"><span>Save a backup</span>${ICONS.download}</button>
+      <button type="button" class="ios-menu-item" id="m-import-btn" role="menuitem"><span>Restore a backup</span>${ICONS.upload}</button>
       <button type="button" class="ios-menu-item" id="m-motion-btn" role="menuitem"><span>${calm() ? 'Turn motion on' : 'Turn motion off'}</span>${ICONS.motion}</button>
     </div>
   ` : '';
@@ -814,8 +902,8 @@ function renderGallery() {
           <input id="gallery-search" class="search-in" type="search" placeholder="Search poems…" value="${esc(state.search)}" aria-label="Search poems">
         </div>
         <div class="topbar-right">
-          <button type="button" class="btn sm ghost desktop-only" id="backup-btn" title="Export anthology JSON">${ICONS.download} Backup</button>
-          <button type="button" class="btn sm ghost desktop-only" id="import-btn" title="Import anthology JSON">${ICONS.upload} Import</button>
+          <button type="button" class="btn sm ghost desktop-only" id="backup-btn" >${ICONS.download} Save a backup</button>
+          <button type="button" class="btn sm ghost desktop-only" id="import-btn" >${ICONS.upload} Restore a backup</button>
           <input id="import-file" type="file" accept="application/json" hidden>
           <button type="button" class="btn sm icon-only desktop-only" id="motion-btn" title="${calm() ? 'Turn motion on' : 'Turn motion off'}" aria-label="Motion" aria-pressed="${!calm()}">${ICONS.motion}</button>
           <button type="button" class="btn sm icon-only" id="theme-btn" title="Toggle light or night studio" aria-label="Toggle studio theme">${state.theme === 'dark' ? ICONS.sun : ICONS.moon}</button>
@@ -828,6 +916,7 @@ function renderGallery() {
       </header>
 
       </div>
+      ${q ? '' : renderContinue()}
       ${q ? '' : renderHero()}
         ${filterBar}
       ${none ? '' : `<main>${cardsHTML}</main>`}
@@ -1185,10 +1274,11 @@ function renderStudio(poem) {
           <div class="sheet-holder" id="sheet-holder">${renderSheetHTML(poem, { editable: !st.carousel, editingRich: state.editingRich, slide: activeSlide })}</div>
         </div>
 
+        ${renderHint()}
         <div class="stage-footer">
           <span id="metrics-lbl">${m.stanzas} ${m.stanzas === 1 ? 'stanza' : 'stanzas'} · ${m.lines} ${m.lines === 1 ? 'line' : 'lines'} · ${m.words} words · ~${m.syllables} syllables</span>
           <span class="stage-tip">${longHint.replace(/^<span class="stage-tip">|<\/span>$/g, '')}</span>
-          <span class="save-chip${saveWarned ? ' is-off' : ''}" title="Poems are kept in this browser, on this device. Use Backup on the home page to keep a copy elsewhere.">${saveWarned ? 'Not saved: storage is full' : `${ICONS.check} Saved on this device`}</span>
+          <span class="save-chip${saveWarned ? ' is-off' : ''}" title="Poems are kept in this browser, on this device. Save a backup from the home page to keep a copy elsewhere.">${saveWarned ? 'Not saved: storage is full' : `${ICONS.check} Saved on this device`}</span>
         </div>
       </div>
 
@@ -1287,6 +1377,7 @@ function fitThumbs() {
       card.style.gridRowEnd = `span ${Math.round(w / SHEET_RATIO[cls] + meta + gap)}`;
     }
   }
+  document.querySelectorAll('.example-row [data-thumb-cls], .continue-frame').forEach(f => f.style.setProperty('--thumb', (f.clientWidth / SHEET_W[f.dataset.thumbCls]).toFixed(4)));
   const look = document.querySelector('.look-frame');
   if (look) document.documentElement.style.setProperty('--look', (look.clientWidth / SHEET_W['rat-4-5']).toFixed(4));
 }
@@ -1468,6 +1559,7 @@ function pickLook(id) {
   const assets = [art?.src, patch.atmos && finishSrc(patch.atmos), patch.light && finishSrc(patch.light), patch.charm && finishSrc(patch.charm)];
   patchWhenReady(Promise.all([...assets.map(imageReady), fontReady(patch.font, poem.body)]), patch, () => {
     if (art) state.artSub = art.grp;
+    hintDone(1);
     toast(`Look: ${l.name}`, 4200, { label: 'Undo', run: () => { if (getActivePoem() === poem) patchActive(before); } });
   });
 }
@@ -1476,12 +1568,12 @@ function doBackup() {
   const blob = new Blob([JSON.stringify({ app: 'Bulbul', version: 2, poems: state.poems }, null, 2)], { type: 'application/json' });
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
-  a.download = 'bulbul-anthology.json';
+  a.download = 'bulbul-backup.json';
   a.click();
   setTimeout(() => URL.revokeObjectURL(a.href), 500);
   state.moreOpen = false;
   render();
-  toast('Anthology backup downloaded');
+  toast('Backup saved to your downloads');
 }
 
 function triggerImport() {
@@ -1508,9 +1600,9 @@ async function importFile(input) {
     state.poems = Array.from(byId.values()).sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0));
     savePoems(state.poems);
     render();
-    toast(`Imported anthology (${added} new)`);
+    toast(added ? `Restored ${added} ${added === 1 ? 'poem' : 'poems'}` : 'Everything in that backup is already here');
   } catch {
-    toast('Could not read that JSON file');
+    toast('That file isn’t a Bulbul backup');
   }
   input.value = '';
 }
@@ -1703,7 +1795,10 @@ const CLICKS = [
   ['#spark-use', () => createPoem({ spark: todaysSpark() })],
   ['#spark-next', () => { state.sparkShift += 1; render(); }],
   ['[data-startlook]', el => createPoem({ lookId: el.dataset.startlook })],
-  ['[data-bloom]', el => (el.dataset.bloom.startsWith('ex-') ? viewExample(el.dataset.bloom) : openPoem(el.dataset.bloom))],
+  ['[data-bloom]', touchBloom],
+  ['#first-write', () => { begin(); createPoem({ spark: todaysSpark(), lookId: 'window' }); }],
+  ['#first-look', () => { begin(); transitionView(render); }],
+  ['#examples-all', () => { state.examplesOpen = !state.examplesOpen; render(); }],
   ['[data-song]', el => (el.dataset.song.startsWith('ex-') ? viewExample(el.dataset.song) : openPoem(el.dataset.song))],
   ['#bird', () => hopTo((state.perch + 1 + Math.floor(Math.random() * (PERCHES.length - 1))) % PERCHES.length, pickSong())],
   ['[data-mood]', el => { if (state.moodFilter !== el.dataset.mood) { state.moodFilter = el.dataset.mood; renderGalleryFlow(); } }],
@@ -1831,6 +1926,7 @@ const INPUTS = [
   ['#poem-title-in', el => patchActive({ title: el.value }, { rerender: false })],
   ['#poem-body-in', el => {
     patchActive({ body: el.value }, { rerender: false });
+    if (el.value.trim().length > 2) hintDone(0);
     liveUpdateMetricsAndScale(getActivePoem());
   }],
   ['#wash-range', el => patchActive({ wash: Number(el.value) }, { fade: false })],
@@ -1951,4 +2047,4 @@ if (state.activeId) {
 }
 render();
 setTimeout(() => document.getElementById('app')?.setAttribute('data-ready', ''), 900);
-if (!state.activeId) sing(pickSong(), 1600);
+if (!state.activeId && !isFirstRun()) sing(pickSong(), 1600);
