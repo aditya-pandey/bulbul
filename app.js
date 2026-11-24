@@ -90,15 +90,45 @@ const formatIcon = f => `<svg width="20" height="20" viewBox="0 0 20 20" fill="n
 
 let saveWarned = false;
 function savePoems(poems) {
+  const had = saveWarned;
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(poems));
     saveWarned = false;
   } catch {
-    if (saveWarned) return;
     saveWarned = true;
-    toast('Storage is full, so this change isn’t saved. Try a smaller photo.', 5000);
   }
+  if (had !== saveWarned && typeof state !== 'undefined' && document.getElementById('app')?.firstElementChild) queueMicrotask(render);
 }
+
+/* ---------- States: what happened, and one thing to do ---------- */
+
+// Browsers give a site about 5 MB here; text is counted two bytes a letter.
+const ROOM = 5 * 1024 * 1024;
+function roomUsed() {
+  let n = 0;
+  try { for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); n += k.length + (localStorage.getItem(k) || '').length; } } catch {}
+  return (n * 2) / (ROOM * 2);
+}
+let offlineSeen = false;
+let roomSeen = false;
+function currentNotice() {
+  if (saveWarned) return { id: 'unsaved', text: '<b>This change isn’t saved.</b> There is no room left on this device.', label: 'Save a backup', urgent: true };
+  if (!navigator.onLine && !offlineSeen) return { id: 'offline', text: '<b>You’re offline.</b> Keep writing. New fonts will come when you’re back.', label: 'All right' };
+  if (!roomSeen && roomUsed() > 0.8) return { id: 'room', text: '<b>Nearly out of room here.</b> Photos take the most. Keep a copy of your poems.', label: 'Save a backup' };
+  return null;
+}
+function renderNotice() {
+  const n = currentNotice();
+  return n ? `<div class="notice" data-notice="${n.id}" role="${n.urgent ? 'alert' : 'status'}"><p>${n.text}</p><button type="button" class="note-btn" id="notice-act">${n.label}</button></div>` : '';
+}
+function noticeAct() {
+  const n = currentNotice();
+  if (!n) return;
+  if (n.id === 'offline') offlineSeen = true;
+  else { if (n.id === 'room') roomSeen = true; doBackup(); }
+  render();
+}
+for (const t of ['online', 'offline']) window.addEventListener(t, () => { if (t === 'online') offlineSeen = false; render(); });
 
 // Light or dark follows the system until the person chooses
 const darkSystem = matchMedia('(prefers-color-scheme: dark)');
@@ -616,7 +646,7 @@ async function shareSystem() {
   try {
     await shareFiles(now.sh.posters, now.mock ? '' : now.sh.caption);
   } catch (err) {
-    if (err?.name !== 'AbortError') shareNote('Sharing isn’t available here. Download the image instead.');
+    if (err?.name !== 'AbortError') shareNote('This browser can’t share images. Download it instead.');
   }
 }
 const isTouch = () => matchMedia('(pointer: coarse)').matches;
@@ -629,7 +659,7 @@ function shareSend() {
   if (platform.send === 'paste') {
     const done = shareCopyImage();
     window.open(url, '_blank', 'noopener');
-    done.then(ok => shareNote(ok ? `Image copied. Paste it into ${platform.label}${now.pages.length > 1 ? ', then copy the next slide here' : ''}.` : `Your browser blocked copying. Download the image and add it in ${platform.label}.`));
+    done.then(ok => shareNote(ok ? `Image copied. Paste it into ${platform.label}${now.pages.length > 1 ? ', then copy the next slide here' : ''}.` : `This browser won’t copy images. Download it and add it in ${platform.label}.`));
   } else {
     navigator.clipboard?.writeText(sh.caption).catch(() => {});
     window.open(url, '_blank', 'noopener');
@@ -645,10 +675,10 @@ async function quickCopyImage() {
   const page = pages[Math.min(state.slideIdx, pages.length - 1)];
   state.moreOpen = false;
   render();
-  const busy = setTimeout(() => toast('Painting the image…', 1400), 350);
+  const busy = setTimeout(() => toast('Getting the image ready', 1400), 350);
   const ok = await copyImage(poster(poem, ratio, page).then(p => p.blob)).then(() => true, () => false);
   clearTimeout(busy);
-  toast(ok ? (pages.length > 1 ? `Copied slide ${page.index + 1} as an image` : 'Copied as an image') : 'Copying images isn’t allowed here. Use Share to download.', 2800);
+  toast(ok ? (pages.length > 1 ? `Copied slide ${page.index + 1} as an image` : 'Copied as an image') : 'This browser won’t copy images. Share can download it.', 2800);
 }
 
 function mockHTML(now) {
@@ -936,7 +966,7 @@ function renderGallery() {
   const inMood = md => state.poems.some(p => !p.archived && (md === 'Long' ? poemMetrics(p.body).lines >= 14 || p.mood === 'Long' : p.mood === md));
   const pills = ['All', ...MOODS.filter(md => inMood(md) || state.moodFilter === md), ...(archivedCount ? ['Archived'] : [])];
 
-  const none = !state.poems.length;
+  const none = !state.poems.length && !q;
   const cardsHTML = none ? '' : filtered.length
     ? `<div class="anthology-grid">${filtered.map(p => {
         const m = poemMetrics(p.body);
@@ -956,9 +986,11 @@ function renderGallery() {
       }).join('')}${!q && !isArchTab ? `<button type="button" class="poem-card new-card" id="new-card-btn"><span class="poem-card-frame">${ICONS.plus}<span>New page</span></span></button>` : ''}</div>`
     : `<div class="empty-state">
         ${SYMBOL_SVG}
-        <h2>An open page</h2>
-        <p>${q ? `Nothing matches “${esc(state.search.trim())}”.` : state.moodFilter !== 'All' ? 'No poems in this collection yet.' : 'Begin your anthology with your first poem.'}</p>
-        <button type="button" class="btn primary" id="empty-new-btn">${ICONS.plus} Write a poem</button>
+        ${q
+          ? `<h2>No poem has “${esc(state.search.trim())}” in it</h2><button type="button" class="btn" id="clear-search">Clear the search</button>`
+          : isArchTab
+            ? '<h2>Nothing is put away</h2><button type="button" class="btn" data-mood="All">See all poems</button>'
+            : `<h2>No poems in ${esc(state.moodFilter)} yet</h2><button type="button" class="btn" data-mood="All">See all poems</button>`}
       </div>`;
 
   const filterBar = none ? '' : `<div class="filter-bar">
@@ -1003,10 +1035,11 @@ function renderGallery() {
       </header>
 
       </div>
+      ${renderNotice()}
       ${q ? '' : renderContinue()}
       ${q ? '' : renderHero()}
         ${filterBar}
-      ${none ? '' : `<main>${cardsHTML}</main>`}
+      ${none ? (q ? '' : `<div class="empty-state is-first"><h2>Nothing written yet</h2><p>A poem starts with one line.</p><button type="button" class="btn" id="empty-new-btn">Write a poem</button></div>`) : `<main>${cardsHTML}</main>`}
       ${q ? '' : renderExamples()}
       ${q ? '' : renderLookStrip()}
     </div>
@@ -1424,6 +1457,7 @@ function renderStudio(poem) {
           </div>
         </div>
 
+        ${renderNotice()}
         <div class="stage-canvas-wrap">
           ${carouselNavHTML}
           <div class="sheet-holder" id="sheet-holder">${renderSheetHTML(poem, { editable: !st.carousel, editingRich: state.editingRich, design: state.mode === 'design', slide: activeSlide })}</div>
@@ -1433,7 +1467,7 @@ function renderStudio(poem) {
         <div class="stage-footer">
           <span id="metrics-lbl">${m.stanzas} ${m.stanzas === 1 ? 'stanza' : 'stanzas'} · ${m.lines} ${m.lines === 1 ? 'line' : 'lines'} · ${m.words} words</span>
           <span class="stage-tip">${longHint.replace(/^<span class="stage-tip">|<\/span>$/g, '')}</span>
-          <span class="save-chip${saveWarned ? ' is-off' : ''}" title="Poems are kept in this browser, on this device. Save a backup from the home page to keep a copy elsewhere.">${saveWarned ? 'Not saved: storage is full' : `${ICONS.check} Saved on this device`}</span>
+          <span class="save-chip${saveWarned ? ' is-off' : ''}" title="Poems are kept in this browser, on this device. Save a backup from the home page to keep a copy elsewhere.">${saveWarned ? 'Not saved' : `${ICONS.check} Saved on this device`}</span>
         </div>
       </div>
 
@@ -1779,7 +1813,7 @@ async function doCopy() {
   state.moreOpen = false;
   const clean = `${poem.title ? poem.title + '\n\n' : ''}${stripEmphasis(String(poem.body || '').replace(/^\s*[-—]{3,}\s*$/gm, '').trim())}${poem.sign ? '\n\n' + poem.sign : ''}`;
   let msg = 'Copied poem text';
-  try { await navigator.clipboard.writeText(clean); } catch { msg = 'Copy failed. Select the text directly.'; }
+  try { await navigator.clipboard.writeText(clean); } catch { msg = 'This browser won’t copy. Select the words instead.'; }
   render();
   toast(msg);
 }
@@ -1984,6 +2018,8 @@ const CLICKS = [
   ['[data-mood]', el => { if (state.moodFilter !== el.dataset.mood) { state.moodFilter = el.dataset.mood; renderGalleryFlow(); } }],
   ['[data-open]', el => openPoem(el.dataset.open)],
   ['#backup-btn, #m-backup-btn', doBackup],
+  ['#notice-act', noticeAct],
+  ['#clear-search', () => { state.search = ''; renderGalleryFlow(); document.getElementById('gallery-search')?.focus(); }],
   ['#import-btn, #m-import-btn', triggerImport],
 
   // Studio bar
@@ -2016,7 +2052,7 @@ const CLICKS = [
   ['#share-retry', () => prepareShare()],
   ['[data-split]', el => setShare({ split: el.dataset.split === '1', page: 0 })],
   ['[data-spage]', el => setShare({ page: Number(el.dataset.spage) })],
-  ['#share-copy', () => shareCopyImage().then(ok => shareNote(ok ? (state.share?.as === 'mock' ? 'Mockup copied' : 'Image copied') : 'Your browser blocked copying. Download the image instead.'))],
+  ['#share-copy', () => shareCopyImage().then(ok => shareNote(ok ? (state.share?.as === 'mock' ? 'Mockup copied' : 'Image copied') : 'This browser won’t copy images. Download it instead.'))],
   ['#share-download', () => shareDownload()],
   ['#mock-download', () => shareDownload({ all: false })],
   ['#mock-all', () => shareDownload({ all: 'mocks' })],
@@ -2299,7 +2335,7 @@ document.addEventListener('keydown', e => {
 window.addEventListener('keydown', e => {
   if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 's' && state.activeId) {
     e.preventDefault();
-    toast('Already saved on this device. Use Share to download.');
+    toast('Saved on this device already');
   }
   if (e.key === 'Escape') {
     if (state.share || state.viewing) { closeOverlay(); return; }
