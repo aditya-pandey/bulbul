@@ -90,36 +90,79 @@ async function paint(svg, w, h) {
   return cv;
 }
 
+const nextFrame = () => new Promise(r => setTimeout(r, 0));
+
+// Inline everything the element needs and paint it at w x h. `zoom` maps its CSS pixels to image pixels.
+async function paintElement(el, { w, h, zoom, families, text, style = '' }) {
+  const imgs = [...el.querySelectorAll('img')];
+  const [css, fonts] = await Promise.all([
+    getText(new URL('./styles.css', location.href).href),
+    fontCSS(families, text),
+    ...imgs.map(async i => i.setAttribute('src', await toDataURL(i.src)))
+  ]);
+  imgs.forEach(i => { i.removeAttribute('loading'); i.removeAttribute('decoding'); });
+  const xml = new XMLSerializer().serializeToString(el);
+  const clean = css.replace(/]]>/g, '');
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}"><foreignObject x="0" y="0" width="100%" height="100%"><div xmlns="http://www.w3.org/1999/xhtml" class="snapshot-root" style="width:${w / zoom}px;height:${h / zoom}px;zoom:${zoom};${style}"><style><![CDATA[${fonts}\n${clean}]]></style>${xml}</div></foreignObject></svg>`;
+  return paint(svg, w, h);
+}
+
+function makeHost(html, width) {
+  const host = document.createElement('div');
+  host.className = 'snapshot-host';
+  host.style.width = width + 'px';
+  host.innerHTML = html;
+  document.body.appendChild(host);
+  return host;
+}
+async function settle(host) {
+  await document.fonts.ready;
+  await Promise.all([...host.querySelectorAll('img')].map(i => { i.loading = 'eager'; return i.decode().catch(() => {}); }));
+  await nextFrame();
+  host.querySelectorAll('.poem-sheet').forEach(n => fitSheet(n));
+}
+const familiesOf = fam => [...fam.matchAll(/'([^']+)'/g)].map(m => m[1]);
+
 export async function snapshotPoem(poem, slide = null) {
   const st = resolveStyle(poem);
   const ratioId = slide && slide.total > 1 && st.ratio === 'auto' ? '4:5' : st.ratio;
   const rat = RATIOS.find(r => r.id === ratioId) || RATIOS[1];
   const baseW = SHEET_W['rat-' + ratioId.replace(':', '-')] || 458;
-  const scale = rat.w / baseW;
-
-  const host = document.createElement('div');
-  host.className = 'snapshot-host';
-  host.style.width = baseW + 'px';
-  host.innerHTML = renderSheetHTML(poem, { slide });
-  document.body.appendChild(host);
+  const zoom = rat.w / baseW;
+  const host = makeHost(renderSheetHTML(poem, { slide }), baseW);
   try {
+    await settle(host);
     const sheet = host.querySelector('.poem-sheet');
-    const imgs = [...sheet.querySelectorAll('img')];
-    await document.fonts.ready;
-    await Promise.all(imgs.map(i => i.decode().catch(() => {})));
-    fitSheet(sheet);
-    const outH = rat.h || Math.min(6000, Math.round(sheet.offsetHeight * scale));
-    const families = new Set([...st.font.fam.matchAll(/'([^']+)'/g)].map(m => m[1]));
-    const [css, fonts] = await Promise.all([
-      getText(new URL('./styles.css', location.href).href),
-      fontCSS(families, sheet.textContent + ' ' + poem.title),
-      ...imgs.map(async i => i.setAttribute('src', await toDataURL(i.src)))
-    ]);
-    imgs.forEach(i => { i.removeAttribute('loading'); i.removeAttribute('decoding'); });
-    const xml = new XMLSerializer().serializeToString(sheet);
-    const clean = css.replace(/]]>/g, '');
-    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${rat.w}" height="${outH}" viewBox="0 0 ${rat.w} ${outH}"><foreignObject x="0" y="0" width="100%" height="100%"><div xmlns="http://www.w3.org/1999/xhtml" class="snapshot-root" style="width:${baseW}px;height:${outH / scale}px;zoom:${scale};"><style><![CDATA[${fonts}\n${clean}]]></style>${xml}</div></foreignObject></svg>`;
-    return await paint(svg, rat.w, outH);
+    const h = rat.h || Math.min(6000, Math.round(sheet.offsetHeight * zoom));
+    return await paintElement(sheet, { w: rat.w, h, zoom, families: new Set(familiesOf(st.font.fam)), text: sheet.textContent + ' ' + poem.title });
+  } finally {
+    host.remove();
+  }
+}
+
+/* ---------- Mockups: a preview card on a backdrop ---------- */
+
+export const MOCK_W = 540;
+export const MOCK_H = 675;
+
+// Size the card to its stage and the poster to its card. Offsets ignore transforms, so this is the
+// same for the live preview and for the copy being saved.
+export function fitMock(stage) {
+  for (const art of stage.querySelectorAll('.mock-art')) {
+    art.querySelector('.mock-scale').style.setProperty('--thumb', (art.clientWidth / SHEET_W[art.dataset.ratioCls]).toFixed(4));
+  }
+  const card = stage.querySelector('.mock');
+  if (card) stage.style.setProperty('--k', Math.min(1.7, (MOCK_W * 0.8) / card.offsetWidth, (MOCK_H * 0.87) / card.offsetHeight).toFixed(4));
+}
+
+export async function snapshotMock(html, poem) {
+  const st = resolveStyle(poem);
+  const host = makeHost(html, MOCK_W);
+  try {
+    await settle(host);
+    const stage = host.querySelector('.mock-stage');
+    fitMock(stage);
+    return await paintElement(stage, { w: MOCK_W * 2, h: MOCK_H * 2, zoom: 2, families: new Set(['DM Sans', ...familiesOf(st.font.fam)]), text: stage.textContent });
   } finally {
     host.remove();
   }

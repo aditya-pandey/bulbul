@@ -172,8 +172,7 @@ export function renderSheetHTML(poem, { editable = false, editingRich = false, s
   const isAnyCut = isLineCut || isWordCut;
   const isLined = ['ruled', 'marker', 'blackout'].includes(st.textStyle);
   const hasEmphasis = /\*\*[^*]+\*\*|__[^_]+__|\*[^*]+\*/.test(cleanBody);
-  const useRichView = (isAnyCut || isLined || tStyle === 'dropcap' || hasEmphasis) && (!editable || !editingRich);
-
+  const useRichView = (isAnyCut || isLined || tStyle === 'dropcap' || hasEmphasis) && (!editable || (!editingRich && Boolean(cleanBody.trim())));
   const textAlign = (effLayout === 'side' || isTorn) ? 'left' : st.align;
   const sheetBg = `linear-gradient(145deg, ${pal.bg}, ${pal.bg2 || pal.bg})`;
 
@@ -305,7 +304,7 @@ export function renderSheetHTML(poem, { editable = false, editingRich = false, s
   }
 
   return `
-    <div ${editable || slide ? 'id="active-poem-sheet" ' : ''}class="poem-sheet ${ratioClass(effRatio)} fr-${st.frame} ly-${effLayout} bg-${st.bgMode}${isMat ? ' is-mat' : ''}" data-fit="${st.textSize === 'auto' && effRatio !== 'auto' ? fitKey : ''}" style="${outerStyle}">
+    <div ${(editable || slide) && !thumb ? 'id="active-poem-sheet" ' : ''}class="poem-sheet ${ratioClass(effRatio)} fr-${st.frame} ly-${effLayout} bg-${st.bgMode}${isMat ? ' is-mat' : ''}" data-fit="${st.textSize === 'auto' && effRatio !== 'auto' ? fitKey : ''}" style="${outerStyle}">
       <div class="poem-sheet-inner" style="${innerStyle}">
         ${bgOverlayHTML}
         ${atmosHTML}

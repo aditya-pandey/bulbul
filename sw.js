@@ -1,4 +1,4 @@
-const CACHE = 'bulbul-v3';
+const CACHE = 'bulbul-v6';
 const SHELL = [
   './',
   './index.html',
@@ -7,7 +7,10 @@ const SHELL = [
   './export.js',
   './app.js',
   './morph.js',
+  './gestures.js',
   './sheet.js',
+  './share.js',
+  './examples.js',
   './assets/home/branch.webp',
   './assets/home/bulbul.webp',
   './assets/home/bloom-1.webp',

@@ -1,5 +1,12 @@
 export const ARTWORKS = [
   // Stories: original gouache illustrations for Bulbul
+  { id: 'story-dehleez', grp: 'story', name: 'At the Threshold', src: './assets/art/story-dehleez.webp', bg: '#F6EADB', bg2: '#EEDCC6', dark: false, ink: '#2B1D22', sub: '#63504A', acc: '#BE3A2E', mat: '#FFFDF8', blend: '', contain: true, defLayout: 'corner', filter: '' },
+  { id: 'story-kursi', grp: 'story', name: 'Empty Chair', src: './assets/art/story-kursi.webp', bg: '#F0EBE0', bg2: '#E4DCCD', dark: false, ink: '#1F2E4A', sub: '#50596B', acc: '#274B8E', mat: '#FFFDF8', blend: '', contain: true, defLayout: 'corner', filter: '' },
+  { id: 'story-antarman', grp: 'story', name: 'Four Storeys', src: './assets/art/story-antarman.webp', bg: '#EFEBE2', bg2: '#E3DDD0', dark: false, ink: '#2A2230', sub: '#5C5260', acc: '#8F2B2B', mat: '#FFFDF8', blend: '', contain: true, defLayout: 'corner', filter: '' },
+  { id: 'story-cherry', grp: 'story', name: 'Cherry Tree', src: './assets/art/story-cherry.webp', bg: '#FAEFEC', bg2: '#F4E1DE', dark: false, ink: '#3A1F2A', sub: '#6E4F58', acc: '#C9576B', mat: '#FFFDF8', blend: '', contain: true, defLayout: 'corner', filter: '' },
+  { id: 'story-place', grp: 'story', name: 'Shape of You', src: './assets/art/story-place.webp', bg: '#F5EADB', bg2: '#EBDCC6', dark: false, ink: '#24343A', sub: '#54666B', acc: '#B8822F', mat: '#FFFDF8', blend: '', contain: true, defLayout: 'corner', filter: '' },
+  { id: 'scene-cherry', grp: 'story', name: 'Cherry Meadow', src: './assets/art/scene-cherry.webp', bg: '#FBF1EC', bg2: '#F8E6E2', dark: false, ink: '#3A1F2A', sub: '#6E4F58', acc: '#C9576B', mat: '#FFFDF8', blend: '', contain: true, defLayout: 'scene', filter: '' },
+  { id: 'scene-valley', grp: 'story', name: 'Little Valley', src: './assets/art/scene-valley.webp', bg: '#F6EEE0', bg2: '#F3E5CF', dark: false, ink: '#24343A', sub: '#54666B', acc: '#C9822E', mat: '#FFFDF8', blend: '', contain: true, defLayout: 'scene', filter: '' },
   { id: 'story-umbrella', grp: 'story', name: 'One Umbrella', src: './assets/art/story-umbrella.webp', bg: '#F1ECE2', bg2: '#E6E3DA', dark: false, ink: '#1D2A33', sub: '#4C5B60', acc: '#BE3A2E', mat: '#FFFDF8', blend: '', contain: true, defLayout: 'corner', filter: '' },
   { id: 'story-windows', grp: 'story', name: 'Two Windows', src: './assets/art/story-windows.webp', bg: '#F5EADB', bg2: '#EDDDC8', dark: false, ink: '#2B1D22', sub: '#63504A', acc: '#BE3A2E', mat: '#FFFDF8', blend: '', contain: true, defLayout: 'below', filter: '' },
   { id: 'story-jhoola', grp: 'story', name: 'The Swing', src: './assets/art/story-jhoola.webp', bg: '#F3F0E2', bg2: '#E7E6D2', dark: false, ink: '#25301F', sub: '#55604A', acc: '#C9576B', mat: '#FFFDF8', blend: '', contain: true, defLayout: 'corner', filter: '' },
@@ -328,7 +335,7 @@ export const PRESETS = [
 ];
 
 // One-tap looks. Each is a complete setting; `hi` swaps in a Devanagari face for Hindi poems.
-const LOOK_BASE = {
+export const LOOK_BASE = {
   bgMode: 'art', layout: 'corner', font: 'eb-garamond', frame: 'none', align: 'left', textStyle: 'plain',
   titleStyle: 'classic', texture: 'grain', inkColor: 'auto', rhythm: 'balanced', textSize: 'auto', wash: 0,
   atmos: '', light: '', charm: '', charmPos: '', paperPick: '', textX: 0, textY: 0
@@ -378,6 +385,12 @@ export const LOOKS = [
   look('melting', 'Melting Sky', 'paint', 'gotu', { painting: 'pastel-clouds', layout: 'scene', font: 'italiana', align: 'center' }),
   look('thread', 'Red Thread', 'paper', 'kalam', onPaper('gallery-white', { font: 'nothing', charm: 'charm-thread', charmPos: 'br', titleStyle: 'none' })),
   look('bansuri', 'Bansuri', 'story', 'jaini', { painting: 'story-bansuri', font: 'crimson', titleStyle: 'italic', texture: 'cotton' }),
+  look('threshold', 'At the Threshold', 'story', 'kalam', { painting: 'story-dehleez', font: 'badscript', titleStyle: 'none', texture: 'cotton' }),
+  look('cherry', 'Cherry Meadow', 'story', 'tillana', { painting: 'scene-cherry', layout: 'scene', font: 'editorial', titleStyle: 'italic' }),
+  look('chair', 'Empty Chair', 'story', 'dekko', { painting: 'story-kursi', font: 'nothing', titleStyle: 'none', inkColor: 'indigo', texture: 'cotton' }),
+  look('storeys', 'Four Storeys', 'story', 'laila', { painting: 'story-antarman', font: 'fell', titleStyle: 'italic', texture: 'cotton' }),
+  look('shape', 'Shape of You', 'story', 'kurale', { painting: 'story-place', font: 'poetic-italic', titleStyle: 'none', texture: 'cotton' }),
+  look('valley', 'Little Valley', 'story', 'yatra', { painting: 'scene-valley', layout: 'scene', font: 'gilda' }),
   look('record', 'Old Record', 'story', 'rozha', { painting: 'story-gramophone', font: 'bodoni', titleStyle: 'smallcaps' })
 ];
 
@@ -629,134 +642,15 @@ export function resolveStyle(poem) {
   };
 }
 
-export const STARTER_POEMS = [
-  {
-    id: 'poem-people-we-become',
-    title: 'The People We Become',
-    body: `To someone, I am sunshine,\nto someone else, the storm—\nthe same beating heart,\njust seen in different forms.\n\nTo some, I am too quiet,\nto others, far too much—\na voice that brings them shelter,\nor one they dare not trust.\n\nA hero in one chapter,\na lesson in the next—\nthe ink remains unaltered,\nwhile every reader shifts the text.\n\nA place someone calls home,\na name another leaves behind—\na hand held through the winter,\nor a ghost inside the mind.\n\nToo soft for half the room,\ntoo distant for the rest—\nwe measure one another\nthrough the weight inside our chest.\n\nSo I wear all of these versions,\nstitched softly by their eyes,\nuntil I barely notice\nwhich horizon still is mine.`,
-    bgMode: 'art',
-    painting: 'min-ochre-sun',
-    layout: 'side',
-    font: 'eb-garamond',
-    frame: 'bookpage',
-    align: 'left',
-    ratio: '4:5',
-    textSize: 'auto',
-    carousel: false,
-    wash: 0,
-    sign: '— bulbul',
-    pageNo: '19',
-    mood: 'Long',
-    archived: false,
-    createdAt: 1795400600000,
-    updatedAt: 1795400600000
-  },
-  {
-    id: 'poem-morning-light',
-    title: 'Morning Light',
-    body: `Even in a silent room\nthe window keeps its promise—\na quiet rectangle of gold\nresting gently on the floor.\n\nDust motes drift like unspoken thoughts\nthat finally found the sun.`,
-    bgMode: 'art',
-    painting: 'light-sunbeams',
-    layout: 'side',
-    font: 'editorial',
-    frame: 'hairline',
-    align: 'left',
-    ratio: '4:5',
-    textSize: 'auto',
-    carousel: false,
-    wash: 0,
-    sign: '— strandgade',
-    pageNo: '',
-    mood: 'Stillness',
-    archived: false,
-    createdAt: 1795400500000,
-    updatedAt: 1795400500000
-  },
-  {
-    id: 'poem-overdue-rain',
-    title: 'Overdue Rain',
-    body: `Perhaps hearts\nare gardens too—\n\nsometimes they bloom,\nsometimes they drown,\nsometimes they lose\ntheir brightest hue\nbefore their roots are found.\n\nSo I will let the clouds\nfinish what they came to do.\n\nBecause every storm\nmust lose the fight\nto morning's light.`,
-    bgMode: 'art',
-    painting: 'sketch-sargent-lily',
-    layout: 'side',
-    font: 'baskerville',
-    frame: 'none',
-    align: 'left',
-    ratio: '4:5',
-    textSize: 'auto',
-    carousel: false,
-    wash: 0,
-    sign: '~ quiet sketch',
-    pageNo: '',
-    mood: 'Life',
-    archived: false,
-    createdAt: 1795400400000,
-    updatedAt: 1795400400000
-  },
-  {
-    id: 'poem-on-roses',
-    title: 'On Roses',
-    body: `If I were to name the color\nof your love,\nI would still reach\nfor the red of a rose.\n\nRoses do not bloom\nfor applause.\nThey bloom because\nit is their nature—\nto be soft,\nto be wild,\nto be unforgettable.`,
-    bgMode: 'art',
-    painting: 'redoute-rose',
-    layout: 'side',
-    font: 'eb-garamond',
-    frame: 'bookpage',
-    align: 'left',
-    ratio: '4:5',
-    textSize: 'auto',
-    carousel: false,
-    wash: 0,
-    sign: '',
-    pageNo: '143',
-    mood: 'Love',
-    archived: false,
-    createdAt: 1795400300000,
-    updatedAt: 1795400300000
-  },
-  {
-    id: 'poem-11-11',
-    title: '11:11',
-    body: `कहते हैं जब घड़ी में\nग्यारह बजकर ग्यारह मिनट होते हैं,\nआँखें बंद कर लेनी चाहिए,\nमन में कोई ख़्वाहिश रखनी चाहिए।\n\nऔर मुझ नास्तिक को भी,\nपहली बार,\nइन चार अंकों में\nकुछ अजीब-सा सुंदर लगा।`,
-    bgMode: 'art',
-    painting: 'lotus-gold',
-    layout: 'overlay',
-    font: 'devanagari',
-    frame: 'hairline',
-    align: 'center',
-    ratio: '4:5',
-    textSize: 'auto',
-    carousel: false,
-    wash: 0,
-    sign: '— रात के पन्ने',
-    pageNo: '',
-    mood: 'Hindi',
-    archived: false,
-    createdAt: 1795400200000,
-    updatedAt: 1795400200000
-  },
-  {
-    id: 'poem-quiet-hours',
-    title: 'Quiet Hours',
-    body: `Some evenings arrive\nwithout asking permission—\njust warm light behind a snowy pane,\nand half a sentence\nwaiting to become a poem.`,
-    bgMode: 'art',
-    painting: 'ed-hasui-snow',
-    layout: 'side',
-    font: 'poetic-italic',
-    frame: 'hairline',
-    align: 'left',
-    ratio: '4:5',
-    textSize: 'auto',
-    carousel: false,
-    wash: 0,
-    sign: '— midnight',
-    pageNo: '',
-    mood: 'Late Night',
-    archived: false,
-    createdAt: 1795400100000,
-    updatedAt: 1795400100000
-  }
-];
+// The sample poems earlier versions started with. Copies nobody has rewritten are cleared on load.
+export const OLD_SAMPLES = {
+  'poem-people-we-become': '12gmh20',
+  'poem-morning-light': '1b4fo4b',
+  'poem-overdue-rain': '1vqpdst',
+  'poem-on-roses': '1dk04qy',
+  'poem-11-11': '1i39xa6',
+  'poem-quiet-hours': '1ldq9ep'
+};
 
 /* ---------- Home ---------- */
 

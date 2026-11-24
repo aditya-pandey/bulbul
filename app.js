@@ -3,16 +3,20 @@ import {
   TITLE_STYLES, TEXTURES, INK_SWATCHES, RHYTHMS, MOODS, ATMOS, LIGHTS, CHARMS, CHARM_POS,
   LOOKS, LOOK_CATS, lookPatch, isHindi, finishSrc,
   BLOOMS, PERCHES, SPARKS, changedLayers,
-  WORD_BANKS, STARTER_POEMS,
+  WORD_BANKS, OLD_SAMPLES,
   findRhymes, poemMetrics, computeTypeScale, paginatePoem, resolveStyle
 } from './data.js';
-import { exportPoemPNG, exportCarouselPNGs } from './export.js';
+import { fitMock, MOCK_W, MOCK_H } from './snapshot.js';
+import { initGestures } from './gestures.js';
+import { EXAMPLES } from './examples.js';
+import { PLATFORMS, platformOf, captionFor, sharePages, poster, mockup, mockStage, BACKDROPS, backdropCSS, copyImage, canShareFiles, shareFiles, downloadPoster } from './share.js';
 import { morph } from './morph.js';
 import { renderSheetHTML, fitSheet, clearFits, esc, stripEmphasis, SHEET_W, SHEET_RATIO } from './sheet.js';
 
 // Storage keys predate the current name. Keep them: renaming would orphan saved poems.
 const STORAGE_KEY = 'noor.poems.v1';
 const THEME_KEY = 'noor.theme';
+const NAME_KEY = 'noor.name';
 const MOTION_KEY = 'noor.motion';
 const LEGACY_KEYS = ['folio.poems.v1'];
 const LEGACY_THEME_KEYS = ['folio.theme'];
@@ -34,6 +38,10 @@ const ICONS = {
   archive: `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><polyline points="21 8 21 21 3 21 3 8"/><rect x="1" y="3" width="22" height="5"/><line x1="10" y1="12" x2="14" y2="12"/></svg>`,
   trash: `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>`,
   more: `<svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="19" cy="12" r="1.8"/></svg>`,
+  share: `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15V3M8 7l4-4 4 4M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7"/></svg>`,
+  down: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9.5l6 6 6-6"/></svg>`,
+  check: `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>`,
+  close: `<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>`,
   looks: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="11" height="15" rx="2"/><path d="M17 6.5l2.6.7a2 2 0 0 1 1.4 2.4L18.6 19a2 2 0 0 1-2.4 1.4"/></svg>`,
   motion: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><path d="M3 9c3-4 6-4 9 0s6 4 9 0"/><path d="M3 16c3-4 6-4 9 0s6 4 9 0"/></svg>`,
   move: `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="5 9 2 12 5 15"/><polyline points="9 5 12 2 15 5"/><polyline points="15 19 12 22 9 19"/><polyline points="19 9 22 12 19 15"/><line x1="2" y1="12" x2="22" y2="12"/><line x1="12" y1="2" x2="12" y2="22"/></svg>`,
@@ -44,18 +52,20 @@ const ICONS = {
   copy: `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>`
 };
 
+const textHash = t => {
+  let h = 5381;
+  for (let i = 0; i < t.length; i++) h = ((h << 5) + h + t.charCodeAt(i)) | 0;
+  return (h >>> 0).toString(36);
+};
+const isOldSample = p => OLD_SAMPLES[p.id] && OLD_SAMPLES[p.id] === textHash(`${p.title}|${p.body}`);
+
 function loadPoems() {
-  try {
-    for (const key of [STORAGE_KEY, ...LEGACY_KEYS]) {
-      const raw = localStorage.getItem(key);
-      if (!raw) continue;
-      const arr = JSON.parse(raw);
-      if (Array.isArray(arr) && arr.length) return arr;
-    }
-  } catch {}
-  const seeded = structuredClone(STARTER_POEMS);
-  savePoems(seeded);
-  return seeded;
+  for (const key of [STORAGE_KEY, ...LEGACY_KEYS]) {
+    let arr = null;
+    try { arr = JSON.parse(localStorage.getItem(key) || 'null'); } catch {}
+    if (Array.isArray(arr) && (arr.length || key === STORAGE_KEY)) return arr.filter(p => p && !isOldSample(p));
+  }
+  return [];
 }
 
 let saveWarned = false;
@@ -88,11 +98,13 @@ const state = {
   fontCat: 'all',
   focusMode: false,
   mobileSheetOpen: false,
+  sheetTall: false,
   moreOpen: false,
   slideIdx: 0,
   rhymeQuery: '',
   editingRich: false,
-  exporting: false,
+  viewing: null,
+  share: null,
   galleryScroll: 0,
   sparkShift: 0,
   firstLine: '',
@@ -171,6 +183,8 @@ function openPoem(id, { push = true } = {}) {
   if (!state.activeId) state.galleryScroll = window.scrollY;
   transitionView(() => {
     state.activeId = id;
+    state.share = null;
+    state.viewing = null;
     state.slideIdx = 0;
     state.focusMode = false;
     state.mobileSheetOpen = false;
@@ -192,6 +206,7 @@ function showGallery() {
     state.mobileSheetOpen = false;
     state.moreOpen = false;
     state.editingRich = false;
+    state.share = null;
     render();
     window.scrollTo(0, state.galleryScroll);
   }, sheetHolder, () => cardFrameOf(id));
@@ -283,7 +298,8 @@ function poemLines(p) {
   return stripEmphasis(p.body || '').split('\n').map(l => l.trim()).filter(l => l.length > 7 && l.length < 64 && !/^[-—]{3,}$/.test(l));
 }
 function pickSong(id) {
-  const pool = state.poems.filter(p => !p.archived && (!id || p.id === id) && poemLines(p).length);
+  const own = state.poems.filter(p => !p.archived);
+  const pool = (own.length ? own : EXAMPLES).filter(p => (!id || p.id === id) && poemLines(p).length);
   if (!pool.length) return null;
   const p = pool[Math.floor(Math.random() * pool.length)];
   const lines = poemLines(p);
@@ -293,7 +309,7 @@ function pickSong(id) {
 function renderHero() {
   const part = dayPart();
   const kept = state.poems.filter(p => !p.archived);
-  const inBloom = [...kept].sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0)).slice(-BLOOMS.length);
+  const inBloom = kept.length ? [...kept].sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0)).slice(-BLOOMS.length) : EXAMPLES.slice(0, 6);
   const [px, py] = PERCHES[state.perch];
   const buds = BLOOMS.slice(inBloom.length, inBloom.length + 3);
   return `
@@ -319,9 +335,330 @@ function renderHero() {
         <button type="button" class="bird" id="bird" aria-label="Hear a line from your poems" style="left:${px}%;top:${py}%"><span class="bird-turn" style="--face:${state.facing}"><img src="./assets/home/bulbul.webp" alt=""></span></button>
         ${state.song ? `<button type="button" class="song ${px < 46 ? 'to-right' : 'to-left'}" data-song="${esc(state.song.id)}" style="left:${px}%;top:${py}%">${esc(state.song.line)}</button>` : ''}
         <span class="petal p1"></span><span class="petal p2"></span><span class="petal p3"></span>
-        <p class="branch-note">${kept.length ? 'A blossom for every poem' : 'Your first poem will be the first blossom'}</p>
+        <p class="branch-note">${kept.length ? 'A blossom for every poem' : 'Examples, until yours bloom'}</p>
       </div>
     </section>`;
+}
+
+// A carousel shows its first slide, as it would arrive
+function thumbHTML(p, ratio) {
+  const st = resolveStyle(p);
+  const pages = st.carousel ? paginatePoem(p.body, { ratio, layout: st.layout }) : null;
+  return renderSheetHTML(p, { thumb: true, ratio, slide: pages && pages.length > 1 ? pages[0] : null });
+}
+const thumbRatio = st => (st.ratio === 'auto' ? (st.carousel ? '4:5' : '2:3') : st.ratio);
+
+function renderExamples() {
+  return `
+    <section class="home-examples">
+      <div class="home-top"><h2 class="home-h">Made in Bulbul</h2><span class="gallery-stat">Poems by Aditya</span></div>
+      <div class="anthology-grid">${EXAMPLES.map(p => {
+        const st = resolveStyle(p);
+        const r = thumbRatio(st);
+        return `
+          <button type="button" class="poem-card" data-example="${p.id}" aria-label="${esc(p.title)}, ${esc(p.kind)}">
+            <span class="poem-card-frame${st.carousel ? ' is-stack' : ''}" style="aspect-ratio:${r.replace(':', ' / ')}"><span class="thumb-scale">${thumbHTML(p, r)}</span></span>
+            <span class="poem-card-meta"><span class="poem-card-title"><span>${esc(p.title)}</span></span><span class="poem-card-sub">${esc(p.kind)}</span></span>
+          </button>`;
+      }).join('')}</div>
+    </section>`;
+}
+
+/* ---------- Example viewer ---------- */
+
+function viewedPoem() { return EXAMPLES.find(p => p.id === state.viewing?.id) || null; }
+function renderViewer() {
+  const p = viewedPoem();
+  if (!p) return '';
+  const st = resolveStyle(p);
+  const ratio = st.carousel && st.ratio === 'auto' ? '4:5' : st.ratio;
+  const pages = st.carousel ? paginatePoem(p.body, { ratio, layout: st.layout }) : [null];
+  const at = Math.min(state.viewing.slide, pages.length - 1);
+  return `
+    <div class="overlay" data-overlay="viewer">
+      <div class="overlay-scrim" data-close></div>
+      <div class="panel viewer" role="dialog" aria-modal="true" aria-label="${esc(p.title)}">
+        <span class="panel-grab" aria-hidden="true"></span>
+        <div class="viewer-stage${ratio === 'auto' ? ' is-long' : ''}" data-view-page="${p.id}-${at}" data-ratio-cls="rat-${ratio.replace(':', '-')}">
+          <div class="viewer-fit"><div class="viewer-scale">${renderSheetHTML(p, { thumb: true, ratio, slide: pages.length > 1 ? pages[at] : null })}</div></div>
+        </div>
+        <div class="viewer-side">
+          <div class="panel-top"><span class="viewer-kind">${esc(p.kind)}</span><button type="button" class="icon-btn" data-close aria-label="Close">${ICONS.close}</button></div>
+          <h2 class="viewer-title">${esc(p.title)}</h2>
+          <p class="viewer-by">Aditya · ${esc(st.font.name)}${st.bgMode === 'art' ? ' · ' + esc(st.painting.name) : ''}</p>
+          ${pages.length > 1 ? `<div class="pager"><button type="button" class="icon-btn" data-vslide="${at - 1}" ${at ? '' : 'disabled'} aria-label="Previous slide">${ICONS.back}</button><span>${at + 1} of ${pages.length}</span><button type="button" class="icon-btn" data-vslide="${at + 1}" ${at < pages.length - 1 ? '' : 'disabled'} aria-label="Next slide">${ICONS.next}</button></div>` : ''}
+          <div class="viewer-acts">
+            <button type="button" class="btn primary" id="ex-style-btn">${ICONS.plus} Write in this style</button>
+            <button type="button" class="btn" id="ex-copy-btn">Add a copy to my poems</button>
+          </div>
+          <div class="viewer-nav"><button type="button" class="btn sm ghost" data-vstep="-1">${ICONS.back} Previous</button><button type="button" class="btn sm ghost" data-vstep="1">Next ${ICONS.next}</button></div>
+        </div>
+      </div>
+    </div>`;
+}
+function viewExample(id) {
+  state.viewing = { id, slide: 0 };
+  clearTimeout(songTimer);
+  render();
+  document.querySelector('.viewer [data-close]')?.focus();
+}
+function fromExample(keepWords) {
+  const p = viewedPoem();
+  if (!p) return;
+  const { id, kind, title, body, sign, ...setting } = p;
+  const words = keepWords ? { title, body, sign } : { title: '', body: '', sign: '', carousel: false };
+  const now = Date.now();
+  const poem = { ...setting, ...words, textStyle: !keepWords && setting.textStyle === 'blackout' ? 'plain' : setting.textStyle, id: 'poem-' + now.toString(36) + Math.random().toString(36).slice(2, 6), archived: false, createdAt: now, updatedAt: now };
+  state.viewing = null;
+  state.railTab = 'looks';
+  state.poems.unshift(poem);
+  savePoems(state.poems);
+  openPoem(poem.id);
+  if (keepWords) toast('Added a copy to your poems');
+  else setTimeout(() => (document.getElementById('poem-title-in') || document.getElementById('poem-body-in'))?.focus(), 60);
+}
+
+/* ---------- Share ---------- */
+
+function openShare() {
+  const poem = getActivePoem();
+  if (!poem) return;
+  const st = resolveStyle(poem);
+  state.moreOpen = false;
+  state.mobileSheetOpen = false;
+  state.editingRich = false;
+  document.querySelectorAll('.toast').forEach(n => n.remove());
+  state.share = { platform: 'image', split: st.carousel, page: state.slideIdx, caption: captionFor(poem), who: (poem.sign || '').replace(/^[\s—–~-]+/, '').trim() || localStorage.getItem(NAME_KEY) || '', as: 'page', backdrop: 'poem', ready: false, note: '' };
+  render();
+  prepareShare();
+  document.querySelector('.share [data-close]')?.focus();
+}
+function closeOverlay() {
+  const wasShare = Boolean(state.share);
+  state.share = null;
+  state.viewing = null;
+  render();
+  if (wasShare) document.getElementById('share-btn')?.focus();
+}
+function shareNow() {
+  const poem = getActivePoem();
+  const sh = state.share;
+  if (!poem || !sh) return null;
+  const platform = platformOf(sh.platform);
+  const { ratio, pages } = sharePages(poem, platform, sh.split);
+  const at = Math.min(sh.page, pages.length - 1);
+  const now = { poem, sh, platform, ratio, pages, at, mock: sh.as === 'mock' };
+  now.stage = i => mockStage(sh.backdrop, poem, mockHTML({ ...now, at: i }));
+  now.make = i => (now.mock ? mockup(poem, platform, pages[i], now.stage(i)) : poster(poem, ratio, pages[i]));
+  return now;
+}
+// Paint ahead of the click, so copying and sharing can happen inside it
+let shareRun = 0;
+let captionTimer = 0;
+async function prepareShare() {
+  const now = shareNow();
+  if (!now) return;
+  const run = ++shareRun;
+  now.sh.ready = false;
+  now.sh.posters = null;
+  render();
+  try {
+    const posters = [];
+    // Only the mockup on show is painted ahead; the pages of a post are all sent together.
+    const order = now.mock ? [now.at] : [now.at, ...now.pages.keys()].filter((v, i, a) => a.indexOf(v) === i);
+    for (const i of order) {
+      posters[i] = await now.make(i);
+      if (run !== shareRun || !state.share) return;
+      if (i === now.at) { now.sh.ready = true; render(); }
+    }
+    now.sh.posters = posters.filter(Boolean);
+    render();
+  } catch (err) {
+    console.error(err);
+    if (run === shareRun && state.share) { now.sh.note = 'Could not prepare the image. Please try again.'; render(); }
+  }
+}
+function setShare(patch) {
+  const poem = getActivePoem();
+  if (!state.share || !poem) return;
+  if ('split' in patch) patch.splitChosen = true;
+  // A long poem shrinks to nothing on a fixed-size post, so start it as slides.
+  if ('platform' in patch && !state.share.splitChosen) {
+    patch.split = resolveStyle(poem).carousel || (Boolean(platformOf(patch.platform).ratio) && poemMetrics(poem.body).lines > 22);
+    patch.page = 0;
+  }
+  Object.assign(state.share, { note: '' }, patch);
+  prepareShare();
+}
+// Words shown inside a mockup: preview at once, repaint when typing pauses
+function editShare(key, value) {
+  if (!state.share) return;
+  state.share[key] = value;
+  if (state.share.as === 'mock') {
+    state.share.ready = false;
+    clearTimeout(captionTimer);
+    captionTimer = setTimeout(prepareShare, 450);
+  }
+  render();
+}
+function shareNote(note) { if (state.share) { state.share.note = note; render(); } }
+
+function shareCopyImage() {
+  const now = shareNow();
+  if (!now) return Promise.resolve(false);
+  return copyImage(now.make(now.at).then(p => p.blob)).then(() => true, () => false);
+}
+async function shareDownload({ all = true } = {}) {
+  const now = shareNow();
+  if (!now) return;
+  const which = all && !now.mock || all === 'mocks' ? [...now.pages.keys()] : [now.at];
+  try {
+    for (const i of which) {
+      if (which.length > 1 && now.mock) shareNote(`Painting mockup ${i + 1} of ${which.length}…`);
+      downloadPoster(await now.make(i));
+      if (which.length > 1) await new Promise(r => setTimeout(r, 260));
+    }
+    shareNote(which.length > 1 ? `Downloaded ${which.length} images` : 'Downloaded');
+  } catch (err) {
+    console.error(err);
+    shareNote('Could not prepare the image. Please try again.');
+  }
+}
+async function shareSystem() {
+  const now = shareNow();
+  if (!now?.sh.posters) return;
+  try {
+    await shareFiles(now.sh.posters, now.mock ? '' : now.sh.caption);
+  } catch (err) {
+    if (err?.name !== 'AbortError') shareNote('Sharing isn’t available here. Download the image instead.');
+  }
+}
+const isTouch = () => matchMedia('(pointer: coarse)').matches;
+function shareSend() {
+  const now = shareNow();
+  if (!now) return;
+  const { platform, sh } = now;
+  if (isTouch() && canShareFiles() && sh.posters) { shareSystem(); return; }
+  const url = platform.url(sh.caption);
+  if (platform.send === 'paste') {
+    const done = shareCopyImage();
+    window.open(url, '_blank', 'noopener');
+    done.then(ok => shareNote(ok ? `Image copied. Paste it into ${platform.label}${now.pages.length > 1 ? ', then copy the next slide here' : ''}.` : `Your browser blocked copying. Download the image and add it in ${platform.label}.`));
+  } else {
+    navigator.clipboard?.writeText(sh.caption).catch(() => {});
+    window.open(url, '_blank', 'noopener');
+    shareDownload().then(() => shareNote(`Downloaded, and the caption is copied. Upload it on ${platform.id === 'story' ? 'Instagram from your phone' : platform.label}.`));
+  }
+}
+async function quickCopyImage() {
+  const poem = getActivePoem();
+  if (!poem) return;
+  const st = resolveStyle(poem);
+  const ratio = st.carousel && st.ratio === 'auto' ? '4:5' : st.ratio;
+  const pages = st.carousel ? paginatePoem(poem.body, { ratio, layout: st.layout }) : [null];
+  const page = pages[Math.min(state.slideIdx, pages.length - 1)];
+  state.moreOpen = false;
+  render();
+  const busy = setTimeout(() => toast('Painting the image…', 1400), 350);
+  const ok = await copyImage(poster(poem, ratio, page).then(p => p.blob)).then(() => true, () => false);
+  clearTimeout(busy);
+  toast(ok ? (pages.length > 1 ? `Copied slide ${page.index + 1} as an image` : 'Copied as an image') : 'Copying images isn’t allowed here. Use Share to download.', 2800);
+}
+
+function mockHTML(now) {
+  const { poem, sh, platform, ratio, pages, at } = now;
+  const sheet = renderSheetHTML(poem, { thumb: true, ratio, slide: pages[at] && pages.length > 1 ? pages[at] : null });
+  const art = `<div class="mock-art${ratio === 'auto' ? ' is-long' : ''}" data-ratio-cls="rat-${ratio.replace(':', '-')}" style="aspect-ratio:${ratio === 'auto' ? '4 / 5' : ratio.replace(':', ' / ')}"><div class="mock-scale">${sheet}</div></div>`;
+  const who = sh.who.trim() || 'Your name';
+  const face = `<span class="mock-face">${esc(Array.from(who)[0])}</span>`;
+  const cap = esc(sh.caption).replace(/\n/g, '<br>');
+  const dots = pages.length > 1 ? `<span class="mock-dots">${pages.map((_, i) => `<i class="${i === at ? 'on' : ''}"></i>`).join('')}</span>` : '';
+  switch (platform.id) {
+    case 'whatsapp': return `<div class="mock m-chat"><div class="bubble">${art}${cap ? `<p>${cap}</p>` : ''}<time>now ${ICONS.check}</time></div></div>`;
+    case 'insta': return `<div class="mock m-post"><header>${face}<b>${esc(who)}</b></header>${art}${dots}<p><b>${esc(who)}</b> ${cap.replace(/<br>/g, ' ')}</p></div>`;
+    case 'story': return `<div class="mock m-story">${art}<div class="story-bars">${pages.slice(0, 12).map((_, i) => `<i class="${i <= at ? 'on' : ''}"></i>`).join('')}</div><header>${face}<b>${esc(who)}</b></header></div>`;
+    case 'pin': return `<div class="mock m-pin">${art}<p><b>${esc(poem.title || 'Untitled poem')}</b></p><footer>${face}<span>${esc(who)}</span></footer></div>`;
+    case 'x': case 'threads': case 'facebook': return `<div class="mock m-x"><header>${face}<b>${esc(who)}</b></header>${cap ? `<p>${cap}</p>` : ''}${art}</div>`;
+    default: return `<div class="mock m-plain">${art}</div>`;
+  }
+}
+
+function renderShare() {
+  const now = shareNow();
+  if (!now) return '';
+  const { sh, platform, ratio, pages, at, poem } = now;
+  const many = pages.length > 1;
+  const canSplit = paginatePoem(poem.body, { ratio: ratio === 'auto' ? '4:5' : ratio, layout: resolveStyle(poem).layout }).length > 1;
+  const touch = isTouch() && canShareFiles();
+  const sendLabel = touch ? `Share to ${platform.label}` : platform.send === 'paste' ? `Copy image and open ${platform.label}` : `Download and open ${platform.id === 'story' ? 'Instagram' : platform.label}`;
+  const size = ratio === 'auto' ? 'Full length' : ratio.replace(':', ' × ');
+  return `
+    <div class="overlay" data-overlay="share">
+      <div class="overlay-scrim" data-close></div>
+      <div class="panel share" role="dialog" aria-modal="true" aria-label="Share">
+        <span class="panel-grab" aria-hidden="true"></span>
+        <div class="share-view${now.mock ? ' is-mock' : ''}">${now.mock ? `<div class="mock-frame">${now.stage(at)}</div>` : mockHTML(now)}
+          ${many ? `<div class="pager"><button type="button" class="icon-btn" data-spage="${at - 1}" ${at ? '' : 'disabled'} aria-label="Previous slide">${ICONS.back}</button><span>${at + 1} of ${pages.length}</span><button type="button" class="icon-btn" data-spage="${at + 1}" ${at < pages.length - 1 ? '' : 'disabled'} aria-label="Next slide">${ICONS.next}</button></div>` : ''}
+        </div>
+        <div class="share-side">
+          <div class="panel-top"><h2 class="panel-title">Share</h2><button type="button" class="icon-btn" data-close aria-label="Close">${ICONS.close}</button></div>
+          <div class="share-grid" role="group" aria-label="Where to share">${PLATFORMS.map(p => `<button type="button" class="share-to${p.id === platform.id ? ' on' : ''}" data-shareto="${p.id}" aria-pressed="${p.id === platform.id}">${p.icon}<span>${p.label}</span></button>`).join('')}</div>
+          <div class="share-row"><div class="seg" role="group" aria-label="What to share"><button type="button" class="seg-btn${now.mock ? '' : ' on'}" data-as="page">Page</button><button type="button" class="seg-btn${now.mock ? ' on' : ''}" data-as="mock">Mockup</button></div><span class="share-size">${now.mock ? '1080 × 1350' : size}</span></div>
+          ${now.mock ? `<div class="share-row"><span>Backdrop</span><div class="backdrops">${BACKDROPS.map(bd => `<button type="button" class="bd-dot bd-${bd.id}${bd.id === sh.backdrop ? ' on' : ''}" data-backdrop="${bd.id}" title="${bd.label}" aria-label="${bd.label}" aria-pressed="${bd.id === sh.backdrop}" style="${backdropCSS(bd.id, poem).css}"></button>`).join('')}</div></div>` : ''}
+          ${canSplit ? `<div class="share-row"><span>Long poem</span><div class="seg"><button type="button" class="seg-btn${sh.split ? '' : ' on'}" data-split="0">One image</button><button type="button" class="seg-btn${sh.split ? ' on' : ''}" data-split="1">Slides</button></div></div>` : ''}
+          ${platform.id === 'image' || !now.mock ? '' : `<label class="share-cap"><span>Name</span><input id="share-who" type="text" autocomplete="off" placeholder="Your name" value="${esc(sh.who)}"></label>`}
+          ${platform.id === 'image' || (now.mock && ['pin', 'story'].includes(platform.id)) ? '' : `<label class="share-cap"><span>Caption</span><textarea id="share-caption" rows="3">${esc(sh.caption)}</textarea></label>`}
+          <div class="share-acts">
+            ${now.mock
+              ? `<button type="button" class="btn primary" id="mock-download" ${sh.ready ? '' : 'disabled'}>${ICONS.download} Download mockup</button>
+                 <div class="share-pair"><button type="button" class="btn" id="share-copy" ${sh.ready ? '' : 'disabled'}>Copy mockup</button>${many ? `<button type="button" class="btn" id="mock-all">Download all ${pages.length}</button>` : canShareFiles() ? `<button type="button" class="btn" id="share-system" ${sh.posters ? '' : 'disabled'}>More apps…</button>` : ''}</div>`
+              : platform.id === 'image'
+              ? `<button type="button" class="btn primary" id="share-copy" ${sh.ready ? '' : 'disabled'}>${ICONS.copy} Copy image</button>
+                 <button type="button" class="btn" id="share-download" ${sh.ready ? '' : 'disabled'}>${ICONS.download} ${many ? `Download ${pages.length} images` : 'Download'}</button>`
+              : `<button type="button" class="btn primary" id="share-send" ${sh.ready ? '' : 'disabled'}>${ICONS.share} ${sendLabel}</button>
+                 <div class="share-pair"><button type="button" class="btn" id="share-copy" ${sh.ready ? '' : 'disabled'}>Copy image</button><button type="button" class="btn" id="share-download" ${sh.ready ? '' : 'disabled'}>Download${many ? ` (${pages.length})` : ''}</button></div>`}
+            ${canShareFiles() && !(touch && platform.id !== 'image') && !(now.mock && !many) ? `<button type="button" class="btn ghost" id="share-system" ${sh.posters ? '' : 'disabled'}>${ICONS.share} More apps…</button>` : ''}
+            ${now.mock ? '' : '<button type="button" class="btn ghost" id="share-text">Copy the words</button>'}
+          </div>
+          <p class="share-note" role="status">${esc(sh.note || (sh.ready ? '' : now.mock ? 'Painting the mockup…' : 'Painting the image…'))}</p>
+        </div>
+      </div>
+    </div>`;
+}
+
+function fitOverlay() {
+  const frame = document.querySelector('.mock-frame');
+  if (frame) {
+    const stage = frame.firstElementChild;
+    fitMock(stage);
+    const view = frame.parentElement;
+    const cs = getComputedStyle(view);
+    const pager = view.querySelector('.pager');
+    const w = view.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
+    const h = desktopStage.matches ? view.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom) - (pager ? pager.offsetHeight + 12 : 0) : 340;
+    const z = Math.min(w / MOCK_W, h / MOCK_H, 1);
+    frame.style.width = MOCK_W * z + 'px';
+    frame.style.height = MOCK_H * z + 'px';
+    stage.style.transform = `scale(${z.toFixed(4)})`;
+  }
+  document.querySelectorAll('[data-ratio-cls]').forEach(box => {
+    if (box.closest('.mock-stage')) return;
+    const scale = box.querySelector('.viewer-scale, .mock-scale');
+    const base = SHEET_W[box.dataset.ratioCls];
+    const r = SHEET_RATIO[box.dataset.ratioCls];
+    if (box.classList.contains('viewer-stage')) {
+      const cs = getComputedStyle(box);
+      const w = box.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
+      const h = box.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom);
+      const z = Math.min(1.6, w / base, r ? h / (base / r) : 9);
+      scale.style.setProperty('--thumb', z.toFixed(4));
+      const fit = box.querySelector('.viewer-fit');
+      fit.style.width = base * z + 'px';
+      fit.style.height = (r ? base / r : scale.firstElementChild.offsetHeight) * z + 'px';
+    } else {
+      scale.style.setProperty('--thumb', (box.clientWidth / base).toFixed(4));
+    }
+  });
 }
 
 function renderLookStrip() {
@@ -390,7 +727,7 @@ document.addEventListener('pointerover', e => {
 });
 // Left alone, the bird moves about and sings something of yours.
 setInterval(() => {
-  if (state.activeId || document.hidden || calm() || hoverBloom || state.search || document.activeElement?.id === 'first-line-in') return;
+  if (state.activeId || state.viewing || document.hidden || calm() || hoverBloom || state.search || document.activeElement?.id === 'first-line-in') return;
   const hero = document.querySelector('.hero');
   if (!hero || hero.getBoundingClientRect().bottom < 80) return;
   hopTo(Math.floor(Math.random() * PERCHES.length), pickSong());
@@ -419,15 +756,16 @@ function renderGallery() {
   const archivedCount = state.poems.filter(p => p.archived).length;
   const pills = ['All', ...MOODS, ...(archivedCount ? ['Archived'] : [])];
 
-  const cardsHTML = filtered.length
+  const none = !state.poems.length;
+  const cardsHTML = none ? '' : filtered.length
     ? `<div class="anthology-grid">${filtered.map(p => {
         const m = poemMetrics(p.body);
         const st = resolveStyle(p);
-        const cardRatio = st.ratio === 'auto' ? '2:3' : st.ratio;
+        const cardRatio = thumbRatio(st);
         return `
           <button type="button" class="poem-card" data-open="${esc(p.id)}">
-            <div class="poem-card-frame" style="aspect-ratio:${cardRatio.replace(':', ' / ')}">
-              <div class="thumb-scale">${renderSheetHTML(p, { thumb: true, ratio: cardRatio })}</div>
+            <div class="poem-card-frame${st.carousel ? ' is-stack' : ''}" style="aspect-ratio:${cardRatio.replace(':', ' / ')}">
+              <div class="thumb-scale">${thumbHTML(p, cardRatio)}</div>
             </div>
             <div class="poem-card-meta">
               <h2 class="poem-card-title"><span>${esc(p.title || "Untitled poem")}</span></h2>
@@ -443,6 +781,13 @@ function renderGallery() {
         <button type="button" class="btn primary" id="empty-new-btn">${ICONS.plus} Write a poem</button>
       </div>`;
 
+  const filterBar = none ? '' : `<div class="filter-bar">
+          <div class="mood-pills" role="tablist" aria-label="Filter poems by collection">
+            ${pills.map(md => `<button type="button" role="tab" aria-selected="${state.moodFilter === md}" class="pill${state.moodFilter === md ? ' on' : ''}" data-mood="${esc(md)}">${esc(md)}${md === 'Archived' ? ` (${archivedCount})` : ''}</button>`).join('')}
+          </div>
+          <span class="gallery-stat">${filtered.length === activeCount || isArchTab ? `${filtered.length} ${filtered.length === 1 ? 'poem' : 'poems'}` : `${filtered.length} of ${activeCount}`}</span>
+        </div>`;
+
   const galleryMenu = state.moreOpen ? `
     <div class="ios-menu" role="menu">
       <button type="button" class="ios-menu-item" id="m-backup-btn" role="menuitem"><span>Backup JSON</span>${ICONS.download}</button>
@@ -452,7 +797,7 @@ function renderGallery() {
   ` : '';
 
   return `
-    <div class="shell" data-view="gallery">
+    <div class="shell" data-view="gallery" ${state.viewing ? 'inert' : ''}>
       <div class="gallery-head">
       <header class="topbar">
         <div class="brand">
@@ -479,18 +824,13 @@ function renderGallery() {
 
       </div>
       ${q ? '' : renderHero()}
-        <div class="filter-bar">
-          <div class="mood-pills" role="tablist" aria-label="Filter poems by collection">
-            ${pills.map(md => `<button type="button" role="tab" aria-selected="${state.moodFilter === md}" class="pill${state.moodFilter === md ? ' on' : ''}" data-mood="${esc(md)}">${esc(md)}${md === 'Archived' ? ` (${archivedCount})` : ''}</button>`).join('')}
-          </div>
-          <span class="gallery-stat">${filtered.length === activeCount || isArchTab ? `${filtered.length} ${filtered.length === 1 ? 'poem' : 'poems'}` : `${filtered.length} of ${activeCount}`}</span>
-        </div>
-      <main>
-        ${cardsHTML}
-      </main>
+        ${filterBar}
+      ${none ? '' : `<main>${cardsHTML}</main>`}
+      ${q ? '' : renderExamples()}
       ${q ? '' : renderLookStrip()}
     </div>
 
+    ${renderViewer()}
     <div class="mobile-fab-wrap" data-view="gallery-fab">
       <button type="button" class="mobile-fab" id="mobile-new-btn">${ICONS.plus}<span>Write a poem</span></button>
     </div>
@@ -791,7 +1131,8 @@ function renderStudio(poem) {
   const mobileMoreMenu = state.moreOpen ? `
     <div class="ios-menu" role="menu">
       <button type="button" class="ios-menu-item" id="m-shuffle-btn" role="menuitem"><span>Shuffle pairing</span>${ICONS.sparkles}</button>
-      <button type="button" class="ios-menu-item" id="m-copy-btn" role="menuitem"><span>Copy poem text</span>${ICONS.copy}</button>
+      <button type="button" class="ios-menu-item" id="m-copy-image-btn" role="menuitem"><span>Copy image</span>${ICONS.copy}</button>
+      <button type="button" class="ios-menu-item" id="m-copy-btn" role="menuitem"><span>Copy the words</span>${ICONS.write}</button>
       <button type="button" class="ios-menu-item" id="m-theme-btn" role="menuitem"><span>${state.theme === 'dark' ? 'Light studio' : 'Night studio'}</span>${state.theme === 'dark' ? ICONS.sun : ICONS.moon}</button>
       <button type="button" class="ios-menu-item" id="m-motion-btn" role="menuitem"><span>${calm() ? 'Turn motion on' : 'Turn motion off'}</span>${ICONS.motion}</button>
       <div class="ios-menu-sep"></div>
@@ -801,7 +1142,7 @@ function renderStudio(poem) {
   ` : '';
 
   return `
-    <div class="studio${state.focusMode ? ' is-focus' : ''}${state.mobileSheetOpen ? ' has-sheet' : ''}" data-view="studio-${esc(poem.id)}">
+    <div ${state.share ? 'inert ' : ''}class="studio${state.focusMode ? ' is-focus' : ''}${state.mobileSheetOpen ? ' has-sheet' : ''}" data-view="studio-${esc(poem.id)}">
       <div class="studio-stage">
         <div class="stage-bar">
           <div class="stage-bar-left">
@@ -815,10 +1156,8 @@ function renderStudio(poem) {
           </div>
           <div class="stage-bar-right">
             <button type="button" class="btn sm icon-only desktop-only" id="theme-btn" title="Toggle light or night studio" aria-label="Toggle studio theme">${state.theme === 'dark' ? ICONS.sun : ICONS.moon}</button>
-            <button type="button" class="btn sm desktop-only" id="copy-btn">Copy</button>
-            <button type="button" class="btn sm primary" id="export-btn" ${state.exporting ? 'disabled' : ''}>
-              ${ICONS.download} <span>${state.exporting ? 'Saving…' : (st.carousel && slides.length > 1 ? `Save (${slides.length})` : 'Save<span class="desktop-only">&nbsp;PNG</span>')}</span>
-            </button>
+            <button type="button" class="btn sm desktop-only" id="copy-image-btn" title="Copy this page as an image">${ICONS.copy} Copy image</button>
+            <button type="button" class="btn sm primary" id="share-btn">${ICONS.share} Share</button>
             <div class="menu-wrap mobile-only">
               <button type="button" class="btn sm icon-only" id="more-btn" aria-label="More options" aria-expanded="${state.moreOpen}">${ICONS.more}</button>
               ${mobileMoreMenu}
@@ -833,24 +1172,19 @@ function renderStudio(poem) {
 
         <div class="stage-footer">
           <span id="metrics-lbl">${m.stanzas} ${m.stanzas === 1 ? 'stanza' : 'stanzas'} · ${m.lines} ${m.lines === 1 ? 'line' : 'lines'} · ${m.words} words · ~${m.syllables} syllables</span>
-          ${longHint}
+          <span class="stage-tip">${longHint.replace(/^<span class="stage-tip">|<\/span>$/g, '')}</span>
+          <span class="save-chip${saveWarned ? ' is-off' : ''}" title="Poems are kept in this browser, on this device. Use Backup on the home page to keep a copy elsewhere.">${saveWarned ? 'Not saved: storage is full' : `${ICONS.check} Saved on this device`}</span>
         </div>
       </div>
 
       <div class="sheet-scrim${state.mobileSheetOpen ? ' open' : ''}" id="sheet-scrim"></div>
 
-      <aside class="studio-rail${state.mobileSheetOpen ? ' sheet-open' : ''}" aria-label="Poem design inspector">
-        <div class="rail-sheet-head">
-          <div class="sheet-grabber" id="sheet-grabber"></div>
-          <div class="sheet-head-row">
-            <h2 class="sheet-title">${activeTabLabel}</h2>
-            <button type="button" class="btn sm primary" id="sheet-done-btn">Done</button>
-          </div>
-        </div>
+      <aside class="studio-rail${state.mobileSheetOpen ? ' sheet-open' : ''}${state.sheetTall ? ' is-tall' : ''}" aria-label="Poem design inspector">
+        <button type="button" class="sheet-grabber" id="sheet-grabber" aria-label="${state.sheetTall ? 'Make the panel smaller' : 'Make the panel taller'}"></button>
         <div class="rail-tabs" role="tablist" style="--tab:${tabMeta.findIndex(t => t.id === state.railTab)}">
           ${tabMeta.map(tb => `<button type="button" role="tab" aria-selected="${state.railTab === tb.id}" class="rail-tab${state.railTab === tb.id ? ' on' : ''}" data-railtab="${tb.id}">${tb.label}${changed?.includes(tb.layer) ? '<i class="tab-dot" title="Changed from the look"></i>' : ''}</button>`).join('')}
         </div>
-        <div class="rail-note">${railNote}</div>
+        <div class="rail-note">${railNote}<button type="button" class="icon-btn sheet-close" id="sheet-done-btn" aria-label="Close panel">${ICONS.down}</button></div>
         <div class="rail-body" data-tabpanel="${state.railTab}">${railContent}</div>
         <div class="rail-foot">
           <button type="button" class="btn sm" id="archive-btn">${ICONS.archive} ${poem.archived ? 'Unarchive' : 'Archive'}</button>
@@ -862,7 +1196,7 @@ function renderStudio(poem) {
         ${tabMeta.map(tb => `
           <button type="button" class="dock-btn${state.mobileSheetOpen && state.railTab === tb.id ? ' on' : ''}" data-docktab="${tb.id}">
             ${tb.icon}
-            <span>${tb.label}</span>
+            <span>${tb.label}${changed?.includes(tb.layer) ? '<i class="tab-dot"></i>' : ''}</span>
           </button>
         `).join('')}
       </nav>
@@ -907,8 +1241,10 @@ function fitStage() {
   }
   root.setProperty('--stage-zoom', zoom.toFixed(3));
   if (!desktopStage.matches && state.mobileSheetOpen) {
-    const rail = document.querySelector('.studio-rail');
-    const free = stage.clientHeight - (rail?.offsetHeight || 0) - 24;
+    // The panel's resting height (see .studio-rail), not its height mid-drag or when made taller
+    const dock = document.querySelector('.ios-dock')?.offsetHeight || 0;
+    const rest = Math.min(innerHeight * 0.5, 500);
+    const free = stage.clientHeight - rest - dock - 24;
     const tall = SHEET_RATIO[cls] ? (baseW / SHEET_RATIO[cls]) * zoom : sheet.offsetHeight * zoom;
     lift = Math.max(0.36, Math.min(1, free / tall));
     const padT = parseFloat(cs.paddingTop);
@@ -923,8 +1259,7 @@ const stageObserver = new ResizeObserver(() => fitStage());
 
 // Thumbnails are the real sheet, scaled to their frame
 function fitThumbs() {
-  const grid = document.querySelector('.anthology-grid');
-  if (grid) {
+  for (const grid of document.querySelectorAll('.anthology-grid')) {
     const gap = innerWidth <= 600 ? 12 : 22;
     const meta = innerWidth <= 600 ? 32 : 44;
     for (const card of grid.children) {
@@ -940,11 +1275,12 @@ function fitThumbs() {
   const look = document.querySelector('.look-frame');
   if (look) document.documentElement.style.setProperty('--look', (look.clientWidth / SHEET_W['rat-4-5']).toFixed(4));
 }
-const thumbObserver = new ResizeObserver(() => fitThumbs());
+const thumbObserver = new ResizeObserver(() => { fitThumbs(); fitOverlay(); });
 thumbObserver.observe(document.body);
 
 function fitSheets() {
-  document.querySelectorAll('.poem-sheet[data-fit]').forEach(fitSheet);
+  document.querySelectorAll('.poem-sheet[data-fit]').forEach(n => fitSheet(n));
+  fitOverlay();
 }
 let refit = 0;
 document.fonts?.addEventListener?.('loadingdone', () => {
@@ -1017,7 +1353,7 @@ function render({ fade = false, dir = 0 } = {}) {
   if (!root) return;
   const poem = getActivePoem();
   const cap = fade && poem ? captureGhost() : null;
-  morph(root, poem ? renderStudio(poem) : renderGallery());
+  morph(root, poem ? renderStudio(poem) + renderShare() : renderGallery());
   document.title = poem ? `${poem.title || 'Untitled poem'} · Bulbul` : 'Bulbul · Poetry studio';
 
   const stage = document.querySelector('.stage-canvas-wrap');
@@ -1038,7 +1374,7 @@ function render({ fade = false, dir = 0 } = {}) {
 // Re-render the anthology, gliding cards that stay to their new place.
 function renderGalleryFlow() {
   const cards = () => Array.from(document.querySelectorAll('.poem-card'));
-  const was = new Map(cards().map(c => [c.dataset.open, c.getBoundingClientRect()]));
+  const was = new Map(cards().map(c => [c.dataset.open || c.dataset.example || c.id, c.getBoundingClientRect()]));
   render();
   const head = document.querySelector('.gallery-head');
   const grid = document.querySelector('.anthology-grid');
@@ -1048,7 +1384,7 @@ function renderGalleryFlow() {
   }
   for (const card of cards()) {
     card.getAnimations().forEach(a => a.cancel());
-    const from = was.get(card.dataset.open);
+    const from = was.get(card.dataset.open || card.dataset.example || card.id);
     const to = card.getBoundingClientRect();
     if (!from) {
       card.animate([{ opacity: 0, transform: calm() ? 'none' : 'scale(.96)' }, { opacity: 1, transform: 'none' }], { duration: 280, easing: 'ease-out' });
@@ -1103,7 +1439,7 @@ function pickLook(id) {
   const assets = [art?.src, patch.atmos && finishSrc(patch.atmos), patch.light && finishSrc(patch.light), patch.charm && finishSrc(patch.charm)];
   patchWhenReady(Promise.all([...assets.map(imageReady), fontReady(patch.font, poem.body)]), patch, () => {
     if (art) state.artSub = art.grp;
-    toast(`${l.name} set the whole page`, 4200, { label: 'Undo', run: () => { if (getActivePoem() === poem) patchActive(before); } });
+    toast(`Look: ${l.name}`, 4200, { label: 'Undo', run: () => { if (getActivePoem() === poem) patchActive(before); } });
   });
 }
 
@@ -1164,30 +1500,6 @@ async function doCopy() {
   try { await navigator.clipboard.writeText(clean); } catch { msg = 'Copy failed. Select the text directly.'; }
   render();
   toast(msg);
-}
-
-async function doExport() {
-  const poem = getActivePoem();
-  if (state.exporting || !poem) return;
-  state.exporting = true;
-  state.moreOpen = false;
-  render();
-  try {
-    const st = resolveStyle(poem);
-    if (st.carousel) {
-      const n = await exportCarouselPNGs(poem);
-      toast(`Saved ${n}-slide high-res carousel PNGs`);
-    } else {
-      await exportPoemPNG(poem);
-      toast(st.ratio === 'auto' ? 'Saved full-length Long Page PNG' : 'Saved high-res poster PNG');
-    }
-  } catch (err) {
-    console.error(err);
-    toast('Export failed. Please try again.');
-  } finally {
-    state.exporting = false;
-    render();
-  }
 }
 
 function pickArt(id) {
@@ -1271,8 +1583,84 @@ function doDelete() {
 }
 
 function setTab(tab) { state.railTab = tab; render(); revealSubtab(); }
-function closeSheet() { state.mobileSheetOpen = false; render(); }
+function closeSheet() { state.mobileSheetOpen = false; state.sheetTall = false; render(); }
 function goToSlide(i) { const dir = Math.sign(i - state.slideIdx); state.slideIdx = i; render({ fade: true, dir }); }
+
+/* ---------- Phone gestures ---------- */
+
+const rootStyle = document.documentElement.style;
+let held = null;
+const railDrag = {
+  selector: '.studio-rail.sheet-open',
+  handle: '.sheet-grabber, .rail-note',
+  up: true,
+  start(rail) {
+    held = {
+      h: rail.offsetHeight,
+      max: Math.round(innerHeight * 0.86),
+      lift: parseFloat(rootStyle.getPropertyValue('--stage-lift')) || 1,
+      rise: parseFloat(rootStyle.getPropertyValue('--stage-rise')) || 0
+    };
+    document.documentElement.classList.add('is-dragging-panel');
+  },
+  move(rail, dy) {
+    if (dy < 0) {
+      const room = state.sheetTall ? dy * 0.12 : dy;
+      rail.style.transform = '';
+      rail.style.height = Math.min(held.max + 16, held.h - room) + 'px';
+      return;
+    }
+    rail.style.height = held.h + 'px';
+    rail.style.transform = `translateY(${dy}px)`;
+    // The poem grows back as the panel leaves
+    const p = Math.min(1, dy / held.h);
+    rootStyle.setProperty('--stage-lift', (held.lift + (1 - held.lift) * p).toFixed(3));
+    rootStyle.setProperty('--stage-rise', (held.rise * (1 - p)).toFixed(1) + 'px');
+  },
+  end(rail, dy, v) {
+    document.documentElement.classList.remove('is-dragging-panel');
+    if (state.sheetTall) {
+      if (v > 1.1 || dy > held.h * 0.5) { closeSheet(); return; }
+      if (v > 0.35 || dy > held.h * 0.12) state.sheetTall = false;
+    } else if (v > 0.45 || dy > held.h * 0.3) {
+      closeSheet();
+      return;
+    } else if (v < -0.4 || dy < -56) {
+      state.sheetTall = true;
+    }
+    render(); // clears the inline position, so the panel eases to where it belongs
+  }
+};
+const panelDrag = {
+  selector: '.panel',
+  handle: '.panel-grab',
+  start(panel) { panel.getAnimations().forEach(a => a.finish()); },
+  move(panel, dy) { panel.style.transform = `translateY(${dy > 0 ? dy : dy * 0.12}px)`; },
+  end(panel, dy, v) {
+    const from = panel.style.transform || 'none';
+    panel.style.transform = '';
+    const away = v > 0.5 || dy > Math.min(220, panel.offsetHeight * 0.26);
+    const move = panel.animate([{ transform: from }, { transform: away ? 'translateY(104%)' : 'none' }], { duration: away ? 220 : 300, easing: 'cubic-bezier(.2, .8, .2, 1)', fill: away ? 'forwards' : 'none' });
+    if (away) {
+      document.querySelector('.overlay-scrim')?.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 220, fill: 'forwards' });
+      let done = false;
+      const close = () => { if (!done) { done = true; closeOverlay(); } };
+      move.finished.then(close, close);
+      setTimeout(close, 320);
+    }
+  }
+};
+initGestures({
+  panels: [railDrag, panelDrag],
+  swipes: [
+    { selector: '.share-view', go: d => document.querySelector(`.share-view [data-spage]:${d > 0 ? 'last' : 'first'}-of-type:not([disabled])`)?.click() },
+    { selector: '.viewer-stage', go: d => {
+      const turn = document.querySelector(`.viewer [data-vslide]:${d > 0 ? 'last' : 'first'}-of-type:not([disabled])`);
+      (turn || document.querySelector(`[data-vstep="${d}"]`))?.click();
+    } },
+    { selector: '.stage-canvas-wrap', go: d => { if (getActivePoem()?.carousel) document.getElementById(d > 0 ? 'next-slide-btn' : 'prev-slide-btn')?.click(); } }
+  ]
+});
 
 /* ---------- Events: one set of listeners, delegated from the document ---------- */
 
@@ -1286,8 +1674,8 @@ const CLICKS = [
   ['#spark-use', () => createPoem({ spark: todaysSpark() })],
   ['#spark-next', () => { state.sparkShift += 1; render(); }],
   ['[data-startlook]', el => createPoem({ lookId: el.dataset.startlook })],
-  ['[data-bloom]', el => openPoem(el.dataset.bloom)],
-  ['[data-song]', el => openPoem(el.dataset.song)],
+  ['[data-bloom]', el => (el.dataset.bloom.startsWith('ex-') ? viewExample(el.dataset.bloom) : openPoem(el.dataset.bloom))],
+  ['[data-song]', el => (el.dataset.song.startsWith('ex-') ? viewExample(el.dataset.song) : openPoem(el.dataset.song))],
   ['#bird', () => hopTo((state.perch + 1 + Math.floor(Math.random() * (PERCHES.length - 1))) % PERCHES.length, pickSong())],
   ['[data-mood]', el => { if (state.moodFilter !== el.dataset.mood) { state.moodFilter = el.dataset.mood; renderGalleryFlow(); } }],
   ['[data-open]', el => openPoem(el.dataset.open)],
@@ -1310,8 +1698,33 @@ const CLICKS = [
   ['#prev-slide-btn', () => { if (state.slideIdx > 0) goToSlide(state.slideIdx - 1); }],
   ['#next-slide-btn', () => goToSlide(state.slideIdx + 1)],
   ['[data-slide]', el => goToSlide(Number(el.dataset.slide))],
-  ['#copy-btn, #m-copy-btn', doCopy],
-  ['#export-btn', doExport],
+  ['#m-copy-btn', doCopy],
+  ['#copy-image-btn, #m-copy-image-btn', quickCopyImage],
+  ['#share-btn', openShare],
+
+  // Overlays
+  ['[data-close]', closeOverlay],
+  ['[data-shareto]', el => setShare({ platform: el.dataset.shareto })],
+  ['[data-split]', el => setShare({ split: el.dataset.split === '1', page: 0 })],
+  ['[data-spage]', el => setShare({ page: Number(el.dataset.spage) })],
+  ['#share-copy', () => shareCopyImage().then(ok => shareNote(ok ? (state.share?.as === 'mock' ? 'Mockup copied' : 'Image copied') : 'Your browser blocked copying. Download the image instead.'))],
+  ['#share-download', () => shareDownload()],
+  ['#mock-download', () => shareDownload({ all: false })],
+  ['#mock-all', () => shareDownload({ all: 'mocks' })],
+  ['[data-as]', el => setShare({ as: el.dataset.as })],
+  ['[data-backdrop]', el => setShare({ backdrop: el.dataset.backdrop })],
+  ['#share-send', shareSend],
+  ['#share-system', shareSystem],
+  ['#share-text', () => doCopy().then(() => {})],
+  ['[data-vslide]', el => { state.viewing.slide = Number(el.dataset.vslide); render(); }],
+  ['[data-vstep]', el => {
+    const i = EXAMPLES.findIndex(p => p.id === state.viewing.id);
+    state.viewing = { id: EXAMPLES[(i + Number(el.dataset.vstep) + EXAMPLES.length) % EXAMPLES.length].id, slide: 0 };
+    render();
+  }],
+  ['#ex-style-btn', () => fromExample(false)],
+  ['#ex-copy-btn', () => fromExample(true)],
+  ['[data-example]', el => viewExample(el.dataset.example)],
   ['#archive-btn, #m-archive-btn', doArchive],
   ['#delete-btn, #m-delete-btn', doDelete],
 
@@ -1331,7 +1744,8 @@ const CLICKS = [
     state.mobileSheetOpen = true;
     setTab(tab);
   }],
-  ['#sheet-scrim, #sheet-done-btn, #sheet-grabber', closeSheet],
+  ['#sheet-scrim, #sheet-done-btn', closeSheet],
+  ['#sheet-grabber', () => { state.sheetTall = !state.sheetTall; render(); }],
   ['[data-railtab]', el => setTab(el.dataset.railtab)],
   ['[data-artsub]', el => { state.artSub = el.dataset.artsub; render(); revealSubtab(); }],
   ['[data-fontcat]', el => { state.fontCat = el.dataset.fontcat; render(); revealSubtab(); }],
@@ -1392,6 +1806,8 @@ const INPUTS = [
     liveUpdateMetricsAndScale(getActivePoem());
   }],
   ['#wash-range', el => patchActive({ wash: Number(el.value) }, { fade: false })],
+  ['#share-caption', el => editShare('caption', el.value)],
+  ['#share-who', el => { localStorage.setItem(NAME_KEY, el.value.trim()); editShare('who', el.value); }],
   ['#sign-in', el => patchActive({ sign: el.value }, { fade: false })],
   ['#page-in', el => patchActive({ pageNo: el.value }, { fade: false })],
   ['#rhyme-in', el => { state.rhymeQuery = el.value; render(); }]
@@ -1479,7 +1895,12 @@ document.addEventListener('pointerup', endDrag);
 document.addEventListener('pointercancel', endDrag);
 
 window.addEventListener('keydown', e => {
+  if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 's' && state.activeId) {
+    e.preventDefault();
+    toast('Already saved on this device. Use Share to download.');
+  }
   if (e.key === 'Escape') {
+    if (state.share || state.viewing) { closeOverlay(); return; }
     if (state.moreOpen) { state.moreOpen = false; render(); return; }
     if (state.mobileSheetOpen) { closeSheet(); return; }
     if (state.activeId && state.focusMode) { state.focusMode = false; render(); }

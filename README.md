@@ -7,8 +7,10 @@
 - **Steady interface:** `morph.js` patches the page in place, so scroll, focus, images and typing survive every click. Never assign `innerHTML` on `#app`.
 - **A home that grows:** a gulmohar branch with a blossom per poem, a bulbul that hops to the one you hover and recites your lines, a first-line box, a daily spark and looks to start from.
 - **One tab, one layer:** `Looks` sets the whole page (with undo). `Picture`, `Type` and `Page` each change only their own part, and show a dot when they differ from the look. `Words` is for writing.
-- **34 one-tap Looks**, previewed with your own poem. Hindi poems get a Devanagari face automatically.
-- **83 artworks and 14 papers:** 14 original gouache Stories and landscapes drawn for Bulbul, plus museum art, sketches, light, book and watercolour, and custom photo upload.
+- **Share without a server:** copy the page as an image, download it, or prepare it for WhatsApp, Instagram, Stories, Pinterest, X, Threads and Facebook at the right size, with a preview. The preview itself can be saved or copied as a 1080 × 1350 mockup on a choice of six backdrops, transparent included. Phones get the system share sheet. Nothing is uploaded by Bulbul; poems are kept in the browser.
+- **Examples:** 15 pages made from five poems by Aditya (`examples.js`), each viewable, copyable and reusable as a style.
+- **40 one-tap Looks**, previewed with your own poem. Hindi poems get a Devanagari face automatically.
+- **90 artworks and 14 papers:** 21 original gouache illustrations and landscapes drawn for Bulbul, plus museum art, sketches, light, book and watercolour, and custom photo upload.
 - **Finishing layers:** watercolour washes, light and shadow (window, palm, leaves, golden hour, old film) and keepsakes (postage, wax seal, washi tape, pressed fern, marigolds, petals, chai ring, red thread).
 - **50 Google Fonts:** Classic (12), Handwriting (14), Typewriter (4), Modern (4) and हिन्दी (16).
 - **Deep Yet Effortless Customisations:**
@@ -17,7 +19,7 @@
   - **7 Text Styles** (`Plain`, `Torn Paper`, `Line Cut-Out`, `Word Cut-Out`, `Underlined`, `Highlighter`, `Blackout`) + inline `**bold**` / `__underline__` / `*italic*`
   - **4 Paper Textures** (`Fine Grain`, `Kraft Fiber`, `Cotton Rag`, `Smooth`), **8 Ink Swatches**, and **Line Rhythm**
   - **Long-Poem Engine:** Auto-Fit Typography, Live Multi-Slide Instagram Carousel (`---` manual breaks or smart stanza balancing), and Unclipped Long Page tall PNG export.
-- **Native iOS Responsive UX:** Frosted translucent chrome, iPhone bottom tab dock (`Looks · Picture · Type · Page · Words`), spring-animated bottom sheet inspector, and offline PWA support.
+- **Native iOS Responsive UX:** Frosted translucent chrome, iPhone bottom tab dock (`Looks · Picture · Type · Page · Words`), a bottom sheet you drag down to close or up to enlarge while the dock stays in reach, swipes between slides, and offline PWA support.
 
 - **What you see is what you save:** `snapshot.js` paints the real poster markup from `sheet.js` into the PNG, so a new style needs CSS only.
 

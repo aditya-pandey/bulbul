@@ -1,5 +1,5 @@
-import { snapshotPoem } from './snapshot.js';
-import { RATIOS, RHYTHMS, computeTypeScale, paginatePoem, resolveStyle } from './data.js';
+import { snapshotPoem, snapshotMock } from './snapshot.js';
+import { RATIOS, RHYTHMS, computeTypeScale, resolveStyle } from './data.js';
 
 function loadImg(src) {
   return new Promise(resolve => {
@@ -617,38 +617,15 @@ async function renderPoem(poem, slide) {
   }
 }
 
-function downloadCanvas(cv, filename) {
-  return new Promise(resolve => {
-    cv.toBlob(blob => {
-      const a = document.createElement('a');
-      a.download = filename;
-      a.href = URL.createObjectURL(blob);
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      setTimeout(() => URL.revokeObjectURL(a.href), 4000);
-      setTimeout(resolve, 160);
-    }, 'image/png');
-  });
-}
-
 function slug(s) {
   return String(s || 'poem').toLowerCase().replace(/[^\p{L}\p{M}\p{N}]+/gu, '-').replace(/^-|-$/g, '') || 'poem';
 }
 
-export async function exportPoemPNG(poem) {
-  const cv = await renderPoem(poem, null);
-  await downloadCanvas(cv, `${slug(poem.title)}.png`);
-}
+const toBlob = cv => new Promise((res, rej) => cv.toBlob(b => (b ? res(b) : rej(new Error('Could not encode the image'))), 'image/png'));
 
-export async function exportCarouselPNGs(poem) {
-  const style = resolveStyle(poem);
-  const effRatio = style.ratio === 'auto' ? '4:5' : style.ratio;
-  const slides = paginatePoem(poem.body, { ratio: effRatio, layout: style.layout });
-  const base = slug(poem.title);
-  for (const sl of slides) {
-    const cv = await renderPoem(poem, sl);
-    await downloadCanvas(cv, `${base}-slide-${sl.index + 1}.png`);
-  }
-  return slides.length;
+export const posterBlob = async (poem, slide = null) => toBlob(await renderPoem(poem, slide));
+export const mockBlob = async (html, poem) => toBlob(await snapshotMock(html, poem));
+
+export function posterName(poem, slide = null) {
+  return slide && slide.total > 1 ? `${slug(poem.title)}-${slide.index + 1}.png` : `${slug(poem.title)}.png`;
 }
