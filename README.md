@@ -1,4 +1,6 @@
-# Bulbul: Poetry studio
+# Bulbul
+
+*For words that sing*
 
 **Bulbul** *(बुलबुल · بلبل, the songbird that stands for the poet in Urdu and Persian verse)* is a standalone poetry writer and page studio with zero build steps.
 

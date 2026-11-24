@@ -797,7 +797,7 @@ function renderGallery() {
       <header class="topbar">
         <div class="brand">
           <h1 class="brand-mark">${LOCKUP_SVG}</h1>
-          <span class="brand-sub">Poetry studio</span>
+          <p class="brand-sub">For words that sing</p>
         </div>
         <div class="search-wrap">
           ${ICONS.search}
@@ -1367,7 +1367,7 @@ function render({ fade = false, dir = 0 } = {}) {
   const poem = getActivePoem();
   const cap = fade && poem ? captureGhost() : null;
   morph(root, poem ? renderStudio(poem) + renderShare() : renderGallery());
-  document.title = poem ? `${poem.title || 'Untitled poem'} · Bulbul` : 'Bulbul · Poetry studio';
+  document.title = poem ? `${poem.title || 'Untitled poem'} · Bulbul` : 'Bulbul · For words that sing';
 
   const stage = document.querySelector('.stage-canvas-wrap');
   if (stage !== observedStage) {

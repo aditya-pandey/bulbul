@@ -1,7 +1,7 @@
 {
-  "name": "Bulbul: Poetry studio",
+  "name": "Bulbul",
   "short_name": "Bulbul",
-  "description": "Write poems and set them as pages worth keeping.",
+  "description": "For words that sing. Write poems and set them as pages worth keeping.",
   "start_url": "./",
   "display": "standalone",
   "background_color": "#F7F4EE",
