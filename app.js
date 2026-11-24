@@ -18,6 +18,7 @@ import { renderSheetHTML, fitSheet, clearFits, esc, stripEmphasis, SHEET_W, SHEE
 // Storage keys predate the current name. Keep them: renaming would orphan saved poems.
 const STORAGE_KEY = 'noor.poems.v1';
 const THEME_KEY = 'noor.theme';
+const SHARE_KEY = 'noor.share';
 const MINE_KEY = 'noor.looks.mine';
 const RECENT_KEY = 'noor.looks.recent';
 const MODE_KEY = 'noor.mode';
@@ -510,10 +511,12 @@ function openShare() {
   state.editingRich = false;
   document.querySelectorAll('.toast').forEach(n => n.remove());
   hintDone(2);
-  state.share = { platform: 'image', split: st.carousel, page: state.slideIdx, caption: captionFor(poem), who: (poem.sign || '').replace(/^[\s—–~-]+/, '').trim() || localStorage.getItem(NAME_KEY) || '', as: 'page', backdrop: 'poem', ready: false, note: '' };
+  const last = localStorage.getItem(SHARE_KEY);
+  state.share = { platform: PLATFORMS.some(p => p.id === last) ? last : 'image', split: st.carousel, page: state.slideIdx, caption: captionFor(poem), who: (poem.sign || '').replace(/^[\s—–~-]+/, '').trim() || localStorage.getItem(NAME_KEY) || '', as: 'page', backdrop: 'poem', ready: false, note: '' };
+  if (platformOf(state.share.platform).ratio && poemMetrics(poem.body).lines > 22) state.share.split = true;
   render();
   prepareShare();
-  document.querySelector('.share [data-close]')?.focus();
+  document.querySelector('.share [data-close]')?.focus({ preventScroll: true });
 }
 function closeOverlay() {
   const wasShare = Boolean(state.share);
@@ -542,6 +545,7 @@ async function prepareShare() {
   if (!now) return;
   const run = ++shareRun;
   now.sh.ready = false;
+  now.sh.failed = false;
   now.sh.posters = null;
   render();
   try {
@@ -557,7 +561,7 @@ async function prepareShare() {
     render();
   } catch (err) {
     console.error(err);
-    if (run === shareRun && state.share) { now.sh.note = 'Could not prepare the image. Please try again.'; render(); }
+    if (run === shareRun && state.share) { now.sh.failed = true; render(); }
   }
 }
 function setShare(patch) {
@@ -603,7 +607,7 @@ async function shareDownload({ all = true } = {}) {
     shareNote(which.length > 1 ? `Downloaded ${which.length} images` : 'Downloaded');
   } catch (err) {
     console.error(err);
-    shareNote('Could not prepare the image. Please try again.');
+    if (state.share) { state.share.failed = true; render(); }
   }
 }
 async function shareSystem() {
@@ -665,6 +669,21 @@ function mockHTML(now) {
   }
 }
 
+// What the image says and shows, for people who can't see it
+function altText(poem, page) {
+  const st = resolveStyle(poem);
+  const words = stripEmphasis(String((page && page.total > 1 ? page.text : poem.body) || '').replace(/^\s*[-—]{3,}\s*$/gm, '').trim());
+  const by = (poem.sign || '').replace(/^[\s—–~-]+/, '').trim();
+  const scene = st.bgMode === 'art' ? `, with the picture “${st.painting.name}”` : st.bgMode === 'photo' ? ', over a photograph' : '';
+  const head = `A poem${poem.title ? ` titled “${poem.title}”` : ''}${by ? ` by ${by}` : ''}${page && page.total > 1 ? `, slide ${page.index + 1} of ${page.total}` : ''}${scene}.`;
+  return `${head}\n\n${words}`;
+}
+function copyAlt() {
+  const now = shareNow();
+  if (!now) return;
+  navigator.clipboard.writeText(altText(now.poem, now.pages[now.at])).then(() => shareNote('Alt text copied'), () => shareNote('Copying isn’t allowed here.'));
+}
+
 function renderShare() {
   const now = shareNow();
   if (!now) return '';
@@ -672,37 +691,51 @@ function renderShare() {
   const many = pages.length > 1;
   const canSplit = paginatePoem(poem.body, { ratio: ratio === 'auto' ? '4:5' : ratio, layout: resolveStyle(poem).layout }).length > 1;
   const touch = isTouch() && canShareFiles();
-  const sendLabel = touch ? `Share to ${platform.label}` : platform.send === 'paste' ? `Copy image and open ${platform.label}` : `Download and open ${platform.id === 'story' ? 'Instagram' : platform.label}`;
+  const sendLabel = platform.send === 'paste' ? `Copy image and open ${platform.label}` : `Download and open ${platform.id === 'story' ? 'Instagram' : platform.label}`;
   const size = ratio === 'auto' ? 'Full length' : ratio.replace(':', ' × ');
+  const wait = sh.ready ? '' : 'disabled aria-describedby="share-note"';
+  const waitAll = sh.posters ? '' : 'disabled aria-describedby="share-note"';
+  const noun = now.mock ? 'mockup' : many ? 'slides' : 'page';
+  const note = sh.failed ? '' : sh.note || (sh.ready && (sh.posters || now.mock || !touch) ? '' : `Getting your ${noun} ready. The buttons open in a moment.`);
+  const picks = `<div class="share-grid" role="group" aria-label="Where to share">${PLATFORMS.map(p => `<button type="button" class="share-to${p.id === platform.id ? ' on' : ''}" data-shareto="${p.id}" aria-pressed="${p.id === platform.id}">${p.icon}<span>${p.label}</span></button>`).join('')}</div>`;
+  const caption = platform.id === 'image' || (now.mock && ['pin', 'story'].includes(platform.id)) ? '' : `<div class="share-cap"><div class="share-cap-top"><label for="share-caption">Caption</label><button type="button" class="quiet-link" id="share-alt">Copy the poem as alt text</button></div><textarea id="share-caption" rows="3">${esc(sh.caption)}</textarea></div>`;
+  const failed = sh.failed ? `<div class="state-card" role="alert"><p><b>The image didn’t come out.</b> Your poem is safe.</p><button type="button" class="btn" id="share-retry">Try again</button></div>` : '';
+  const acts = touch
+    ? `<button type="button" class="btn primary big" id="share-system" ${now.mock ? wait : waitAll}>${ICONS.share} Share</button>
+       <div class="share-pair"><button type="button" class="btn" id="share-copy" ${wait}>Copy ${now.mock ? 'mockup' : 'image'}</button>${many && now.mock ? `<button type="button" class="btn" id="mock-all">Download all ${pages.length}</button>` : `<button type="button" class="btn" id="${now.mock ? 'mock-download' : 'share-download'}" ${wait}>Download${many && !now.mock ? ` (${pages.length})` : ''}</button>`}</div>`
+    : now.mock
+      ? `<button type="button" class="btn primary" id="mock-download" ${wait}>${ICONS.download} Download mockup</button>
+         <div class="share-pair"><button type="button" class="btn" id="share-copy" ${wait}>Copy mockup</button>${many ? `<button type="button" class="btn" id="mock-all">Download all ${pages.length}</button>` : canShareFiles() ? `<button type="button" class="btn" id="share-system" ${waitAll}>More apps</button>` : ''}</div>`
+      : platform.id === 'image'
+        ? `<button type="button" class="btn primary" id="share-copy" ${wait}>${ICONS.copy} Copy image</button>
+           <button type="button" class="btn" id="share-download" ${wait}>${ICONS.download} ${many ? `Download ${pages.length} images` : 'Download'}</button>`
+        : `<button type="button" class="btn primary" id="share-send" ${wait}>${ICONS.share} ${sendLabel}</button>
+           <div class="share-pair"><button type="button" class="btn" id="share-copy" ${wait}>Copy image</button><button type="button" class="btn" id="share-download" ${wait}>Download${many ? ` (${pages.length})` : ''}</button></div>`;
   return `
     <div class="overlay" data-overlay="share">
       <div class="overlay-scrim" data-close></div>
       <div class="panel share" role="dialog" aria-modal="true" aria-label="Share">
         <span class="panel-grab" aria-hidden="true"></span>
-        <div class="share-view${now.mock ? ' is-mock' : ''}">${now.mock ? `<div class="mock-frame">${now.stage(at)}</div>` : mockHTML(now)}
+        <div class="share-view${now.mock ? ' is-mock' : ''}${sh.ready || sh.failed ? '' : ' is-waiting'}">${now.mock ? `<div class="mock-frame">${now.stage(at)}</div>` : mockHTML(now)}
           ${many ? `<div class="pager"><button type="button" class="icon-btn" data-spage="${at - 1}" ${at ? '' : 'disabled'} aria-label="Previous slide">${ICONS.back}</button><span>${at + 1} of ${pages.length}</span><button type="button" class="icon-btn" data-spage="${at + 1}" ${at < pages.length - 1 ? '' : 'disabled'} aria-label="Next slide">${ICONS.next}</button></div>` : ''}
         </div>
         <div class="share-side">
           <div class="panel-top"><h2 class="panel-title">Share</h2><button type="button" class="icon-btn" data-close aria-label="Close">${ICONS.close}</button></div>
-          <div class="share-grid" role="group" aria-label="Where to share">${PLATFORMS.map(p => `<button type="button" class="share-to${p.id === platform.id ? ' on' : ''}" data-shareto="${p.id}" aria-pressed="${p.id === platform.id}">${p.icon}<span>${p.label}</span></button>`).join('')}</div>
+          ${touch ? `<div class="share-acts is-first">${acts}</div>` : ''}
+          ${picks}
           <div class="share-row"><div class="seg" role="group" aria-label="What to share"><button type="button" class="seg-btn${now.mock ? '' : ' on'}" data-as="page">Page</button><button type="button" class="seg-btn${now.mock ? ' on' : ''}" data-as="mock">Mockup</button></div><span class="share-size">${now.mock ? '1080 × 1350' : size}</span></div>
           ${now.mock ? `<div class="share-row"><span>Backdrop</span><div class="backdrops">${BACKDROPS.map(bd => `<button type="button" class="bd-dot bd-${bd.id}${bd.id === sh.backdrop ? ' on' : ''}" data-backdrop="${bd.id}" title="${bd.label}" aria-label="${bd.label}" aria-pressed="${bd.id === sh.backdrop}" style="${backdropCSS(bd.id, poem).css}"></button>`).join('')}</div></div>` : ''}
           ${canSplit ? `<div class="share-row"><span>Long poem</span><div class="seg"><button type="button" class="seg-btn${sh.split ? '' : ' on'}" data-split="0">One image</button><button type="button" class="seg-btn${sh.split ? ' on' : ''}" data-split="1">Slides</button></div></div>` : ''}
           ${platform.id === 'image' || !now.mock ? '' : `<label class="share-cap"><span>Name</span><input id="share-who" type="text" autocomplete="off" placeholder="Your name" value="${esc(sh.who)}"></label>`}
-          ${platform.id === 'image' || (now.mock && ['pin', 'story'].includes(platform.id)) ? '' : `<label class="share-cap"><span>Caption</span><textarea id="share-caption" rows="3">${esc(sh.caption)}</textarea></label>`}
+          ${caption}
+          ${failed}
           <div class="share-acts">
-            ${now.mock
-              ? `<button type="button" class="btn primary" id="mock-download" ${sh.ready ? '' : 'disabled'}>${ICONS.download} Download mockup</button>
-                 <div class="share-pair"><button type="button" class="btn" id="share-copy" ${sh.ready ? '' : 'disabled'}>Copy mockup</button>${many ? `<button type="button" class="btn" id="mock-all">Download all ${pages.length}</button>` : canShareFiles() ? `<button type="button" class="btn" id="share-system" ${sh.posters ? '' : 'disabled'}>More apps…</button>` : ''}</div>`
-              : platform.id === 'image'
-              ? `<button type="button" class="btn primary" id="share-copy" ${sh.ready ? '' : 'disabled'}>${ICONS.copy} Copy image</button>
-                 <button type="button" class="btn" id="share-download" ${sh.ready ? '' : 'disabled'}>${ICONS.download} ${many ? `Download ${pages.length} images` : 'Download'}</button>`
-              : `<button type="button" class="btn primary" id="share-send" ${sh.ready ? '' : 'disabled'}>${ICONS.share} ${sendLabel}</button>
-                 <div class="share-pair"><button type="button" class="btn" id="share-copy" ${sh.ready ? '' : 'disabled'}>Copy image</button><button type="button" class="btn" id="share-download" ${sh.ready ? '' : 'disabled'}>Download${many ? ` (${pages.length})` : ''}</button></div>`}
-            ${canShareFiles() && !(touch && platform.id !== 'image') && !(now.mock && !many) ? `<button type="button" class="btn ghost" id="share-system" ${sh.posters ? '' : 'disabled'}>${ICONS.share} More apps…</button>` : ''}
+            ${touch ? '' : acts}
+            ${!touch && canShareFiles() && !(now.mock && !many) ? `<button type="button" class="btn ghost" id="share-system" ${waitAll}>${ICONS.share} More apps</button>` : ''}
             ${now.mock ? '' : '<button type="button" class="btn ghost" id="share-text">Copy the words</button>'}
+            ${platform.id === 'image' && !now.mock ? '<button type="button" class="btn ghost" id="share-alt">Copy the poem as alt text</button>' : ''}
           </div>
-          <p class="share-note" role="status">${esc(sh.note || (sh.ready ? '' : now.mock ? 'Painting the mockup…' : 'Painting the image…'))}</p>
+          <p class="share-note" id="share-note" role="status">${esc(note)}</p>
         </div>
       </div>
     </div>`;
@@ -1978,7 +2011,9 @@ const CLICKS = [
 
   // Overlays
   ['[data-close]', closeOverlay],
-  ['[data-shareto]', el => setShare({ platform: el.dataset.shareto })],
+  ['[data-shareto]', el => { localStorage.setItem(SHARE_KEY, el.dataset.shareto); setShare({ platform: el.dataset.shareto }); }],
+  ['#share-alt', copyAlt],
+  ['#share-retry', () => prepareShare()],
   ['[data-split]', el => setShare({ split: el.dataset.split === '1', page: 0 })],
   ['[data-spage]', el => setShare({ page: Number(el.dataset.spage) })],
   ['#share-copy', () => shareCopyImage().then(ok => shareNote(ok ? (state.share?.as === 'mock' ? 'Mockup copied' : 'Image copied') : 'Your browser blocked copying. Download the image instead.'))],

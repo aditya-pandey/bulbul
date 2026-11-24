@@ -1479,3 +1479,15 @@ button:focus-visible, input:focus-visible, textarea:focus-visible { outline: 2px
   .studio-rail:not(.is-tall) .pic-btn { flex: 0 0 76px; }
   .pic-row::-webkit-scrollbar { display: none; }
 }
+
+/* ================= SHARE: waiting, failing, phones first ================= */
+.share-cap-top { display: flex; align-items: center; justify-content: space-between; gap: var(--s-3); }
+.share-view.is-waiting .mock-art::after, .share-view.is-waiting .mock-frame::after {
+  content: ""; position: absolute; inset: 0; z-index: 9; pointer-events: none;
+  background: linear-gradient(100deg, transparent 30%, rgba(255, 253, 250, .55) 48%, transparent 66%) 120% 0 / 240% 100% no-repeat; animation: shimmer 1.3s linear infinite;
+}
+[data-motion="calm"] .share-view.is-waiting .mock-art::after, [data-motion="calm"] .share-view.is-waiting .mock-frame::after { background: rgba(255, 253, 250, .4); animation: ringPulse .46s ease-in-out infinite alternate; }
+@keyframes shimmer { from { background-position: 120% 0; } to { background-position: -120% 0; } }
+.state-card { display: flex; align-items: center; justify-content: space-between; gap: var(--s-3); padding: var(--s-3) var(--s-4); border-radius: var(--r-md); background: var(--surface-2); font-size: var(--t-3); line-height: 1.45; }
+.state-card p { margin: 0; } .state-card .btn { flex-shrink: 0; }
+.share-acts.is-first { margin-top: 0; }
