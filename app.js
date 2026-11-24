@@ -1,11 +1,13 @@
 import {
   ARTWORKS, PAPERS, FONTS, FONT_CATS, LAYOUTS, FRAMES, RATIOS, TEXT_SIZES, TEXT_STYLES,
-  TITLE_STYLES, TEXTURES, INK_SWATCHES, RHYTHMS, MOODS, ATMOS, LIGHTS, CHARMS, CHARM_POS,
+  TITLE_STYLES, TEXTURES, INK_SWATCHES, RHYTHMS, MOODS, ATMOS, LIGHTS, CHARMS,
   LOOKS, LOOK_CATS, lookPatch, isHindi, finishSrc,
   BLOOMS, PERCHES, SPARKS, changedLayers,
   OLD_SAMPLES,
   poemMetrics, computeTypeScale, paginatePoem, resolveStyle
 } from './data.js';
+import { PLACEMENT, FRAME, TITLE, LINE, ALIGN } from './pictos.js';
+import { inkAdvice } from './contrast.js';
 import { fitMock, MOCK_W, MOCK_H } from './snapshot.js';
 import { initGestures } from './gestures.js';
 import { EXAMPLES } from './examples.js';
@@ -125,6 +127,7 @@ const state = {
   looksShown: 16,
   artSub: 'minimal',
   fontCat: 'all',
+  typeSeg: 'font',
   mode: 'design',
   formatOpen: false,
   caret: -1,
@@ -982,6 +985,12 @@ function renderGallery() {
   `;
 }
 
+// A visual choice, shown as a small picture with its name beneath
+const picRow = (list, pics, current, attr, label) => `
+  <div class="pic-row" role="group" aria-label="${label}">
+    ${list.map(x => `<button type="button" class="pic-btn${x.id === current ? ' on' : ''}" ${attr}="${x.id}" aria-label="${esc(x.label)}" aria-pressed="${x.id === current}">${pics[x.id] || ''}<span>${esc(x.label)}</span></button>`).join('')}
+  </div>`;
+
 /* ---------- Choosing looks ---------- */
 
 const lookOf = id => LOOKS.find(l => l.id === id);
@@ -1054,7 +1063,7 @@ let peeking = false;
 function peekStart(target) {
   clearTimeout(peekTimer);
   const poem = getActivePoem();
-  if (!poem || !lookWas.has(poem.id) || poem.carousel || target.closest('input, textarea, button, #movable-text-col')) return;
+  if (!poem || !lookWas.has(poem.id) || poem.carousel || target.closest('input, textarea, button, [data-grab]')) return;
   peekTimer = setTimeout(() => {
     const holder = sheetHolder();
     if (!holder) return;
@@ -1124,16 +1133,16 @@ function renderStudio(poem) {
     `;
   } else if (state.railTab === 'artwork') {
     const subTabs = [
-      { id: 'story', label: `Illustrations (${grps.story.length})` },
-      { id: 'folk', label: `Folk & Craft (${grps.folk.length})` },
-      { id: 'print', label: `Print & Paper (${grps.print.length})` },
-      { id: 'line', label: `Line & Ink (${grps.line.length})` },
-      { id: 'night', label: `Night (${grps.night.length})` },
-      { id: 'minimal', label: `Minimal (${grps.minimal.length})` },
-      { id: 'sketch', label: `Sketches (${grps.sketch.length})` },
-      { id: 'light', label: `Light (${grps.light.length})` },
-      { id: 'editorial', label: `Book & Ink (${grps.editorial.length})` },
-      { id: 'canvas', label: `Watercolour (${grps.canvas.length})` },
+      { id: 'story', label: 'Illustrations' },
+      { id: 'folk', label: 'Folk & Craft' },
+      { id: 'print', label: 'Print & Paper' },
+      { id: 'line', label: 'Line & Ink' },
+      { id: 'night', label: 'Night' },
+      { id: 'minimal', label: 'Minimal' },
+      { id: 'sketch', label: 'Sketches' },
+      { id: 'light', label: 'Light' },
+      { id: 'editorial', label: 'Book & Ink' },
+      { id: 'canvas', label: 'Watercolour' },
       { id: 'photo', label: 'Your Photo' }
     ];
 
@@ -1173,14 +1182,12 @@ function renderStudio(poem) {
     const placementHTML = st.bgMode !== 'solid' ? `
       <div class="placement">
         <div class="sec-lbl">Placement</div>
-        <div class="pills fill">
-          ${LAYOUTS.map(ly => `<button type="button" class="choice-pill${st.layout === ly.id ? ' on' : ''}" data-layout="${ly.id}">${esc(ly.label)}</button>`).join('')}
-        </div>
-        <label class="range-row${canWash ? '' : ' is-off'}">
+        ${picRow(LAYOUTS, PLACEMENT, st.layout, 'data-layout', 'Placement')}
+        ${canWash ? `<label class="range-row">
           <span>Softness</span>
-          <input id="wash-range" class="range-in" type="range" min="0" max="65" value="${st.wash}" ${canWash ? '' : 'disabled'} aria-label="Backdrop softness">
-          <output>${canWash ? st.wash + '%' : 'Full canvas only'}</output>
-        </label>
+          <input id="wash-range" class="range-in" type="range" min="0" max="65" value="${st.wash}" aria-label="Softness of the picture">
+          <output>${st.wash}%</output>
+        </label>` : ''}
       </div>
     ` : '';
 
@@ -1191,63 +1198,41 @@ function renderStudio(poem) {
     `;
   } else if (state.railTab === 'fonts') {
     const firstLine = stripEmphasis(String(poem.body || '').split('\n').find(l => l.trim()) || '').trim().slice(0, 30);
-    const hasOffset = st.textX !== 0 || st.textY !== 0;
     const shown = state.fontCat === 'all' ? FONTS : FONTS.filter(f => f.cat === state.fontCat);
+    const inked = !['torn', 'cutout-line', 'cutout-word'].includes(st.textStyle);
+    const freeAlign = st.textStyle !== 'torn' && !(st.bgMode !== 'solid' && st.layout === 'side');
     railContent = `
-      <div class="subtabs" role="group" aria-label="Categories">${[{ id: 'setting', label: 'Size & style' }, ...FONT_CATS].map(fc => `<button type="button" class="subtab${state.fontCat === fc.id ? ' on' : ''}" data-fontcat="${fc.id}">${esc(fc.label)}</button>`).join('')}</div>
-      ${state.fontCat === 'setting' ? `
-      <div>
-        <div class="sec-lbl">Text size &amp; line rhythm</div>
-        <div class="pills" style="margin-bottom:6px;">
-          ${TEXT_SIZES.map(ts => `<button type="button" class="choice-pill${st.textSize === ts.id ? ' on' : ''}" data-textsize="${ts.id}">${esc(ts.label)}</button>`).join('')}
-        </div>
-        <div class="pills">
-          ${RHYTHMS.map(rh => `<button type="button" class="choice-pill${st.rhythm === rh.id ? ' on' : ''}" data-rhythm="${rh.id}">${esc(rh.label)}</button>`).join('')}
-        </div>
+      <div class="seg wide-seg" role="group" aria-label="Type">
+        <button type="button" class="seg-btn${state.typeSeg === 'font' ? ' on' : ''}" data-typeseg="font" aria-pressed="${state.typeSeg === 'font'}">Font</button>
+        <button type="button" class="seg-btn${state.typeSeg === 'setting' ? ' on' : ''}" data-typeseg="setting" aria-pressed="${state.typeSeg === 'setting'}">Setting</button>
       </div>
-      <div>
-        <div class="sec-lbl">Alignment</div>
-        <div class="pills">
-          ${['left', 'center', 'right'].map(al => `<button type="button" class="choice-pill${st.align === al ? ' on' : ''}" data-align="${al}" style="text-transform:capitalize">${al}</button>`).join('')}
+      ${state.typeSeg === 'setting' ? `
+      <div data-grid="setting" class="stack">
+        <div><div class="sec-lbl">Title</div>${picRow(TITLE_STYLES, TITLE, st.titleStyle, 'data-titlestyle', 'Title style')}</div>
+        <div><div class="sec-lbl">Lines</div>${picRow(TEXT_STYLES, LINE, st.textStyle, 'data-textstyle', 'Line style')}</div>
+        ${freeAlign ? `<div><div class="sec-lbl">Alignment</div>${picRow([{ id: 'left', label: 'Left' }, { id: 'center', label: 'Centre' }, { id: 'right', label: 'Right' }], ALIGN, st.align, 'data-align', 'Alignment')}</div>` : ''}
+        <div>
+          <div class="sec-lbl">Size</div>
+          <div class="pills">${TEXT_SIZES.map(ts => `<button type="button" class="choice-pill${st.textSize === ts.id ? ' on' : ''}" data-textsize="${ts.id}" aria-pressed="${st.textSize === ts.id}">${esc(ts.label)}</button>`).join('')}</div>
         </div>
-      </div>
-      <div>
-        <div class="sec-lbl">Ink colour</div>
-        <div class="ink-swatches">
-          ${INK_SWATCHES.map(sw => `
-            <button type="button" class="ink-dot${st.inkColor === sw.id ? ' on' : ''}" data-ink="${sw.id}" title="${esc(sw.label)}" aria-label="${esc(sw.label)}" style="${sw.hex ? `background:${sw.hex};` : 'background:var(--surface-2);color:var(--ink);'}">${sw.hex ? '' : 'A'}</button>
-          `).join('')}
+        <div>
+          <div class="sec-lbl">Line spacing</div>
+          <div class="pills">${RHYTHMS.map(rh => `<button type="button" class="choice-pill${st.rhythm === rh.id ? ' on' : ''}" data-rhythm="${rh.id}" aria-pressed="${st.rhythm === rh.id}">${esc(rh.label)}</button>`).join('')}</div>
         </div>
-      </div>
-      <div>
-        <div class="sec-lbl">Title style</div>
-        <div class="pills">
-          ${TITLE_STYLES.map(ts => `<button type="button" class="choice-pill${st.titleStyle === ts.id ? ' on' : ''}" data-titlestyle="${ts.id}">${esc(ts.label)}</button>`).join('')}
-        </div>
-      </div>
-      <div>
-        <div class="sec-lbl">Line style</div>
-        <div class="pills">
-          ${TEXT_STYLES.map(ts => `<button type="button" class="choice-pill${st.textStyle === ts.id ? ' on' : ''}" data-textstyle="${ts.id}">${esc(ts.label)}</button>`).join('')}
-        </div>
-      </div>
-      <div>
-        <div class="sec-lbl">Textbox position</div>
-        <div class="pills">
-          <span class="hint" style="align-self:center;">Drag the <strong>Move</strong> handle on the poem</span>
-          ${hasOffset ? `<button type="button" class="choice-pill on" id="reset-pos-btn">Reset center</button>` : ''}
-        </div>
-      </div>
-      ` : `
+        ${inked ? `<div>
+          <div class="sec-lbl">Ink</div>
+          <div class="ink-swatches">${INK_SWATCHES.map(sw => `<button type="button" class="ink-dot${st.inkColor === sw.id ? ' on' : ''}" data-ink="${sw.id}" title="${esc(sw.label)}" aria-label="${esc(sw.label)}" aria-pressed="${st.inkColor === sw.id}" style="${sw.hex ? `background:${sw.hex};` : 'background:var(--surface-2);color:var(--ink);'}">${sw.hex ? '' : 'A'}</button>`).join('')}</div>
+        </div>` : ''}
+      </div>` : `
+      <div class="subtabs" role="group" aria-label="Fonts">${FONT_CATS.map(fc => `<button type="button" class="subtab${state.fontCat === fc.id ? ' on' : ''}" aria-pressed="${state.fontCat === fc.id}" data-fontcat="${fc.id}">${esc(fc.label)}</button>`).join('')}</div>
       <div class="font-list" data-grid="font-${state.fontCat}">
         ${shown.map(fn => `
-          <button type="button" class="font-btn${st.font.id === fn.id ? ' on' : ''}" data-font="${fn.id}">
+          <button type="button" class="font-btn${st.font.id === fn.id ? ' on' : ''}" aria-pressed="${st.font.id === fn.id}" data-font="${fn.id}">
             <span class="font-sample" style="font-family:${fn.fam};font-weight:${fn.titleW};font-style:${fn.italicTitle ? 'italic' : 'normal'}">${esc(fn.cat === 'hindi' && !isHindi(firstLine) ? 'कुछ शब्द, कुछ ख़ामोशी' : firstLine || fn.name)}</span>
             <span class="font-cat">${esc(fn.name)}</span>
           </button>
         `).join('')}
-      </div>
-      `}
+      </div>`}
     `;
   } else if (state.railTab === 'style') {
     railContent = `
@@ -1284,13 +1269,11 @@ function renderStudio(poem) {
           <button type="button" class="finish-btn${!st.charm ? ' on' : ''}" data-charm=""><span class="finish-th is-none"></span><span>None</span></button>
           ${CHARMS.map(x => `<button type="button" class="finish-btn${st.charm === x.id ? ' on' : ''}" data-charm="${x.id}"><span class="finish-th"><img src="${finishSrc(x.id)}" alt="" loading="lazy"></span><span>${esc(x.label)}</span></button>`).join('')}
         </div>
-        ${st.charm ? `<div class="pills" style="margin-top:8px;">${CHARM_POS.map(p => `<button type="button" class="choice-pill${st.charmPos === p.id ? ' on' : ''}" data-charmpos="${p.id}">${esc(p.label)}</button>`).join('')}</div>` : ''}
+        ${st.charm ? '<p class="hint" style="margin-top:8px">Drag it on the page to another corner.</p>' : ''}
       </div>
       <div>
         <div class="sec-lbl">Frame</div>
-        <div class="pills">
-          ${FRAMES.map(fr => `<button type="button" class="choice-pill${st.frame === fr.id ? ' on' : ''}" data-frame="${fr.id}">${esc(fr.label)}</button>`).join('')}
-        </div>
+        ${picRow(FRAMES, FRAME, st.frame, 'data-frame', 'Frame')}
       </div>
     `;
   } else {
@@ -1364,7 +1347,10 @@ function renderStudio(poem) {
   const changed = changedLayers(poem);
   const lookName = LOOKS.find(l => l.id === poem.look)?.name;
   const layerNames = { picture: 'picture', type: 'type', page: 'page' };
-  const railNote = state.railTab === 'looks' && lookName
+  const advice = ['fonts', 'style'].includes(state.railTab) ? inkAdvice(poem) : null;
+  const railNote = advice
+    ? `<span role="status">This ink is hard to read here.</span><button type="button" class="note-btn" id="ink-fix" data-fix="${advice.id}">Use ${esc(advice.label)}</button>`
+    : state.railTab === 'looks' && lookName
     ? `<span>${changed.length ? `<b>${esc(lookName)}</b>, with your own ${changed.map(c => layerNames[c]).join(changed.length > 2 ? ', ' : ' and ')}` : `<b>${esc(lookName)}</b>, as designed`}</span>${changed.length ? '<button type="button" class="note-btn" id="look-reset-btn">Reset</button>' : ''}`
     : `<span>${activeTab.note}</span>`;
 
@@ -1407,7 +1393,7 @@ function renderStudio(poem) {
 
         <div class="stage-canvas-wrap">
           ${carouselNavHTML}
-          <div class="sheet-holder" id="sheet-holder">${renderSheetHTML(poem, { editable: !st.carousel, editingRich: state.editingRich, slide: activeSlide })}</div>
+          <div class="sheet-holder" id="sheet-holder">${renderSheetHTML(poem, { editable: !st.carousel, editingRich: state.editingRich, design: state.mode === 'design', slide: activeSlide })}</div>
         </div>
 
         ${renderHint()}
@@ -1862,7 +1848,7 @@ function setMode(mode) {
   state.mobileSheetOpen = false;
   state.sheetTall = false;
   render();
-  if (mode === 'write' && !getActivePoem().carousel) document.getElementById('rich-tap-edit') ? document.getElementById('rich-tap-edit').click() : document.getElementById('poem-body-in')?.focus();
+  if (mode === 'write' && !getActivePoem().carousel) editWords();
 }
 function setTab(tab) { state.railTab = tab; render(); revealSubtab(); }
 function closeSheet() { state.mobileSheetOpen = false; state.sheetTall = false; render(); }
@@ -2017,12 +2003,7 @@ const CLICKS = [
   ['#delete-btn, #m-delete-btn', doDelete],
 
   // Rich views (cut-outs, drop cap, inline emphasis) open for editing on tap
-  ['#rich-tap-edit', () => {
-    state.editingRich = true;
-    render();
-    const ta = document.getElementById('poem-body-in');
-    if (ta) { ta.focus(); ta.setSelectionRange(ta.value.length, ta.value.length); }
-  }],
+  ['#rich-tap-edit, [data-grab=text]', tapWords],
 
   // Inspector navigation
   ['[data-docktab]', el => {
@@ -2036,6 +2017,8 @@ const CLICKS = [
   ['#sheet-grabber', () => { state.sheetTall = !state.sheetTall; render(); }],
   ['[data-railtab]', el => setTab(el.dataset.railtab)],
   ['[data-artsub]', el => { state.artSub = el.dataset.artsub; render(); revealSubtab(); }],
+  ['[data-typeseg]', el => { state.typeSeg = el.dataset.typeseg; render(); revealSubtab(); }],
+  ['#ink-fix', el => patchActive({ inkColor: el.dataset.fix })],
   ['[data-fontcat]', el => { state.fontCat = el.dataset.fontcat; render(); revealSubtab(); }],
 
   // Looks and finishes
@@ -2046,7 +2029,6 @@ const CLICKS = [
   ['[data-lookcat]', el => { state.lookCat = el.dataset.lookcat; state.looksShown = 16; render(); revealSubtab(); }],
   ['[data-atmos]', el => pickFinish('atmos', el.dataset.atmos)],
   ['[data-light]', el => pickFinish('light', el.dataset.light)],
-  ['[data-charmpos]', el => patchActive({ charmPos: el.dataset.charmpos })],
   ['[data-charm]', el => pickFinish('charm', el.dataset.charm)],
 
   // Artwork
@@ -2060,7 +2042,6 @@ const CLICKS = [
   ['[data-font]', el => patchWhenReady(fontReady(el.dataset.font, getActivePoem().body), { font: el.dataset.font })],
   ['[data-titlestyle]', el => { state.editingRich = false; patchActive({ titleStyle: el.dataset.titlestyle }); }],
   ['[data-textstyle]', el => { state.editingRich = false; patchActive({ textStyle: el.dataset.textstyle }); }],
-  ['#reset-pos-btn', () => { patchActive({ textX: 0, textY: 0 }, { fade: false }); toast('Centered textbox'); }],
   ['[data-ink]', el => patchActive({ inkColor: el.dataset.ink })],
   ['[data-texture]', el => patchActive({ texture: el.dataset.texture })],
   ['[data-rhythm]', el => patchActive({ rhythm: el.dataset.rhythm })],
@@ -2131,45 +2112,154 @@ document.addEventListener('focusout', e => {
   }, 130);
 });
 
-// Drag the textbox by its Move handle
-let drag = null;
+/* ---------- Picking things up: hold the words or a keepsake, then move ---------- */
+
+let grab = null;
+let grabbed = false; // swallows the click that ends a drag
+const hum = ms => { if (!calm()) navigator.vibrate?.(ms); };
+
+function textBounds(col) {
+  const r = document.createRange();
+  r.selectNodeContents(col);
+  const boxes = [...r.getClientRects()].filter(b => b.width > 1 && b.height > 1);
+  if (!boxes.length) return col.getBoundingClientRect();
+  return { left: Math.min(...boxes.map(b => b.left)), right: Math.max(...boxes.map(b => b.right)), top: Math.min(...boxes.map(b => b.top)), bottom: Math.max(...boxes.map(b => b.bottom)) };
+}
+function showGuides(sheet, x, y) {
+  let g = sheet.querySelector('.guides');
+  if (!g) {
+    g = document.createElement('div');
+    g.className = 'guides';
+    g.setAttribute('data-morph-ignore', '');
+    g.innerHTML = '<i class="gx"></i><i class="gy"></i>';
+    sheet.appendChild(g);
+  }
+  g.classList.toggle('on-x', x);
+  g.classList.toggle('on-y', y);
+}
+function liftGrab() {
+  if (!grab || grab.live) return;
+  clearTimeout(grab.timer);
+  clearTimeout(peekTimer);
+  grab.live = true;
+  grab.el.classList.add('is-dragging');
+  grab.sheet.classList.add('is-grabbing');
+  hum(10);
+  if (grab.kind === 'text') {
+    const b = textBounds(grab.el);
+    const s = grab.sheet.getBoundingClientRect();
+    grab.midX = (b.left + b.right) / 2 - (s.left + s.right) / 2;
+    grab.midY = (b.top + b.bottom) / 2 - (s.top + s.bottom) / 2;
+    showGuides(grab.sheet, false, false);
+  }
+}
 document.addEventListener('pointerdown', e => {
-  const handle = e.target.closest?.('#drag-text-handle');
-  const col = document.getElementById('movable-text-col');
-  const sheet = document.getElementById('active-poem-sheet');
+  grabbed = false;
+  const el = e.target.closest?.('[data-grab]');
   const poem = getActivePoem();
-  if (!handle || !col || !sheet || !poem) return;
-  e.preventDefault();
-  handle.setPointerCapture(e.pointerId);
-  const baseX = Number.isFinite(poem.textX) ? poem.textX : 0;
-  const baseY = Number.isFinite(poem.textY) ? poem.textY : 0;
-  drag = { col, sheet, startX: e.clientX, startY: e.clientY, baseX, baseY, x: baseX, y: baseY };
-  col.classList.add('is-dragging');
+  if (!el || !poem || e.button !== 0 || state.mode !== 'design') return;
+  const sheet = document.getElementById('active-poem-sheet');
+  grab = {
+    kind: el.dataset.grab, el, sheet, poem, id: e.pointerId, mouse: e.pointerType === 'mouse',
+    sx: e.clientX, sy: e.clientY, x: poem.textX || 0, y: poem.textY || 0, baseX: poem.textX || 0, baseY: poem.textY || 0, live: false
+  };
+  grab.timer = setTimeout(liftGrab, grab.mouse ? 260 : 380);
 });
 document.addEventListener('pointermove', e => {
-  if (!drag) return;
-  // Offsets are stored as a percentage of the text column, so divide by its on-screen size.
-  const rect = drag.col.getBoundingClientRect();
-  const clamp = v => Math.max(-44, Math.min(44, Math.round(v)));
-  let nx = clamp(drag.baseX + ((e.clientX - drag.startX) / Math.max(1, rect.width)) * 100);
-  let ny = clamp(drag.baseY + ((e.clientY - drag.startY) / Math.max(1, rect.height)) * 100);
-  // Gentle magnetic snap near center
-  if (Math.abs(nx) <= 2) nx = 0;
-  if (Math.abs(ny) <= 2) ny = 0;
-  drag.x = nx;
-  drag.y = ny;
-  drag.col.style.setProperty('--tx', nx + '%');
-  drag.col.style.setProperty('--ty', ny + '%');
+  if (!grab || e.pointerId !== grab.id) return;
+  const dx = e.clientX - grab.sx;
+  const dy = e.clientY - grab.sy;
+  if (!grab.live) {
+    if (Math.hypot(dx, dy) < (grab.mouse ? 5 : 10)) return;
+    if (!grab.mouse) { clearTimeout(grab.timer); grab = null; return; }
+    liftGrab();
+  }
+  if (grab.kind === 'charm') {
+    const k = grab.sheet.getBoundingClientRect().width / grab.sheet.offsetWidth || 1;
+    grab.el.style.translate = `${dx / k}px ${dy / k}px`;
+    return;
+  }
+  const box = grab.el.getBoundingClientRect();
+  const clamp = v => Math.max(-44, Math.min(44, Math.round(v * 10) / 10));
+  let px = dx;
+  let py = dy;
+  const onX = Math.abs(grab.midX + dx) < 7;
+  const onY = Math.abs(grab.midY + dy) < 7;
+  if (onX) px = -grab.midX;
+  if (onY) py = -grab.midY;
+  let nx = clamp(grab.baseX + (px / Math.max(1, box.width)) * 100);
+  let ny = clamp(grab.baseY + (py / Math.max(1, box.height)) * 100);
+  if (!onX && Math.abs(nx) < 1.5) nx = 0;
+  if (!onY && Math.abs(ny) < 1.5) ny = 0;
+  if ((onX && !grab.onX) || (onY && !grab.onY)) hum(6);
+  grab.onX = onX;
+  grab.onY = onY;
+  grab.x = nx;
+  grab.y = ny;
+  grab.el.style.setProperty('--tx', nx + '%');
+  grab.el.style.setProperty('--ty', ny + '%');
+  showGuides(grab.sheet, onX, onY);
 });
-function endDrag() {
-  if (!drag) return;
-  const { col, x, y } = drag;
-  drag = null;
-  col.classList.remove('is-dragging');
-  patchActive({ textX: x, textY: y }, { fade: false });
+function dropGrab(e) {
+  if (!grab || (e.pointerId !== undefined && e.pointerId !== grab.id)) return;
+  const was = grab;
+  grab = null;
+  clearTimeout(was.timer);
+  if (!was.live) return;
+  grabbed = true;
+  setTimeout(() => { grabbed = false; }, 80);
+  was.el.classList.remove('is-dragging');
+  was.sheet.classList.remove('is-grabbing');
+  was.sheet.querySelector('.guides')?.remove();
+  if (was.kind === 'text') { patchActive({ textX: was.x, textY: was.y }, { fade: false }); return; }
+  was.el.style.translate = '';
+  const r = was.sheet.getBoundingClientRect();
+  const corner = (e.clientY < r.top + r.height / 2 ? 't' : 'b') + (e.clientX < r.left + r.width / 2 ? 'l' : 'r');
+  hum(6);
+  if (e.type !== 'pointercancel') patchActive({ charmPos: corner });
 }
-document.addEventListener('pointerup', endDrag);
-document.addEventListener('pointercancel', endDrag);
+document.addEventListener('pointerup', dropGrab);
+document.addEventListener('pointercancel', dropGrab);
+document.addEventListener('touchmove', e => { if (grab?.live && e.cancelable) e.preventDefault(); }, { passive: false });
+document.addEventListener('contextmenu', e => { if (grab || grabbed) e.preventDefault(); });
+document.addEventListener('click', e => { if (grabbed && e.isTrusted) { grabbed = false; e.preventDefault(); e.stopPropagation(); } }, true);
+
+// A tap edits the words. Once they have been moved, a second tap puts them back.
+let tapWait = 0;
+function editWords() {
+  if (!desktopStage.matches && state.mode === 'design') { state.mode = 'write'; localStorage.setItem(MODE_KEY, 'write'); state.mobileSheetOpen = false; state.sheetTall = false; }
+  state.editingRich = true;
+  render();
+  const ta = document.getElementById('poem-body-in') || document.getElementById('poem-title-in');
+  if (ta) { ta.focus(); ta.setSelectionRange(ta.value.length, ta.value.length); }
+}
+function tapWords() {
+  const poem = getActivePoem();
+  if (state.mode !== 'design' || !(poem.textX || poem.textY)) { editWords(); return; }
+  if (tapWait) { clearTimeout(tapWait); tapWait = 0; patchActive({ textX: 0, textY: 0 }, { fade: false }); return; }
+  document.getElementById('movable-text-col')?.classList.add('is-tapped');
+  tapWait = setTimeout(() => { tapWait = 0; editWords(); }, 260);
+}
+document.addEventListener('keydown', e => {
+  const el = e.target.closest?.('[data-grab]');
+  const poem = getActivePoem();
+  if (!el || !poem || e.target !== el) return;
+  const step = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1] }[e.key];
+  if (el.dataset.grab === 'charm') {
+    if (!step) return;
+    e.preventDefault();
+    const at = poem.charmPos && poem.charmPos !== 'tc' ? poem.charmPos : (resolveStyle(poem).charmPos === 'tc' ? 'tr' : resolveStyle(poem).charmPos);
+    patchActive({ charmPos: (step[1] ? (step[1] < 0 ? 't' : 'b') : at[0]) + (step[0] ? (step[0] < 0 ? 'l' : 'r') : at[1]) });
+    return;
+  }
+  if (e.key === 'Enter') { e.preventDefault(); editWords(); return; }
+  if (e.key === '0') { e.preventDefault(); patchActive({ textX: 0, textY: 0 }, { fade: false }); return; }
+  if (!step) return;
+  e.preventDefault();
+  const by = e.shiftKey ? 5 : 1;
+  const hold = v => Math.max(-44, Math.min(44, v));
+  patchActive({ textX: hold((poem.textX || 0) + step[0] * by), textY: hold((poem.textY || 0) + step[1] * by) }, { fade: false });
+});
 
 window.addEventListener('keydown', e => {
   if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 's' && state.activeId) {

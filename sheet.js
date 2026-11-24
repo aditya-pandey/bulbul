@@ -1,8 +1,7 @@
-import { RHYTHMS, computeTypeScale, finishSrc, resolveStyle } from './data.js';
+import { CHARMS, RHYTHMS, computeTypeScale, finishSrc, resolveStyle } from './data.js';
 
 export const SHEET_W = { 'rat-4-5': 458, 'rat-1-1': 458, 'rat-9-16': 350, 'rat-2-3': 408, 'rat-auto': 520 };
 export const SHEET_RATIO = { 'rat-4-5': 4 / 5, 'rat-1-1': 1, 'rat-9-16': 9 / 16, 'rat-2-3': 2 / 3 };
-const MOVE_ICON = `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="5 9 2 12 5 15"/><polyline points="9 5 12 2 15 5"/><polyline points="15 19 12 22 9 19"/><polyline points="19 9 22 12 19 15"/><line x1="2" y1="12" x2="22" y2="12"/><line x1="12" y1="2" x2="12" y2="22"/></svg>`;
 
 export function esc(s) {
   return String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
@@ -130,7 +129,7 @@ function ratioClass(ratio) {
 }
 
 // The poster, at a fixed base width (see SHEET_W). Preview, thumbnails, looks and PNG export all use this markup.
-export function renderSheetHTML(poem, { editable = false, editingRich = false, slide = null, thumb = false, ratio = '' } = {}) {
+export function renderSheetHTML(poem, { editable = false, editingRich = false, design = false, slide = null, thumb = false, ratio = '' } = {}) {
   const st = resolveStyle(poem);
   const pal = st.pal;
   const fn = st.font;
@@ -174,7 +173,9 @@ export function renderSheetHTML(poem, { editable = false, editingRich = false, s
   const isAnyCut = isLineCut || isWordCut;
   const isLined = ['ruled', 'marker', 'blackout'].includes(st.textStyle);
   const hasEmphasis = /\*\*[^*]+\*\*|__[^_]+__|\*[^*]+\*/.test(cleanBody);
-  const useRichView = (isAnyCut || isLined || tStyle === 'dropcap' || hasEmphasis) && (!editable || (!editingRich && Boolean(cleanBody.trim())));
+  // In Design the words are for moving; a tap turns them back into a field.
+  const still = editable && design && !editingRich && Boolean(cleanBody.trim());
+  const useRichView = (still || isAnyCut || isLined || tStyle === 'dropcap' || hasEmphasis) && (!editable || (!editingRich && Boolean(cleanBody.trim())));
   const textAlign = (effLayout === 'side' || isTorn) ? 'left' : st.align;
   const sheetBg = `linear-gradient(145deg, ${pal.bg}, ${pal.bg2 || pal.bg})`;
 
@@ -222,12 +223,12 @@ export function renderSheetHTML(poem, { editable = false, editingRich = false, s
     innerTextHTML = `<div class="poem-cutout-block" ${editable ? 'id="rich-tap-edit" title="Tap to edit poem text"' : ''}>${tStrip}${bStrips}${sStrip}</div>`;
   } else {
     const titleHTML = showTitleBlock
-      ? (editable
+      ? (editable && !still
         ? `<input id="poem-title-in" class="poem-title-in${titleCls}" type="text" placeholder="Untitled poem…" value="${esc(poem.title)}" style="${fontTitleStyle}" aria-label="Poem title">`
         : (poem.title ? `<div class="poem-title-ro${titleCls}" style="${fontTitleStyle}">${esc(poem.title)}</div>` : ''))
       : '';
 
-    const showRule = showTitleBlock && tStyle !== 'highlight' && (editable || poem.title);
+    const showRule = showTitleBlock && tStyle !== 'highlight' && ((editable && !still) || poem.title);
     const ruleHTML = showRule
       ? `<div class="poem-rule" style="background:${pal.acc || pal.ink}"></div>`
       : '';
@@ -252,12 +253,9 @@ export function renderSheetHTML(poem, { editable = false, editingRich = false, s
 
   const tsCls = isTorn ? ' ts-torn' : isAnyCut ? ' ts-cutout' : '';
   const hasOff = st.textX !== 0 || st.textY !== 0;
-  const dragHandle = editable
-    ? `<button type="button" class="drag-handle" id="drag-text-handle" title="Drag to move textbox">${MOVE_ICON}<span>Move</span></button>`
-    : '';
   const wrappedInner = isTorn ? `<div class="poem-torn-scrap">${innerTextHTML}</div>` : innerTextHTML;
   const txStyle = `--tx:${st.textX}%;--ty:${st.textY}%;`;
-  const textCol = `<div ${editable ? 'id="movable-text-col" ' : ''}class="poem-text-col al-${textAlign}${effLayout === 'overlay' ? ' poem-overlay-pad' : ''}${tsCls}${hasOff ? ' has-offset' : ''}" style="${txStyle}">${dragHandle}${wrappedInner}</div>`;
+  const textCol = `<div ${editable ? 'id="movable-text-col" ' : ''}${still ? 'data-grab="text" tabindex="0" role="group" aria-label="Words on the page. Enter edits them, arrow keys move them, 0 puts them back." ' : ''}class="poem-text-col al-${textAlign}${effLayout === 'overlay' ? ' poem-overlay-pad' : ''}${tsCls}${hasOff ? ' has-offset' : ''}" style="${txStyle}">${wrappedInner}</div>`;
 
   const sideArtImg = imgSrc
     ? `<img${thumb ? ' loading="lazy"' : ''} decoding="sync" class="poem-side-img${imgBlend ? ' blend-mul' : ''}${imgContain ? ' is-contain' : ''}${imgVignette ? ' is-vignette' : ''}" src="${esc(imgSrc)}" alt="${esc(st.painting.name || 'Poem artwork')}" style="${imgFilter}">`
@@ -290,7 +288,7 @@ export function renderSheetHTML(poem, { editable = false, editingRich = false, s
   const lazy = thumb ? ' loading="lazy"' : '';
   const atmosHTML = st.atmos ? `<img class="poem-atmos" src="${finishSrc(st.atmos)}" alt=""${lazy}>` : '';
   const lightHTML = st.light ? `<img class="poem-light ${st.light}${pal.dark ? ' on-dark' : ''}" src="${finishSrc(st.light)}" alt=""${lazy}>` : '';
-  const charmHTML = st.charm ? `<img class="poem-charm ${st.charm} at-${st.charmPos}" src="${finishSrc(st.charm)}" alt=""${lazy}>` : '';
+  const charmHTML = st.charm ? `<img ${editable && design ? `data-grab="charm" tabindex="0" role="button" aria-label="${esc(CHARMS.find(c => c.id === st.charm).label)}. Arrow keys move it to another corner." draggable="false" ` : ''}class="poem-charm ${st.charm} at-${st.charmPos}" src="${finishSrc(st.charm)}" alt=""${lazy}>` : '';
   const artWrapCls = `${imgBlend ? ' is-blend' : ''}${imgContain ? ' is-contain' : ''}`;
   let contentHTML;
   if (effLayout === 'side') {

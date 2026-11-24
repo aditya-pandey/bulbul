@@ -10,6 +10,8 @@ const SHELL = [
   './gestures.js',
   './sheet.js',
   './share.js',
+  './pictos.js',
+  './contrast.js',
   './examples.js',
   './assets/home/branch.webp',
   './assets/home/bulbul.webp',

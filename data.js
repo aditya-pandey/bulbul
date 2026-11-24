@@ -232,7 +232,7 @@ export const FONTS = [
 ];
 
 export const FONT_CATS = [
-  { id: 'all', label: `All (${FONTS.length})` },
+  { id: 'all', label: 'All' },
   { id: 'classic', label: 'Classic' },
   { id: 'hand', label: 'Handwriting' },
   { id: 'mono', label: 'Typewriter' },
